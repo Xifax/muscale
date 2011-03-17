@@ -4,6 +4,7 @@ Created on Mar 9, 2011
 
 @author: Yadavito
 '''
+from utils.log import log
 
 class DataParser():
     
@@ -22,5 +23,6 @@ class DataParser():
                     series.append(float(element.strip()))
                 except:
                     parseErrors = parseErrors + 1
+                    log.debug('skipped value')
                     
         return (series, parseErrors)

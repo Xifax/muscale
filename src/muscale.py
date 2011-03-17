@@ -32,7 +32,7 @@ Created on Mar 9, 2011
 
 # R 2.12.2 i386                          http://goo.gl/nxOOk
 # PySide 1.0.0~beta3 QT 4.7.1            http://goo.gl/owd8y
-# PypeR 1.1.0                            http://goo.gl/5Q1JX
+# PypeR 1.1.0                            http://goo.gl/5Q1JX    (*)
 # PyWavelets 0.2.0                       http://goo.gl/9pp1Y
 # NumPy 1.5.1                            http://goo.gl/lZfYj
 # Matplotlib 1.0.1                       http://goo.gl/3cXp
@@ -42,6 +42,9 @@ Created on Mar 9, 2011
 # Chaco 3.4.1                            http://goo.gl/8SbDY
 # PyQtGraph                              http://goo.gl/hQjvW
 # R plot engine
+
+#-----------------NOTES------------------#
+#NB: (*) needs fix for python 2.6.6  DO NOT INSTALL using easy_install    (http://goo.gl/3js4H)
 
 ####################################
 #            Imports               #

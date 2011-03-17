@@ -18,10 +18,12 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 # own #
+from utils.log import log
 from utils.const import __name__,\
                         __version__,\
-                        WIDTH, HEIGTH
+                        WIDTH, HEIGHT
 from stats.parser import DataParser
+from gui.guiTool import ToolsFrame
 
 #from graphWidget import MPL_Widget
 
@@ -99,6 +101,9 @@ class MuScaleMainDialog(QMainWindow):
         # dialogs #
         self.openFileDialog = QFileDialog(self)
         
+        # external gui modules #
+        self.toolsFrame = ToolsFrame()
+        
         # temporary variables #
         self.currentDataSet = []
         
@@ -119,7 +124,7 @@ class MuScaleMainDialog(QMainWindow):
         self.setWindowTitle(__name__ + ' ' +  __version__)
         
         desktop = QApplication.desktop()
-        self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGTH)/2, WIDTH, HEIGTH) )
+        self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGHT)/2, WIDTH, HEIGHT) )
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     
@@ -162,6 +167,17 @@ class MuScaleMainDialog(QMainWindow):
         self.menuBar.addAction(aboutAction)
         self.menuBar.addAction(quitAction)
         
+        self.toggleSizeAction = QAction('&Full screen', self)
+        self.toggleSizeAction.triggered.connect(self.fullScreen)
+        self.toggleSizeAction.setCheckable(True)
+        
+        self.toggleTools = QAction('&Show tools', self)
+        self.toggleTools.triggered.connect(self.showTools)
+        self.toggleTools.setCheckable(True)
+        
+        self.toolBar.addAction(self.toggleSizeAction)
+        self.toolBar.addAction(self.toggleTools)
+        
         # load data actions #
         self.toggleManual.clicked.connect(self.toggleInputField)
         self.loadFromFile.clicked.connect(self.openFile)
@@ -170,6 +186,27 @@ class MuScaleMainDialog(QMainWindow):
         self.showTable.clicked.connect(self.updateTable)
     
 #------------------- actions ------------------#
+    
+    def fullScreen(self):
+        if self.toggleSizeAction.isChecked():
+            self.showFullScreen()
+        else:
+            self.showNormal()
+            
+    def showTools(self):
+        if self.toggleTools.isChecked():
+            self.toolsFrame.show()
+        else:
+            self.toolsFrame.hide()
+            
+    def resizeEvent(self, event):
+        self.updateToolsPosition()
+    
+    def moveEvent(self, event):
+        self.updateToolsPosition()
+        
+    def updateToolsPosition(self):
+        self.toolsFrame.move( self.x() + self.width() + 20, self.y() )
     
     def openFile(self):
         
@@ -181,6 +218,7 @@ class MuScaleMainDialog(QMainWindow):
                     self.showParseResults()
             except:
                 QMessageBox.warning(self, 'File error', 'Could not read specified file! ')
+                log.error('could not open ' + fileName)
                 
     def manualData(self):
         if self.manualDataInput.toPlainText() != '':
@@ -235,7 +273,6 @@ class MuScaleMainDialog(QMainWindow):
             del iterList
             self.showTable.setText('Hide table')
             
-            #self.updateGeometry()
         else:
             self.tableResults.setHidden(True)
             self.showTable.setText('Show table')

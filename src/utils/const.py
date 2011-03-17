@@ -13,4 +13,8 @@ __version__ = '0.0.1'
 
 #------- main window ------#
 WIDTH = 640
-HEIGTH = 489
+HEIGHT = 489
+
+#------ tools dialog ------#
+T_WIDTH = 300
+T_HEIGHT = HEIGHT
