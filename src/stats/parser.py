@@ -13,12 +13,13 @@ class DataParser():
         parseErrors = 0
 
         parsed = data.split(template)
+        
         parsed = [el for el in parsed if el != template]
         
         for element in parsed:
             if element != '':
                 try:
-                    series.append(float(element))
+                    series.append(float(element.strip()))
                 except:
                     parseErrors = parseErrors + 1
                     

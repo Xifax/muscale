@@ -21,7 +21,9 @@ from PySide.QtGui import *
 from utils.const import __name__,\
                         __version__,\
                         WIDTH, HEIGTH
-from stat.parser import DataParser
+from stats.parser import DataParser
+
+#from graphWidget import MPL_Widget
 
 ####################################
 #            GUI classes           #
@@ -47,16 +49,24 @@ class MuScaleMainDialog(QMainWindow):
         self.showGraph = QPushButton('Show graph')
         self.showTable = QPushButton('Show table')
         self.clearAll = QPushButton('Reset data')
+        # table
+        self.tableResults = QTableWidget()
+        # graph
+        #self.graphWidget = MPL_Widget()
         
+        self.separator = QFrame();   self.separator.setFrameShape(QFrame.HLine);    self.separator.setFrameShadow(QFrame.Sunken)
         
         self.loadDataLayout.addWidget(self.loadFromFile)
         self.loadDataLayout.addWidget(self.toggleManual)
         self.loadDataLayout.addWidget(self.manualDataInput)        
-        self.loadDataLayout.addWidget(self.loadManualData)        
+        self.loadDataLayout.addWidget(self.loadManualData)
+        self.loadDataLayout.addWidget(self.separator)       
         self.loadDataLayout.addWidget(self.parseResults)        
         self.loadDataLayout.addWidget(self.showGraph)        
         self.loadDataLayout.addWidget(self.showTable)        
-        self.loadDataLayout.addWidget(self.clearAll)        
+        self.loadDataLayout.addWidget(self.clearAll)
+        self.loadDataLayout.addWidget(self.tableResults)        
+        #self.loadDataLayout.addWidget(self.graphWidget)        
 
         self.loadDataGroup.setLayout(self.loadDataLayout)
         
@@ -110,6 +120,8 @@ class MuScaleMainDialog(QMainWindow):
         
         desktop = QApplication.desktop()
         self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGTH)/2, WIDTH, HEIGTH) )
+        
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     
     def initComponents(self):
         # load data items #
@@ -120,8 +132,15 @@ class MuScaleMainDialog(QMainWindow):
         self.showGraph.setHidden(True)
         self.showTable.setHidden(True)
         self.clearAll.setHidden(True)
+        self.separator.setHidden(True)
         
         self.parseResults.setAlignment(Qt.AlignCenter)
+        
+        #self.parseResults.setFrameShape(QFrame.Box);    self.parseResults.setFrameShadow(QFrame.Sunken)
+        
+        self.tableResults.setHidden(True)
+        self.tableResults.setColumnCount(1)
+        self.tableResults.setHorizontalHeaderLabels(['Value'])
         
         # dialogs #
         self.openFileDialog.setFileMode(QFileDialog.ExistingFile)
@@ -129,6 +148,9 @@ class MuScaleMainDialog(QMainWindow):
         
         # layouts #
         self.loadDataLayout.setAlignment(Qt.AlignCenter)
+        
+        # tabs #
+        self.statTools.setItemEnabled(1, False)
     
     def initActions(self):
         # menu actions #
@@ -145,6 +167,7 @@ class MuScaleMainDialog(QMainWindow):
         self.loadFromFile.clicked.connect(self.openFile)
         self.loadManualData.clicked.connect(self.manualData)
         self.clearAll.clicked.connect(self.resetData)
+        self.showTable.clicked.connect(self.updateTable)
     
 #------------------- actions ------------------#
     
@@ -160,32 +183,69 @@ class MuScaleMainDialog(QMainWindow):
                 QMessageBox.warning(self, 'File error', 'Could not read specified file! ')
                 
     def manualData(self):
-        self.currentDataSet = DataParser.getTimeSeriesFromTextData(self.manualDataInput.toPlainText())
-        self.showParseResults()
+        if self.manualDataInput.toPlainText() != '':
+            self.currentDataSet = DataParser.getTimeSeriesFromTextData(self.manualDataInput.toPlainText())
+            self.showParseResults()
+        else:
+            QMessageBox.warning(self, 'Input error', 'Please, at least enter something')
         
     def showParseResults(self):
         if len(self.currentDataSet) == 2:
-            self.parseResults.setText('Success! Loaded ' + str(len(self.currentDataSet[0])) +' values, errors: ' + str(self.currentDataSet[1]) )
+            self.parseResults.setText('Success! Loaded<b> ' + str(len(self.currentDataSet[0])) +'</b> values, errors: <b>' + str(self.currentDataSet[1]) + '</b>')
             self.parseResults.setVisible(True)
             self.showGraph.setVisible(True)
             self.showTable.setVisible(True)
             self.clearAll.setVisible(True)
+            self.separator.setVisible(True)
+                        
+            self.statTools.setItemEnabled(1, True)
         else:
             self.parseResults.setText('Could not parse at all!')
             self.parseResults.setVisible(True)
             
     def resetData(self):
         self.currentDataSet = []
-        self.loadManualData.setHidden(True)
         self.parseResults.setHidden(True)
         self.showGraph.setHidden(True)
         self.showTable.setHidden(True)
         self.clearAll.setHidden(True)
+        self.separator.setHidden(True)
+        
+        self.tableResults.setHidden(True)
+        self.showTable.setText('Show table')
+        
+        self.statTools.setItemEnabled(1, False)
+        
+    def updateTable(self):
+        
+        if self.tableResults.isHidden():
+            self.tableResults.setVisible(True)
+            
+            self.tableResults.clearContents()
+            self.tableResults.setRowCount(0)
+            
+            iterList = []
+            iterList = iterList + self.currentDataSet[0]; iterList.reverse()
+            
+            i = 0
+            for element in iterList:
+                self.tableResults.insertRow(i)
+                self.tableResults.setItem(i, 0, QTableWidgetItem(str(element)))
+            
+            del iterList
+            self.showTable.setText('Hide table')
+            
+            #self.updateGeometry()
+        else:
+            self.tableResults.setHidden(True)
+            self.showTable.setText('Show table')
         
     def toggleInputField(self):
         if self.toggleManual.isChecked():
             self.manualDataInput.setVisible(True)
             self.loadManualData.setVisible(True)
+            
+            self.manualDataInput.setFocus()
         else:
             self.manualDataInput.setHidden(True)
             self.loadManualData.setHidden(True)
