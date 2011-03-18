@@ -17,9 +17,9 @@ import PySide
 from PySide.QtCore import *
 from PySide.QtGui import *
 from stats.pyper import *
-from pyqtgraph.PlotWidget import *
-from pyqtgraph.graphicsItems import *
 import pywt
+#from pyqtgraph.PlotWidget import *
+#from pyqtgraph.graphicsItems import *
 
 #from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
 #import PySide.QtSvg
@@ -64,8 +64,6 @@ class MuScaleMainDialog(QMainWindow):
         self.showGraph = QPushButton('Show graph')
         self.showTable = QPushButton('Show table')
         self.clearAll = QPushButton('Reset data')
-        # table
-        self.tableResults = QTableWidget()
         
         self.separator = QFrame();   self.separator.setFrameShape(QFrame.HLine);    self.separator.setFrameShadow(QFrame.Sunken)
         
@@ -78,7 +76,7 @@ class MuScaleMainDialog(QMainWindow):
         self.loadDataLayout.addWidget(self.showGraph)        
         self.loadDataLayout.addWidget(self.showTable)        
         self.loadDataLayout.addWidget(self.clearAll)
-        self.loadDataLayout.addWidget(self.tableResults)         
+        #self.loadDataLayout.addWidget(self.tableResults)         
 
         self.loadDataGroup.setLayout(self.loadDataLayout)
         
@@ -106,6 +104,12 @@ class MuScaleMainDialog(QMainWindow):
         
         self.modelGroup.setLayout(self.modelLayout)
         
+        # model implementation #
+        self.implementGroup = QGroupBox('Model implementation')
+        self.implementLayout = QGridLayout()
+        
+        self.implementGroup.setLayout(self.implementLayout)
+        
         # menus, toolbars, layouts & composition #
         self.centralWidget = QWidget(self)
         
@@ -113,6 +117,7 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.addItem(self.loadDataGroup, 'Loading data')
         self.statTools.addItem(self.decompGroup, 'Analyzing data')
         self.statTools.addItem(self.modelGroup, 'Multiscale model')
+        self.statTools.addItem(self.implementGroup, 'Results')
         
         self.menuBar = QMenuBar()
         self.toolBar = QToolBar()
@@ -167,7 +172,6 @@ class MuScaleMainDialog(QMainWindow):
         self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGHT)/2, WIDTH, HEIGHT) )
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        #self.setWindowIcon(QIcon('../res/icons/stats.png'))
         self.setWindowIcon(QIcon('../res/icons/plot.png'))
     
     def initComponents(self):
@@ -182,12 +186,6 @@ class MuScaleMainDialog(QMainWindow):
         self.separator.setHidden(True)
         
         self.parseResults.setAlignment(Qt.AlignCenter)
-        
-        #self.parseResults.setFrameShape(QFrame.Box);    self.parseResults.setFrameShadow(QFrame.Sunken)
-        
-        self.tableResults.setHidden(True)
-        self.tableResults.setColumnCount(1)
-        self.tableResults.setHorizontalHeaderLabels(['Value'])
         
         # wavelets #
         self.comboWavelet.addItems(pywt.families())
@@ -214,9 +212,11 @@ class MuScaleMainDialog(QMainWindow):
         # tabs #
         self.statTools.setItemEnabled(1, False)
         self.statTools.setItemEnabled(2, False)
+        self.statTools.setItemEnabled(3, False)
         
         # etc #
         self.trayIcon.setIcon(QIcon('../res/icons/plot.png'))
+        self.toolBar.setIconSize(QSize(48,48))
     
     def initActions(self):
         # menu actions #
@@ -232,16 +232,19 @@ class MuScaleMainDialog(QMainWindow):
         self.toggleSizeAction.triggered.connect(self.fullScreen)
         self.toggleSizeAction.setCheckable(True)
         self.toggleSizeAction.setIcon(QIcon('../res/icons/full.png'))
-        #self.toggleSizeAction.setIconText('Full')
         
         self.toggleTools = QAction('Show tools', self)
         self.toggleTools.triggered.connect(self.showTools)
         self.toggleTools.setCheckable(True)
-        self.toggleTools.setIcon(QIcon('../res/icons/tools.png'))
-        #self.toggleTools.setIconText('Tools')
+        self.toggleTools.setIcon(QIcon('../res/icons/tool.png'))
+        
+        launchWizard = QAction('Launch wizard', self)
+        launchWizard.triggered.connect(self.showWizard)
+        launchWizard.setIcon(QIcon('../res/icons/wizard.ico'))
         
         self.toolBar.addAction(self.toggleSizeAction)
         self.toolBar.addAction(self.toggleTools)
+        self.toolBar.addAction(launchWizard)
         
         # load data actions #
         self.toggleManual.clicked.connect(self.toggleInputField)
@@ -324,7 +327,7 @@ class MuScaleMainDialog(QMainWindow):
         self.clearAll.setHidden(True)
         self.separator.setHidden(True)
         
-        self.tableResults.setHidden(True)
+        self.toolsFrame.tableWidget.setRowCount(0)
         self.showTable.setText('Show table')
         
         self.statTools.setItemEnabled(1, False)
@@ -337,27 +340,18 @@ class MuScaleMainDialog(QMainWindow):
         
     def updateTable(self):
         
-        if self.tableResults.isHidden():
-            self.tableResults.setVisible(True)
-            
-            self.tableResults.clearContents()
-            self.tableResults.setRowCount(0)
-            
-            iterList = []
-            iterList = iterList + self.currentDataSet[0]; iterList.reverse()
-            
-            i = 0
-            for element in iterList:
-                self.tableResults.insertRow(i)
-                self.tableResults.setItem(i, 0, QTableWidgetItem(str(element)))
-            
-            del iterList
+        if self.showTable.text() == 'Show table':
+            self.toolsFrame.updateTable(self.currentDataSet[0])
+            self.toolsFrame.show()
+            self.toolsFrame.toolTabs.setCurrentIndex(2)
             self.showTable.setText('Hide table')
             
+            self.toggleTools.setChecked(True)
         else:
-            self.tableResults.setHidden(True)
+            self.toolsFrame.hide()
             self.showTable.setText('Show table')
-        
+            self.toggleTools.setChecked(False)
+                
     def toggleInputField(self):
         if self.toggleManual.isChecked():
             self.manualDataInput.setVisible(True)
@@ -488,6 +482,11 @@ class MuScaleMainDialog(QMainWindow):
             if widget.isChecked():
                 self.multiModel[level] = self.modelLayout.itemAtPosition(level * 3 + 1 , 0).widget().currentText()
         print self.multiModel
+        if self.multiModel == {}:
+            QMessageBox.warning(self, 'Undefined model', 'You haven not specified any methods at all!')
+            
+    def showWizard(self):
+        pass
     
     def quitApplication(self):
         self.close()

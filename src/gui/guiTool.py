@@ -9,8 +9,8 @@ Created on Mar 17, 2011
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from pyqtgraph.PlotWidget import *
-from pyqtgraph.graphicsItems import *
+#from pyqtgraph.PlotWidget import *
+#from pyqtgraph.graphicsItems import *
 
 # own #
 from utils.const import T_WIDTH, T_HEIGHT
@@ -84,6 +84,7 @@ class ToolsFrame(QWidget):
     def initComponents(self):
         self.toolTabs.setTabPosition(QTabWidget.TabPosition.South)
         
+        # r console #
         self.enterButton.setText('enter')
         self.enterButton.setCheckable(True)
         self.clearButton.setText('clear')
@@ -92,6 +93,10 @@ class ToolsFrame(QWidget):
         
         self.rConsole.setReadOnly(True)
         self.namesList.setHidden(True)
+        
+        # table $
+        self.tableWidget.setColumnCount(1)
+        self.tableWidget.setHorizontalHeaderLabels(['Value'])
         
     def initActions(self):
         self.rInput.returnPressed.connect(self.rCommand)
@@ -133,13 +138,26 @@ class ToolsFrame(QWidget):
             
     def updateNamespace(self):
         self.namesList.clear()
-        #print self.R('objects()')
         for object in  self.R('objects()').split(self.R.newline)[1:]:
             if object != self.R.newline:
                 for e in object.split(' '):
                     if e != '[1]' and e != '':
                         item = QListWidgetItem(e.strip('"')); item.setTextAlignment(Qt.AlignCenter)
                         self.namesList.addItem(item)
-
+                        
+    def updateTable(self, dataSet):
+            
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(0)
+        
+        iterList = []
+        iterList = iterList + dataSet; iterList.reverse()
+        
+        i = 0
+        for element in iterList:
+            self.tableWidget.insertRow(i)
+            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(element)))
+        
+        del iterList
             
         
