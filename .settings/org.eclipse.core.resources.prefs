@@ -1,8 +1,31 @@
-#Thu Mar 17 21:03:01 MSK 2011
+#Fri Mar 18 04:42:02 MSK 2011
 eclipse.preferences.version=1
 encoding//src/gui/guiMain.py=utf-8
 encoding//src/gui/guiTool.py=utf-8
 encoding//src/muscale.py=utf-8
+encoding//src/pyqtgraph/GradientWidget.py=utf-8
+encoding//src/pyqtgraph/GraphicsView.py=utf-8
+encoding//src/pyqtgraph/ImageView.py=utf-8
+encoding//src/pyqtgraph/ImageViewTemplate.py=utf-8
+encoding//src/pyqtgraph/MultiPlotItem.py=utf-8
+encoding//src/pyqtgraph/MultiPlotWidget.py=utf-8
+encoding//src/pyqtgraph/ObjectWorkaround.py=utf-8
+encoding//src/pyqtgraph/PlotItem.py=utf-8
+encoding//src/pyqtgraph/PlotWidget.py=utf-8
+encoding//src/pyqtgraph/Point.py=utf-8
+encoding//src/pyqtgraph/SignalProxy.py=utf-8
+encoding//src/pyqtgraph/__init__.py=utf-8
+encoding//src/pyqtgraph/examples/test_ImageView.py=utf-8
+encoding//src/pyqtgraph/examples/test_MultiPlotWidget.py=utf-8
+encoding//src/pyqtgraph/examples/test_PlotWidget.py=utf-8
+encoding//src/pyqtgraph/examples/test_scatterPlot.py=utf-8
+encoding//src/pyqtgraph/examples/test_viewBox.py=utf-8
+encoding//src/pyqtgraph/functions.py=utf-8
+encoding//src/pyqtgraph/graphicsItems.py=utf-8
+encoding//src/pyqtgraph/graphicsWindows.py=utf-8
+encoding//src/pyqtgraph/plotConfigTemplate.py=utf-8
+encoding//src/pyqtgraph/ptime.py=utf-8
+encoding//src/pyqtgraph/widgets.py=utf-8
 encoding//src/stats/__init__.py=utf-8
 encoding//src/stats/parser.py=utf-8
 encoding//src/stats/pyper.py=utf-8

@@ -86,3 +86,4 @@ class MPL_Widget(QWidget):
                 #self.hbox.addWidget(self.toolbar)
                 self.hbox.addWidget(self.canvas)
                 self.setLayout(self.hbox)
+

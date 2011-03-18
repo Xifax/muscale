@@ -12,10 +12,17 @@ Created on Mar 9, 2011
 # internal #
 import platform
 
-# external #
+#s external #
 import PySide
 from PySide.QtCore import *
 from PySide.QtGui import *
+from stats.pyper import *
+import pywt
+
+#from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
+#import PySide.QtSvg
+#from pyqtgraph.PlotWidget import *
+#from pyqtgraph.graphicsItems import *
 
 # own #
 from utils.log import log
@@ -24,6 +31,9 @@ from utils.const import __name__,\
                         WIDTH, HEIGHT
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
+from gui.qtPlot import QtDetatchedPlot
+from pyqtgraph.PlotWidget import *
+from pyqtgraph.graphicsItems import *
 
 #from graphWidget import MPL_Widget
 
@@ -36,6 +46,8 @@ class MuScaleMainDialog(QMainWindow):
         super(MuScaleMainDialog, self).__init__(parent)
         
         ### components ###
+        from datetime import datetime
+        start = datetime.now()
         
         # data loaders #
         self.loadDataGroup = QGroupBox('Data source')
@@ -53,8 +65,6 @@ class MuScaleMainDialog(QMainWindow):
         self.clearAll = QPushButton('Reset data')
         # table
         self.tableResults = QTableWidget()
-        # graph
-        #self.graphWidget = MPL_Widget()
         
         self.separator = QFrame();   self.separator.setFrameShape(QFrame.HLine);    self.separator.setFrameShadow(QFrame.Sunken)
         
@@ -67,14 +77,25 @@ class MuScaleMainDialog(QMainWindow):
         self.loadDataLayout.addWidget(self.showGraph)        
         self.loadDataLayout.addWidget(self.showTable)        
         self.loadDataLayout.addWidget(self.clearAll)
-        self.loadDataLayout.addWidget(self.tableResults)        
-        #self.loadDataLayout.addWidget(self.graphWidget)        
+        self.loadDataLayout.addWidget(self.tableResults)         
 
         self.loadDataGroup.setLayout(self.loadDataLayout)
         
         # wavelet decomposition #
         self.decompGroup = QGroupBox('Data decomposition')
-        self.decompLayout = QVBoxLayout()
+        self.decompLayout = QGridLayout()
+        
+        self.comboWavelet = QComboBox()
+        self.comboDecomposition = QComboBox()
+        self.spinLevels = QSpinBox()
+        self.calculateButton = QPushButton('Analyze data')
+        self.resultsView = QTextEdit()
+        
+        self.decompLayout.addWidget(self.comboWavelet, 0, 0)
+        self.decompLayout.addWidget(self.comboDecomposition, 0, 1)
+        self.decompLayout.addWidget(self.spinLevels, 0, 2)
+        self.decompLayout.addWidget(self.calculateButton, 1, 0, 1, 3)
+        self.decompLayout.addWidget(self.resultsView, 2, 0, 1, 3)
         
         self.decompGroup.setLayout(self.decompLayout)
         
@@ -98,11 +119,10 @@ class MuScaleMainDialog(QMainWindow):
         
         self.setCentralWidget(self.centralWidget)
         
+        self.trayIcon = QSystemTrayIcon(self)
+        
         # dialogs #
         self.openFileDialog = QFileDialog(self)
-        
-        # external gui modules #
-        self.toolsFrame = ToolsFrame()
         
         # temporary variables #
         self.currentDataSet = []
@@ -112,11 +132,22 @@ class MuScaleMainDialog(QMainWindow):
         self.initComponents()
         self.initActions()
         
+        # computational modules #
+        self.trayIcon.show()
+        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.MessageIcon.Information, 10000)
+        self.R = R()
+        
+        # external gui modules #
+        self.toolsFrame = ToolsFrame(self.R)
+        
         ### start ###
         self.statusBar.showMessage('Ready!')
                 
         ### test ###
         print 'okay.jpeg'
+        loadingTime = datetime.now() - start
+        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.MessageIcon.Information, 10000)
+        QTimer.singleShot(3000, self.trayIcon.hide)
         
 #------------------- initialization ------------------#
     
@@ -127,6 +158,8 @@ class MuScaleMainDialog(QMainWindow):
         self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGHT)/2, WIDTH, HEIGHT) )
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        #self.setWindowIcon(QIcon('../res/icons/stats.png'))
+        self.setWindowIcon(QIcon('../res/icons/plot.png'))
     
     def initComponents(self):
         # load data items #
@@ -147,6 +180,18 @@ class MuScaleMainDialog(QMainWindow):
         self.tableResults.setColumnCount(1)
         self.tableResults.setHorizontalHeaderLabels(['Value'])
         
+        # wavelets #
+        self.comboWavelet.addItems(pywt.families())
+        self.comboDecomposition.addItems(['Discrete WT', 'Stationary WT'])
+        self.spinLevels.setValue(4)
+        self.spinLevels.setRange(1, 10)
+        self.resultsView.setHidden(True)
+        self.resultsView.setReadOnly(True)
+        self.resultsView.setMinimumWidth(WIDTH - 100)
+        self.resultsView.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+        self.decompLayout.setAlignment(Qt.AlignCenter)
+        
         # dialogs #
         self.openFileDialog.setFileMode(QFileDialog.ExistingFile)
         self.openFileDialog.setViewMode(QFileDialog.List)
@@ -156,6 +201,9 @@ class MuScaleMainDialog(QMainWindow):
         
         # tabs #
         self.statTools.setItemEnabled(1, False)
+        
+        # etc #
+        self.trayIcon.setIcon(QIcon('../res/icons/plot.png'))
     
     def initActions(self):
         # menu actions #
@@ -167,13 +215,17 @@ class MuScaleMainDialog(QMainWindow):
         self.menuBar.addAction(aboutAction)
         self.menuBar.addAction(quitAction)
         
-        self.toggleSizeAction = QAction('&Full screen', self)
+        self.toggleSizeAction = QAction('Full screen', self)
         self.toggleSizeAction.triggered.connect(self.fullScreen)
         self.toggleSizeAction.setCheckable(True)
+        self.toggleSizeAction.setIcon(QIcon('../res/icons/full.png'))
+        #self.toggleSizeAction.setIconText('Full')
         
-        self.toggleTools = QAction('&Show tools', self)
+        self.toggleTools = QAction('Show tools', self)
         self.toggleTools.triggered.connect(self.showTools)
         self.toggleTools.setCheckable(True)
+        self.toggleTools.setIcon(QIcon('../res/icons/tools.png'))
+        #self.toggleTools.setIconText('Tools')
         
         self.toolBar.addAction(self.toggleSizeAction)
         self.toolBar.addAction(self.toggleTools)
@@ -184,14 +236,20 @@ class MuScaleMainDialog(QMainWindow):
         self.loadManualData.clicked.connect(self.manualData)
         self.clearAll.clicked.connect(self.resetData)
         self.showTable.clicked.connect(self.updateTable)
+        self.showGraph.clicked.connect(self.updateGraph)
+        
+        # wavelet decomposition actions #
+        self.calculateButton.clicked.connect(self.waveletTransform)
     
 #------------------- actions ------------------#
     
     def fullScreen(self):
         if self.toggleSizeAction.isChecked():
             self.showFullScreen()
+            self.toggleSizeAction.setIcon(QIcon('../res/icons/shrink.png'))
         else:
             self.showNormal()
+            self.toggleSizeAction.setIcon(QIcon('../res/icons/full.png'))
             
     def showTools(self):
         if self.toggleTools.isChecked():
@@ -237,6 +295,10 @@ class MuScaleMainDialog(QMainWindow):
             self.separator.setVisible(True)
                         
             self.statTools.setItemEnabled(1, True)
+            
+            self.R['data'] = self.currentDataSet[0]
+            self.toolsFrame.updateNamespace()
+            self.statusBar.showMessage("Added 'data' variable to R namespace")
         else:
             self.parseResults.setText('Could not parse at all!')
             self.parseResults.setVisible(True)
@@ -253,6 +315,7 @@ class MuScaleMainDialog(QMainWindow):
         self.showTable.setText('Show table')
         
         self.statTools.setItemEnabled(1, False)
+        self.statusBar.showMessage('Data cleared')
         
     def updateTable(self):
         
@@ -291,6 +354,61 @@ class MuScaleMainDialog(QMainWindow):
         QMessageBox.about(self, 'About muScale','Version:\t' + __version__ + '\nPython:\t' + platform.python_version() + 
                            '\nPySide:\t' + PySide.__version__ + '\nQtCore:\t' + PySide.QtCore.__version__ + 
                            '\nPlatform:\t' + platform.system())
+    
+    def updateGraph(self):
+        pass
+        
+#        qPlot = PlotWidget()
+#        qPlot.show()
+
+#        detatchedPlot = QtDetatchedPlot()
+#        detatchedPlot.show()
+        
+         #showWindow()
+        
+#        import matplotlib.pyplot as plt
+#        
+#        plt.plot([1,2,3,4])
+#        plt.ylabel('some numbers')
+#        plt.show()
+        
+#        plot = qPlot.plot(array([100000]*100))
+#        rect = QtGui.QGraphicsRectItem(QtCore.QRectF(0, 0, 1, 1))
+#        qPlot.addItem(rect)
+#        plot.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255)))
+#        
+#        qPlot.show()
+        
+        #pass
+#        self.toolsFrame.plotWidget = PlotWidget()
+#        
+#        self.toolsFrame.plotWidget.registerPlot('Plot')
+#        plot = self.toolsFrame.plotWidget.plot()
+#        rect = QtGui.QGraphicsRectItem(QtCore.QRectF(0, 0, 1, 1))
+#        rect.setPen(QtGui.QPen(QtGui.QColor(100, 200, 100)))
+#        self.toolsFrame.plotWidget.addItem(rect)
+#        plot.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255)))
+
+    def waveletTransform(self):
+        wavelet = pywt.Wavelet( pywt.wavelist(self.comboWavelet.currentText())[0] )
+        if self.comboDecomposition.currentIndex() == 0:
+            #cA3, cD3, cD2, cD1
+            self.wCoefficients = pywt.wavedec(self.currentDataSet[0], wavelet, level=self.spinLevels.value())
+        elif self.comboDecomposition.currentIndex() == 1:
+            self.wCoefficients = pywt.swt(self.currentDataSet[0], wavelet, level=self.spinLevels.value())
+        
+        self.resultsView.clear(); i = 0
+        for coeff in self.wCoefficients:
+            self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i = i + 1
+            #self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + ' '.join(list(coeff)) + '<br/>'); i = i + 1
+        self.resultsView.setVisible(True)
+        self.calculateButton.setText('Reanalyze data')
+        
+        self.R['wcoeff'] = self.wCoefficients
+        self.toolsFrame.updateNamespace()
+        self.statusBar.showMessage("Added 'wcoeff' variable to R namespace")
+        
+        #self.resultsView.updateGeometry()
     
     def quitApplication(self):
         self.close()

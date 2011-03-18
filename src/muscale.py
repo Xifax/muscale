@@ -39,12 +39,22 @@ Created on Mar 9, 2011
 # SciPy 0.9.0                            http://goo.gl/l4Edo
 
 # possible plot lib alternatives:
-# Chaco 3.4.1                            http://goo.gl/8SbDY
-# PyQtGraph                              http://goo.gl/hQjvW
+# Chaco 3.4.1                            http://goo.gl/8SbDY    (**)
+# PyQtGraph                              http://goo.gl/hQjvW    (***)
 # R plot engine
+
+# additional statistical packages:
+# scikits.timeseries                     http://goo.gl/t6Hy8
 
 #-----------------NOTES------------------#
 #NB: (*) needs fix for python 2.6.6  DO NOT INSTALL using easy_install    (http://goo.gl/3js4H)
+#NB: (**) requires CygWin (and infamous vcvarsall.bat), yet still does not build with one
+#NB: (***) standalone mode possible (PyQt4 only), if not usingOpenGl
+
+#---------------R packages---------------#
+#Guidelines                               http://goo.gl/dVizL
+#stats, tseries, ast, lmtest              http://goo.gl/4WIeW
+#TSA (Time Series Analysis)               http://goo.gl/Chh0z
 
 ####################################
 #            Imports               #

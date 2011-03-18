@@ -16,5 +16,5 @@ WIDTH = 640
 HEIGHT = 489
 
 #------ tools dialog ------#
-T_WIDTH = 300
+T_WIDTH = 400
 T_HEIGHT = HEIGHT

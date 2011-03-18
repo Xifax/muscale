@@ -8,17 +8,20 @@ Created on Mar 17, 2011
 # external #
 from PySide.QtCore import *
 from PySide.QtGui import *
-from stats.pyper import *
+
+from pyqtgraph.PlotWidget import *
+from pyqtgraph.graphicsItems import *
 
 # own #
 from utils.const import T_WIDTH, T_HEIGHT
+from utils.log import log
 
 class ToolsFrame(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, R, parent=None):
         super(ToolsFrame, self).__init__(parent)
         
         # r engine #
-        self.R = R()
+        self.R = R
         
         # tabs #
         self.toolTabs = QTabWidget()
@@ -31,14 +34,23 @@ class ToolsFrame(QWidget):
         self.rInput = QLineEdit()
         self.enterButton = QToolButton()
         self.clearButton = QToolButton()
+        self.namespaceButton = QToolButton()
+        self.namesList = QListWidget()
         
-        self.rConsoleLayout.addWidget(self.rConsole, 0, 0, 1, 4)
+        self.rConsoleLayout.addWidget(self.rConsole, 0, 0, 1, 5)
         self.rConsoleLayout.addWidget(self.rInput, 1, 0, 1, 2)
         self.rConsoleLayout.addWidget(self.enterButton, 1, 2, 1, 1)
         self.rConsoleLayout.addWidget(self.clearButton, 1, 3, 1, 1)
+        self.rConsoleLayout.addWidget(self.namespaceButton, 1, 4, 1, 1)
+        self.rConsoleLayout.addWidget(self.namesList, 2, 0, 1, 5)
         
         self.rConsoleGroup.setLayout(self.rConsoleLayout)
         self.toolTabs.addTab(self.rConsoleGroup, 'R')
+        
+        # graphs tab #
+        #self.plotWidget = PlotWidget()
+        self.plotWidget = QWidget()
+        self.toolTabs.addTab(self.plotWidget,'Graph')
         
         # global layout #
         self.mainLayout = QVBoxLayout()
@@ -55,7 +67,8 @@ class ToolsFrame(QWidget):
         self.initActions()
         
         # test #
-        self.rInput.setFocus()        
+        self.rInput.setFocus()       
+        #self.updateNamespace() 
         
     def initComposition(self):
         self.setWindowTitle('Tools')
@@ -70,22 +83,30 @@ class ToolsFrame(QWidget):
         self.enterButton.setText('enter')
         self.enterButton.setCheckable(True)
         self.clearButton.setText('clear')
+        self.namespaceButton.setText('..')
+        self.namespaceButton.setCheckable(True)
         
         self.rConsole.setReadOnly(True)
+        self.namesList.setHidden(True)
         
     def initActions(self):
         self.rInput.returnPressed.connect(self.rCommand)
         self.clearButton.clicked.connect(self.clearRConsole)
+        self.namespaceButton.clicked.connect(self.viewNamespace)        
     
     #--------- actions ---------#
     def rCommand(self):
         result = '\n'.join(self.R(self.rInput.text()).split(self.R.newline)[1:])
         if result != self.R.newline:
-            self.rConsole.append(result)
+            try:
+                self.rConsole.append(result)
+            except:
+                log.error('R interpreter crush')
         if self.enterButton.isChecked():
             self.rInput.clear()
             
         self.indicateInput()
+        self.updateNamespace()
             
     def indicateInput(self):
         if not self.flash:
@@ -99,4 +120,22 @@ class ToolsFrame(QWidget):
     
     def clearRConsole(self):
         self.rConsole.clear()
+    
+    def viewNamespace(self):
+        if self.namespaceButton.isChecked():
+            self.namesList.setVisible(True)
+        else:
+            self.namesList.setHidden(True)
+            
+    def updateNamespace(self):
+        self.namesList.clear()
+        #print self.R('objects()')
+        for object in  self.R('objects()').split(self.R.newline)[1:]:
+            if object != self.R.newline:
+                for e in object.split(' '):
+                    if e != '[1]' and e != '':
+                        item = QListWidgetItem(e.strip('"')); item.setTextAlignment(Qt.AlignCenter)
+                        self.namesList.addItem(item)
+
+            
         
