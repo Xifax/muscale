@@ -17,6 +17,8 @@ import PySide
 from PySide.QtCore import *
 from PySide.QtGui import *
 from stats.pyper import *
+from pyqtgraph.PlotWidget import *
+from pyqtgraph.graphicsItems import *
 import pywt
 
 #from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
@@ -29,11 +31,10 @@ from utils.log import log
 from utils.const import __name__,\
                         __version__,\
                         WIDTH, HEIGHT
+from utils.guiTweaks import unfillLayout 
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
-from gui.qtPlot import QtDetatchedPlot
-from pyqtgraph.PlotWidget import *
-from pyqtgraph.graphicsItems import *
+#from gui.qtPlot import QtDetatchedPlot
 
 #from graphWidget import MPL_Widget
 
@@ -53,9 +54,9 @@ class MuScaleMainDialog(QMainWindow):
         self.loadDataGroup = QGroupBox('Data source')
         self.loadDataLayout = QVBoxLayout()
         
-        self.loadFromFile = QPushButton('Load from file')
+        self.loadFromFile = QPushButton('&Load from file')
         # manual
-        self.toggleManual = QPushButton('Manual input')
+        self.toggleManual = QPushButton('&Manual input')
         self.manualDataInput = QTextEdit()
         self.loadManualData = QPushButton('Parse')
         # results
@@ -99,12 +100,19 @@ class MuScaleMainDialog(QMainWindow):
         
         self.decompGroup.setLayout(self.decompLayout)
         
+        # model hierarchy #
+        self.modelGroup = QGroupBox('Model structure')
+        self.modelLayout = QGridLayout()
+        
+        self.modelGroup.setLayout(self.modelLayout)
+        
         # menus, toolbars, layouts & composition #
         self.centralWidget = QWidget(self)
         
         self.statTools = QToolBox()
         self.statTools.addItem(self.loadDataGroup, 'Loading data')
         self.statTools.addItem(self.decompGroup, 'Analyzing data')
+        self.statTools.addItem(self.modelGroup, 'Multiscale model')
         
         self.menuBar = QMenuBar()
         self.toolBar = QToolBar()
@@ -124,8 +132,9 @@ class MuScaleMainDialog(QMainWindow):
         # dialogs #
         self.openFileDialog = QFileDialog(self)
         
-        # temporary variables #
+        # session variables #
         self.currentDataSet = []
+        self.multiModel = {}
         
         ### initialization ###
         self.initComposition()
@@ -183,7 +192,7 @@ class MuScaleMainDialog(QMainWindow):
         # wavelets #
         self.comboWavelet.addItems(pywt.families())
         self.comboDecomposition.addItems(['Discrete WT', 'Stationary WT'])
-        self.spinLevels.setValue(4)
+        self.spinLevels.setValue(2)
         self.spinLevels.setRange(1, 10)
         self.resultsView.setHidden(True)
         self.resultsView.setReadOnly(True)
@@ -191,6 +200,9 @@ class MuScaleMainDialog(QMainWindow):
         self.resultsView.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         self.decompLayout.setAlignment(Qt.AlignCenter)
+        
+        # model #
+        #self.modelLayout.setAlignment(Qt.AlignCenter)
         
         # dialogs #
         self.openFileDialog.setFileMode(QFileDialog.ExistingFile)
@@ -201,6 +213,7 @@ class MuScaleMainDialog(QMainWindow):
         
         # tabs #
         self.statTools.setItemEnabled(1, False)
+        self.statTools.setItemEnabled(2, False)
         
         # etc #
         self.trayIcon.setIcon(QIcon('../res/icons/plot.png'))
@@ -315,7 +328,12 @@ class MuScaleMainDialog(QMainWindow):
         self.showTable.setText('Show table')
         
         self.statTools.setItemEnabled(1, False)
+        self.statTools.setItemEnabled(2, False)
         self.statusBar.showMessage('Data cleared')
+        
+        self.resultsView.clear()
+        self.resultsView.setHidden(True)
+        self.calculateButton.setText('Analyze data')
         
     def updateTable(self):
         
@@ -409,6 +427,67 @@ class MuScaleMainDialog(QMainWindow):
         self.statusBar.showMessage("Added 'wcoeff' variable to R namespace")
         
         #self.resultsView.updateGeometry()
+        self.constructModelTemplate()
+        self.statTools.setItemEnabled(2, True)
+        
+    def constructModelTemplate(self):
+        unfillLayout(self.modelLayout)
+        nLevels = len(self.wCoefficients)
+        
+        i = 0
+        for level in range(0, nLevels):
+            labelModel = QLabel('Level ' + str(level))
+            
+            addModel = QToolButton()
+            addModel.setText('+')
+            addModel.setCheckable(True)
+            addModel.clicked.connect(self.addModel)
+            
+            comboModel = QComboBox()
+            comboModel.addItems(['Harmonic Regression', 'Holt-Winters', 'ARMA'])            
+            
+            separator = QFrame();   separator.setFrameShape(QFrame.HLine);    separator.setFrameShadow(QFrame.Sunken)
+            
+            #TODO: add plot preview
+            
+            self.modelLayout.addWidget(labelModel, i, 0)
+            self.modelLayout.addWidget(addModel, i, 1); i = i +1
+            self.modelLayout.addWidget(comboModel, i, 0, 1, 2); i = i + 1
+            self.modelLayout.addWidget(separator, i, 0, 1, 2); i = i + 1
+            
+        resetModel = QPushButton('Reset model setup')
+        resetModel.clicked.connect(self.resetModel)
+        constructModel = QPushButton('Construct multiscale model')
+        constructModel.clicked.connect(self.constructModel)
+        
+        self.modelLayout.addWidget(resetModel, i, 0, 1, 2); i = i + 1
+        self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 2)
+            
+    def addModel(self):
+        for row in range(0, self.modelLayout.rowCount()):
+            if self.modelLayout.itemAtPosition(row, 1) is not None:
+                widget = self.modelLayout.itemAtPosition(row, 1).widget()
+                if hasattr(widget, 'isCheckable'):
+                    if widget.isCheckable():
+                        if widget.isChecked():
+                            widget.setText('OK')
+                            combo = self.modelLayout.itemAtPosition(row + 1, 0).widget()
+                            combo.setDisabled(True)
+                        else:
+                            widget.setText('+')
+                            combo = self.modelLayout.itemAtPosition(row + 1, 0).widget()
+                            combo.setEnabled(True)
+    
+    def resetModel(self):
+        self.constructModelTemplate()
+    
+    def constructModel(self):
+        self.multiModel.clear()
+        for level in range(0, len(self.wCoefficients)):
+            widget = self.modelLayout.itemAtPosition(level * 3, 1).widget()
+            if widget.isChecked():
+                self.multiModel[level] = self.modelLayout.itemAtPosition(level * 3 + 1 , 0).widget().currentText()
+        print self.multiModel
     
     def quitApplication(self):
         self.close()

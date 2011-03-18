@@ -68,6 +68,7 @@ from PySide.QtGui import QApplication
 
 # own packages #
 from gui.guiMain import MuScaleMainDialog
+from utils.log import log
 
 ####################################
 #        QT application loop       #
@@ -81,4 +82,11 @@ if __name__ == '__main__':
     muScale = MuScaleMainDialog()
     muScale.show()
     
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except Exception, e:
+        print e
+        log.debug(e)
+    finally:
+        print 'Bye!'
+        

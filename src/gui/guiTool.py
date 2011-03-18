@@ -52,6 +52,10 @@ class ToolsFrame(QWidget):
         self.plotWidget = QWidget()
         self.toolTabs.addTab(self.plotWidget,'Graph')
         
+        # table tab #
+        self.tableWidget = QTableWidget()
+        self.toolTabs.addTab(self.tableWidget,'Table')
+        
         # global layout #
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addWidget(self.toolTabs)
