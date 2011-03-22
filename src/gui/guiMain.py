@@ -380,15 +380,14 @@ class MuScaleMainDialog(QMainWindow):
                            '\nPlatform:\t' + platform.system())
     
     def updateGraph(self):
-        pass
-        
-#        qPlot = PlotWidget()
-#        qPlot.show()
-
-#        detatchedPlot = QtDetatchedPlot()
-#        detatchedPlot.show()
-        
-         #showWindow()
+        if self.showGraph.text() == 'Show graph':
+            self.toolsFrame.plotWidget.plot(self.currentDataSet[0])
+            self.toolsFrame.show()
+            self.toolsFrame.toolTabs.setCurrentIndex(1)
+            self.showGraph.setText('Hide graph')
+        else:
+            self.toolsFrame.hide()
+            self.showGraph.setText('Show graph')
         
 #        import matplotlib.pyplot as plt
 #        
@@ -396,23 +395,6 @@ class MuScaleMainDialog(QMainWindow):
 #        plt.ylabel('some numbers')
 #        plt.show()
         
-#        plot = qPlot.plot(array([100000]*100))
-#        rect = QtGui.QGraphicsRectItem(QtCore.QRectF(0, 0, 1, 1))
-#        qPlot.addItem(rect)
-#        plot.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255)))
-#        
-#        qPlot.show()
-        
-        #pass
-#        self.toolsFrame.plotWidget = PlotWidget()
-#        
-#        self.toolsFrame.plotWidget.registerPlot('Plot')
-#        plot = self.toolsFrame.plotWidget.plot()
-#        rect = QtGui.QGraphicsRectItem(QtCore.QRectF(0, 0, 1, 1))
-#        rect.setPen(QtGui.QPen(QtGui.QColor(100, 200, 100)))
-#        self.toolsFrame.plotWidget.addItem(rect)
-#        plot.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255)))
-
     def waveletTransform(self):
         wavelet = pywt.Wavelet( pywt.wavelist(self.comboWavelet.currentText())[0] )
         if self.comboDecomposition.currentIndex() == 0:

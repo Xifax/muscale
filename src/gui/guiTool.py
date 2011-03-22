@@ -13,8 +13,8 @@ Created on Mar 17, 2011
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-#from pyqtgraph.PlotWidget import *
-#from pyqtgraph.graphicsItems import *
+from pyqtgraph.PlotWidget import *
+from pyqtgraph.graphicsItems import *
 
 # own #
 from utils.const import T_WIDTH, T_HEIGHT
@@ -52,8 +52,13 @@ class ToolsFrame(QWidget):
         self.toolTabs.addTab(self.rConsoleGroup, 'R')
         
         # graphs tab #
-        self.plotWidget = QWidget()
+        self.plotWidget = PlotWidget()
+        #self.plotWidget.setMaximumSize(self.toolTabs.width(), self.toolTabs.height())
+        
+        #NB: to fix such behavior, one may try to plot empty list/array at initialization
+        geometry = self.saveGeometry()      # somehow, PlotWidget assumes very large size automatically
         self.toolTabs.addTab(self.plotWidget,'Graph')
+        self.restoreGeometry(geometry)
         
         # table tab #
         self.tableWidget = QTableWidget()
@@ -99,9 +104,12 @@ class ToolsFrame(QWidget):
         self.rConsole.setReadOnly(True)
         self.namesList.setHidden(True)
         
-        # table $
+        # table #
         self.tableWidget.setColumnCount(1)
         self.tableWidget.setHorizontalHeaderLabels(['Value'])
+        
+        # graph #
+        self.plotWidget.plot()
         
     def initActions(self):
         self.rInput.returnPressed.connect(self.rCommand)
