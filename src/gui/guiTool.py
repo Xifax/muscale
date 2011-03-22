@@ -6,8 +6,12 @@ Created on Mar 17, 2011
 '''
 
 # external #
-from PySide.QtCore import *
-from PySide.QtGui import *
+#===============================================================================
+# from PySide.QtCore import *
+# from PySide.QtGui import *
+#===============================================================================
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 #from pyqtgraph.PlotWidget import *
 #from pyqtgraph.graphicsItems import *
@@ -48,7 +52,6 @@ class ToolsFrame(QWidget):
         self.toolTabs.addTab(self.rConsoleGroup, 'R')
         
         # graphs tab #
-        #self.plotWidget = PlotWidget()
         self.plotWidget = QWidget()
         self.toolTabs.addTab(self.plotWidget,'Graph')
         
@@ -72,7 +75,6 @@ class ToolsFrame(QWidget):
         
         # test #
         self.rInput.setFocus()       
-        #self.updateNamespace() 
         
     def initComposition(self):
         self.setWindowTitle('Tools')
@@ -82,7 +84,10 @@ class ToolsFrame(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         
     def initComponents(self):
-        self.toolTabs.setTabPosition(QTabWidget.TabPosition.South)
+        #=======================================================================
+        # self.toolTabs.setTabPosition(QTabWidget.TabPosition.South)
+        #=======================================================================
+        self.toolTabs.setTabPosition(QTabWidget.South)
         
         # r console #
         self.enterButton.setText('enter')
@@ -105,7 +110,10 @@ class ToolsFrame(QWidget):
     
     #--------- actions ---------#
     def rCommand(self):
-        result = '\n'.join(self.R(self.rInput.text()).split(self.R.newline)[1:])
+        #=======================================================================
+        # result = '\n'.join(self.R(self.rInput.text()).split(self.R.newline)[1:])
+        #=======================================================================
+        result = '\n'.join(self.R(str(self.rInput.text())).split(self.R.newline)[1:])   #PyQt shenanigans
         if result != self.R.newline:
             try:
                 self.rConsole.append(result)

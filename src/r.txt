@@ -1,0 +1,5 @@
+x.ts = ts(data = x, start = c(1999,1), frequency = 12)
+hw.ts = HoltWinters(x.ts)
+hw.ts
+HoltWinters(x = x.ts) 
+x.pred					//p <- predict(m, 50, prediction.interval = TRUE)

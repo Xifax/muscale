@@ -5,7 +5,7 @@ Copyright 2010  Luke Campagnola
 Distributed under MIT/X11 license. See license.txt for more infomation.
 """
 
-from PyQt4 import QtCore, QtGui#, QtOpenGL, QtSvg
+from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
 #from PySide import QtCore, QtGui, QtOpenGL, QtSvg
 #from PySide import QtSvg, QtOpenGL
 #from numpy import vstack
@@ -32,7 +32,7 @@ class GraphicsView(QtGui.QGraphicsView):
         if 'linux' in sys.platform:  ## linux has bugs in opengl implementation
             useOpenGL = False
         #self.useOpenGL(useOpenGL)
-        self.useOpenGL(False)
+        #self.useOpenGL(False)
         
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(0,0,0))

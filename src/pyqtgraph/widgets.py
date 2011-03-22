@@ -9,7 +9,7 @@ for use as region-of-interest markers. ROI class automatically handles extractio
 of array data from ImageItems.
 """
 
-from PyQt4 import QtCore, QtGui#, QtOpenGL, QtSvg
+from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
 #from numpy import array, arccos, dot, pi, zeros, vstack, ubyte, fromfunction, ceil, floor, arctan2
 import numpy as np
 from numpy.linalg import norm

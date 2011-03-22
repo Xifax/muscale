@@ -12,7 +12,7 @@ log.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)-24s %(threadName)-11s %(levelname)-10s %(message)s')
 
-filehandler = logging.FileHandler('mu.log', 'w')
+filehandler = logging.FileHandler('mu.log', 'a')
 filehandler.setLevel(logging.DEBUG)
 filehandler.setFormatter(formatter)
 log.addHandler(filehandler)

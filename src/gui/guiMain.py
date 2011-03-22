@@ -12,17 +12,20 @@ Created on Mar 9, 2011
 # internal #
 import platform
 
-#s external #
-import PySide
-from PySide.QtCore import *
-from PySide.QtGui import *
-from stats.pyper import *
-import pywt
-#from pyqtgraph.PlotWidget import *
-#from pyqtgraph.graphicsItems import *
+# external #
 
-#from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
-#import PySide.QtSvg
+#===============================================================================
+# PYSIDE
+# import PySide
+# from PySide.QtCore import *
+# from PySide.QtGui import *
+#===============================================================================
+import PyQt4
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from stats.pyper import R
+import pywt
+
 #from pyqtgraph.PlotWidget import *
 #from pyqtgraph.graphicsItems import *
 
@@ -34,8 +37,8 @@ from utils.const import __name__,\
 from utils.guiTweaks import unfillLayout 
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
-#from gui.qtPlot import QtDetatchedPlot
 
+#from gui.qtPlot import QtDetatchedPlot
 #from graphWidget import MPL_Widget
 
 ####################################
@@ -148,7 +151,10 @@ class MuScaleMainDialog(QMainWindow):
         
         # computational modules #
         self.trayIcon.show()
-        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.MessageIcon.Information, 10000)
+        #=======================================================================
+        # self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.MessageIcon.Information, 10000)
+        #=======================================================================
+        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, 10000)
         self.R = R()
         
         # external gui modules #
@@ -160,7 +166,10 @@ class MuScaleMainDialog(QMainWindow):
         ### test ###
         print 'okay.jpeg'
         loadingTime = datetime.now() - start
-        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.MessageIcon.Information, 10000)
+        #=======================================================================
+        # self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.MessageIcon.Information, 10000)
+        #=======================================================================
+        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information, 10000)
         QTimer.singleShot(3000, self.trayIcon.hide)
         
 #------------------- initialization ------------------#
@@ -364,7 +373,10 @@ class MuScaleMainDialog(QMainWindow):
         
     def showAbout(self):
         QMessageBox.about(self, 'About muScale','Version:\t' + __version__ + '\nPython:\t' + platform.python_version() + 
-                           '\nPySide:\t' + PySide.__version__ + '\nQtCore:\t' + PySide.QtCore.__version__ + 
+                           #====================================================
+                           # '\nPySide:\t' + PySide.__version__ + '\nQtCore:\t' + PySide.QtCore.__version__ + 
+                           #====================================================
+                           '\nQtCore:\t' + PYQT_VERSION_STR + 
                            '\nPlatform:\t' + platform.system())
     
     def updateGraph(self):

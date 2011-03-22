@@ -31,7 +31,7 @@ Created on Mar 9, 2011
 ####################################
 
 # R 2.12.2 i386                          http://goo.gl/nxOOk
-# PySide 1.0.0~beta3 QT 4.7.1            http://goo.gl/owd8y
+# PySide 1.0.0 (PyQT 4.8.1)              http://goo.gl/owd8y
 # PypeR 1.1.0                            http://goo.gl/5Q1JX    (*)
 # PyWavelets 0.2.0                       http://goo.gl/9pp1Y
 # NumPy 1.5.1                            http://goo.gl/lZfYj
@@ -41,6 +41,8 @@ Created on Mar 9, 2011
 # possible plot lib alternatives:
 # Chaco 3.4.1                            http://goo.gl/8SbDY    (**)
 # PyQtGraph                              http://goo.gl/hQjvW    (***)
+# PyCairo 1.8.1                          http://goo.gl/ScUvx
+# CairoPlot 1.1                          http://goo.gl/VjTUO
 # R plot engine
 
 # additional statistical packages:
@@ -64,7 +66,10 @@ Created on Mar 9, 2011
 import sys
 
 # external packages
-from PySide.QtGui import QApplication
+#===============================================================================
+# from PySide.QtGui import QApplication
+#===============================================================================
+from PyQt4.QtGui import QApplication
 
 # own packages #
 from gui.guiMain import MuScaleMainDialog
