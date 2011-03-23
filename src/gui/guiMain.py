@@ -144,6 +144,7 @@ class MuScaleMainDialog(QMainWindow):
         
         # session variables #
         self.currentDataSet = []
+        self.currentPlot = None 
         self.multiModel = {}
         
         ### initialization ###
@@ -161,6 +162,7 @@ class MuScaleMainDialog(QMainWindow):
         
         # external gui modules #
         self.toolsFrame = ToolsFrame(self.R)
+        self.currentPlot = self.toolsFrame.plotWidget.plot()
         
         ### start ###
         self.statusBar.showMessage('Ready!')
@@ -341,13 +343,18 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.tableWidget.setRowCount(0)
         self.showTable.setText('Show table')
         
+        self.currentPlot.free()
+        
         self.statTools.setItemEnabled(1, False)
         self.statTools.setItemEnabled(2, False)
+        self.statTools.setItemEnabled(3, False)
         self.statusBar.showMessage('Data cleared')
         
         self.resultsView.clear()
         self.resultsView.setHidden(True)
         self.calculateButton.setText('Analyze data')
+        
+        self.toolsFrame.hide()
         
     def updateTable(self):
         
@@ -383,8 +390,9 @@ class MuScaleMainDialog(QMainWindow):
     
     def updateGraph(self):
         if self.showGraph.text() == 'Show graph':
-            #self.toolsFrame.plotWidget.resetCachedContent()
-            self.toolsFrame.plotWidget.plot(self.currentDataSet[0])
+            #self.toolsFrame.plotWidget.registerPlot('Plot')
+            #self.toolsFrame.plotWidget.plot(self.currentDataSet[0])
+            self.currentPlot.updateData(self.currentDataSet[0])
             self.toolsFrame.show()
             self.toolsFrame.toolTabs.setCurrentIndex(1)
             self.showGraph.setText('Hide graph')
