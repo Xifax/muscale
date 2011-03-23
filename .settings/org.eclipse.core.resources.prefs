@@ -1,4 +1,4 @@
-#Wed Mar 23 14:06:54 MSK 2011
+#Wed Mar 23 17:22:40 MSK 2011
 eclipse.preferences.version=1
 encoding//src/graph/CairoPlot.py=utf-8
 encoding//src/gui/guiMain.py=utf-8
@@ -21,6 +21,7 @@ encoding//src/pyqtgraph/examples/test_ImageView.py=utf-8
 encoding//src/pyqtgraph/examples/test_MultiPlotWidget.py=utf-8
 encoding//src/pyqtgraph/examples/test_PlotWidget.py=utf-8
 encoding//src/pyqtgraph/examples/test_ROItypes.py=utf-8
+encoding//src/pyqtgraph/examples/test_draw.py=utf-8
 encoding//src/pyqtgraph/examples/test_scatterPlot.py=utf-8
 encoding//src/pyqtgraph/examples/test_viewBox.py=utf-8
 encoding//src/pyqtgraph/functions.py=utf-8

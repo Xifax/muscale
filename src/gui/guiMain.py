@@ -303,7 +303,7 @@ class MuScaleMainDialog(QMainWindow):
                     self.showParseResults()
             except:
                 QMessageBox.warning(self, 'File error', 'Could not read specified file! ')
-                log.error('could not open ' + fileName)
+                log.error('could not open ' + fileName.takeFirst())
                 
     def manualData(self):
         if self.manualDataInput.toPlainText() != '':
@@ -383,6 +383,7 @@ class MuScaleMainDialog(QMainWindow):
     
     def updateGraph(self):
         if self.showGraph.text() == 'Show graph':
+            #self.toolsFrame.plotWidget.resetCachedContent()
             self.toolsFrame.plotWidget.plot(self.currentDataSet[0])
             self.toolsFrame.show()
             self.toolsFrame.toolTabs.setCurrentIndex(1)

@@ -4,7 +4,12 @@ Created on Mar 9, 2011
 
 @author: Yadavito
 '''
+
+# own #
 from utils.log import log
+
+# external #
+from PyQt4.QtCore import QString
 
 class DataParser():
     
@@ -19,17 +24,19 @@ class DataParser():
         
         for element in parsed:
             if element != '':
-                #===============================================================
-                # try:
-                #    series.append(float(element.strip()))
-                # except:
-                #    parseErrors = parseErrors + 1
-                #    log.debug('skipped value')
-                #===============================================================
-                value = element.toDouble()      #NB: pyqt uses QString
-                if value[1]:
-                    series.append(value[0])
-                else:
+                # QString (manual input)
+                if isinstance(element, QString):
+                    value = element.toDouble()
+                    if value[1]:
+                        series.append(value[0])
+                    else:
+                        parseErrors = parseErrors + 1
+                        log.debug('skipped value')
+                # str (from file)        
+                elif isinstance(element, str):
+                 try:
+                    series.append(float(element.strip()))
+                 except:
                     parseErrors = parseErrors + 1
                     log.debug('skipped value')
                     
