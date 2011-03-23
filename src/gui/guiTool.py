@@ -20,6 +20,22 @@ from pyqtgraph.graphicsItems import *
 from utils.const import T_WIDTH, T_HEIGHT
 from utils.log import log
 
+class StatusFilter(QObject):
+    """Status message mouse click filter"""
+    def eventFilter(self, object, event):
+        
+        if event.type() == QEvent.HoverEnter:
+            object.parent().upScale.setVisible(True)
+            object.parent().fixSize.setVisible(True)
+            
+        if event.type() == QEvent.HoverLeave:
+            def hideButton(): 
+                object.parent().upScale.setHidden(True)
+                object.parent().fixSize.setHidden(True)
+            QTimer.singleShot(2000, hideButton)
+
+        return False
+
 class ToolsFrame(QWidget):
     def __init__(self, R, parent=None):
         super(ToolsFrame, self).__init__(parent)
@@ -66,6 +82,12 @@ class ToolsFrame(QWidget):
         
         # global layout #
         self.mainLayout = QVBoxLayout()
+        self.upScale = QPushButton()
+        self.fixSize = QPushButton()
+        self.hoverArea = QLabel()
+        self.mainLayout.addWidget(self.hoverArea)
+        self.mainLayout.addWidget(self.upScale)
+        self.mainLayout.addWidget(self.fixSize)
         self.mainLayout.addWidget(self.toolTabs)
         
         self.setLayout(self.mainLayout)
@@ -92,7 +114,23 @@ class ToolsFrame(QWidget):
         #=======================================================================
         # self.toolTabs.setTabPosition(QTabWidget.TabPosition.South)
         #=======================================================================
+        # layout and tabs
         self.toolTabs.setTabPosition(QTabWidget.South)
+        
+        self.upScale.setText('&Upscale')
+        self.upScale.setMaximumHeight(18)
+        self.upScale.setCheckable(True)
+        self.upScale.setHidden(True)
+        
+        self.fixSize.setText('&Lock v.size')
+        self.fixSize.setMaximumHeight(18)
+        self.fixSize.setCheckable(True)
+        self.fixSize.setHidden(True)
+        
+        self.hoverArea.setMaximumHeight(2)
+        self.hoverArea.setAlignment(Qt.AlignCenter)
+        
+        self.mainLayout.setAlignment(Qt.AlignCenter)
         
         # r console #
         self.enterButton.setText('enter')
@@ -115,6 +153,14 @@ class ToolsFrame(QWidget):
         self.rInput.returnPressed.connect(self.rCommand)
         self.clearButton.clicked.connect(self.clearRConsole)
         self.namespaceButton.clicked.connect(self.viewNamespace)        
+        
+        self.upScale.clicked.connect(self.changeScale)
+        
+        self.filter = StatusFilter()
+#        self.upScale.setAttribute(Qt.WA_Hover, True)
+#        self.upScale.installEventFilter(self.filter)
+        self.hoverArea.setAttribute(Qt.WA_Hover, True)
+        self.hoverArea.installEventFilter(self.filter)
     
     #--------- actions ---------#
     def rCommand(self):
@@ -175,5 +221,20 @@ class ToolsFrame(QWidget):
             self.tableWidget.setItem(i, 0, QTableWidgetItem(str(element)))
         
         del iterList
+        
+    def changeScale(self):
+        if self.upScale.isChecked():
+            self.showFullScreen()
+        else:
+            self.showNormal()
             
+    def showEvent(self, event):
+        self.hoverArea.setText(u'hover area')
+        self.hoverArea.setMaximumHeight(16)
+        self.setStyleSheet('QLabel { border: 2px solid gray; border-radius: 4px; }')
+        def flashLabel(): 
+            self.hoverArea.setText(u'')
+            self.setStyleSheet('QLabel { border: none; }')
+            self.hoverArea.setMaximumHeight(2)
+        QTimer.singleShot(2000, flashLabel)
         

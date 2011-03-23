@@ -29,19 +29,44 @@ import pywt
 #from pyqtgraph.PlotWidget import *
 #from pyqtgraph.graphicsItems import *
 
+#from gui.qtPlot import QtDetatchedPlot
+#from graphWidget import MPL_Widget
+
 # own #
 from utils.log import log
 from utils.const import __name__,\
                         __version__,\
                         WIDTH, HEIGHT,\
                         RES, ICONS,\
-                        FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS
+                        FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO
 from utils.guiTweaks import unfillLayout 
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
+from gui.guiInfo import InfoFrame
 
-#from gui.qtPlot import QtDetatchedPlot
-#from graphWidget import MPL_Widget
+
+#===============================================================================
+# class StatusFilter(QObject):
+#    """Status message mouse click filter"""
+#    def eventFilter(self, object, event):
+#        
+#        if event.type() == QEvent.HoverEnter:
+#            if object.parent().parent().testFrame.isHidden():
+#                print object.currentWidget().title()
+#                object.parent().parent().testFrame.show()
+# #            object.parent().parent().parent().parent().parent().testFrame.show()
+#            #print object.currentIndex()
+#            
+#        if event.type() == QEvent.HoverLeave:
+#            object.parent().parent().testFrame.hide()
+# #            object.parent().parent().parent().parent().parent().testFrame.hide()
+#            pass
+#            
+#        if event.type() == QEvent.MouseButtonPress:
+#            pass
+#            
+#        return True
+#===============================================================================
 
 ####################################
 #            GUI classes           #
@@ -54,11 +79,11 @@ class MuScaleMainDialog(QMainWindow):
         ### components ###
         from datetime import datetime
         start = datetime.now()
-        
+
         # data loaders #
         self.loadDataGroup = QGroupBox('Data source')
         self.loadDataLayout = QVBoxLayout()
-        
+
         self.loadFromFile = QPushButton('&Load from file')
         # manual
         self.toggleManual = QPushButton('&Manual input')
@@ -123,11 +148,11 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.addItem(self.decompGroup, 'Analyzing data')
         self.statTools.addItem(self.modelGroup, 'Multiscale model')
         self.statTools.addItem(self.implementGroup, 'Results')
-        
+
         self.menuBar = QMenuBar()
         self.toolBar = QToolBar()
         self.statusBar = QStatusBar()
-                
+
         self.mainLayout = QVBoxLayout(self.centralWidget)
         self.mainLayout.addWidget(self.statTools)
         
@@ -161,8 +186,10 @@ class MuScaleMainDialog(QMainWindow):
         self.R = R()
         
         # external gui modules #
+        self.wizard = None
         self.toolsFrame = ToolsFrame(self.R)
         self.currentPlot = self.toolsFrame.plotWidget.plot()
+        self.infoDialog = InfoFrame()
         
         ### start ###
         self.statusBar.showMessage('Ready!')
@@ -255,8 +282,14 @@ class MuScaleMainDialog(QMainWindow):
         launchWizard.triggered.connect(self.showWizard)
         launchWizard.setIcon(QIcon(RES + ICONS + WIZARD))
         
+        self.toggleInfo = QAction('Show info', self)
+        self.toggleInfo.setCheckable(True)
+        self.toggleInfo.setIcon(QIcon(RES + ICONS + INFO))
+        self.toggleInfo.triggered.connect(self.updateInfoTooltips)
+        
         self.toolBar.addAction(self.toggleSizeAction)
         self.toolBar.addAction(self.toggleTools)
+        self.toolBar.addAction(self.toggleInfo)
         self.toolBar.addAction(launchWizard)
         
         # load data actions #
@@ -269,6 +302,17 @@ class MuScaleMainDialog(QMainWindow):
         
         # wavelet decomposition actions #
         self.calculateButton.clicked.connect(self.waveletTransform)
+        
+        # tooltips #
+        self.statTools.currentChanged.connect(self.updateInfoTooltips)
+#        self.filter = StatusFilter()
+#        self.statTools.setAttribute(Qt.WA_Hover, True)
+#        self.statTools.installEventFilter(self.filter)
+
+#        self.loadDataGroup.setAttribute(Qt.WA_Hover, True)
+#        self.loadDataGroup.installEventFilter(self.filter)
+#        self.decompGroup.setAttribute(Qt.WA_Hover, True)
+#        self.decompGroup.installEventFilter(self.filter)
     
 #------------------- actions ------------------#
     
@@ -288,13 +332,24 @@ class MuScaleMainDialog(QMainWindow):
             
     def resizeEvent(self, event):
         self.updateToolsPosition()
+        self.updateToolsSize()
     
     def moveEvent(self, event):
         self.updateToolsPosition()
+        self.updateInfoPosition()
         
     def updateToolsPosition(self):
         self.toolsFrame.move( self.x() + self.width() + 20, self.y() )
+        
+    def updateToolsSize(self):
+        if not self.toolsFrame.fixSize.isChecked():
+            self.toolsFrame.resize(QSize(self.toolsFrame.width(), self.height()))
+        
+    def updateInfoPosition(self):
+        #self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() * 3./2. )
+        self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() +  self.infoDialog.height()/2 )
     
+    #------------------ functionality ----------------#
     def openFile(self):
         
         if self.openFileDialog.exec_():
@@ -344,6 +399,8 @@ class MuScaleMainDialog(QMainWindow):
         self.showTable.setText('Show table')
         
         self.currentPlot.free()
+        self.toolsFrame.plotWidget.update()
+        self.showGraph.setText('Show graph')
         
         self.statTools.setItemEnabled(1, False)
         self.statTools.setItemEnabled(2, False)
@@ -390,21 +447,16 @@ class MuScaleMainDialog(QMainWindow):
     
     def updateGraph(self):
         if self.showGraph.text() == 'Show graph':
-            #self.toolsFrame.plotWidget.registerPlot('Plot')
-            #self.toolsFrame.plotWidget.plot(self.currentDataSet[0])
             self.currentPlot.updateData(self.currentDataSet[0])
             self.toolsFrame.show()
             self.toolsFrame.toolTabs.setCurrentIndex(1)
+            
             self.showGraph.setText('Hide graph')
+            self.toggleTools.setChecked(True)
         else:
             self.toolsFrame.hide()
             self.showGraph.setText('Show graph')
-        
-#        import matplotlib.pyplot as plt
-#        
-#        plt.plot([1,2,3,4])
-#        plt.ylabel('some numbers')
-#        plt.show()
+            self.toggleTools.setChecked(False)
         
     def waveletTransform(self):
         wavelet = pywt.Wavelet( pywt.wavelist(self.comboWavelet.currentText())[0] )
@@ -491,7 +543,34 @@ class MuScaleMainDialog(QMainWindow):
             QMessageBox.warning(self, 'Undefined model', 'You haven not specified any methods at all!')
             
     def showWizard(self):
-        pass
+        self.wizard = QWizard()
+        
+        page = QWizardPage()
+        page.setTitle("Introduction")
+        label = QLabel('Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.')
+        
+        label.setWordWrap(True)
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        page.setLayout(layout)
+        #page.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
+        
+        self.wizard.addPage(page)
+        self.wizard.setWindowTitle("A Wizard")
+        #self.wizard.setWizardStyle(QWizard.ClassicStyle)
+        #self.wizard.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
+        self.wizard.show()
     
     def quitApplication(self):
         self.close()
+        
+    def updateInfoTooltips(self):
+        #print self.statTools.currentWidget().title()
+        if self.toggleInfo.isChecked():
+            self.infoDialog.updateContents(self.statTools.currentIndex())
+            self.infoDialog.show()
+        else:
+            self.infoDialog.hide()

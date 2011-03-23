@@ -20,13 +20,46 @@ cw.setLayout(l)
 mw.show()
 mw.resize(QtCore.QSize(800, 600))
 
-pw = PlotWidget()
-l.addWidget(pw)
+import matplotlib.pyplot as plt
+from gui.graphWidget import MPL_Widget
 
-#plot = pw.plot([1,2,3,4,5])
-pw.registerPlot('Plot')
-plot = pw.plot()
-plot.updateData([1,2,3,4,5])
+#plt.plot([1,2,3,4])
+#plt.ylabel('some numbers')
+#plt.show()
+
+from matplotlib import patches
+axes = plt.subplot(111)
+axes.add_patch(patches.Rectangle((0.2, 0.2), 0.5, 0.5))
+plt.show()
+
+#mpl_widget = MPL_Widget()
+#l.addWidget(mpl_widget)
+
+#l.addWidget(plt)
+
+#===============================================================================
+# pw = PlotWidget()
+# l.addWidget(pw)
+# 
+# #plot = pw.plot([1,2,3,4,5])
+# pw.registerPlot('Plot')
+# plot = pw.plot()
+# plot.updateData([1,2,3,4,5])
+# #plot.setPen(QtGui.QPen(QtGui.QColor(120, 255, 255)))
+# plot.setColor(QtGui.QColor(0, 255, 255))
+#===============================================================================
+
+
+
+#lg = QtGui.QGraphicsGridLayout()
+#vb = ViewBox()
+#p1 = PlotCurveItem()
+#p1.updateData([1,2,3,4,5])
+#vb.addItem(p1)
+#xScale = ScaleItem(orientation='bottom', linkView=vb)
+#lg.addItem(xScale, 1, 1)
+
+#l.addWidget(vb)
 
 #plot_b = PlotCurveItem()
 #plot_b.updateData([1,2,3])

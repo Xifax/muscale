@@ -19,6 +19,10 @@ HEIGHT = 489
 T_WIDTH = 400
 T_HEIGHT = HEIGHT
 
+#------ info dialog -------#
+I_WIDTH = 200
+I_HEIGHT = HEIGHT/2
+
 #---------- paths ---------#
 RES = '../res/'
 ICONS = 'icons/'
@@ -29,3 +33,16 @@ FULL_SCREEN = 'full.png'
 NORMAL_SIZE = 'normal.png'
 TOOLS = 'chart_bar.png'
 WIZARD = 'wizzard.png'
+INFO = 'info.png'
+
+#--------- info ------------#
+def infoContens(index):
+    try:
+        return { 
+                    0  : { 'title' : 'Data loading', 'info' : '...'},
+                    1  : { 'title' : 'Wavelet decomposition', 'info' : '...'},
+                    2  : { 'title' : 'Model construction', 'info' : '...'},
+                    3  : { 'title' : 'Model simulation', 'info' : '...'}
+                }[index]
+    except KeyError:
+        return {'title' : '...', 'info' : '...'}
