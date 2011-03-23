@@ -18,3 +18,15 @@ HEIGHT = 489
 #------ tools dialog ------#
 T_WIDTH = 400
 T_HEIGHT = HEIGHT
+
+#---------- paths ---------#
+RES = '../res/'
+ICONS = 'icons/'
+
+#--------- icons ----------#
+#LOGO = 'plot.png'
+LOGO = 'chart_line_dots.png'
+FULL_SCREEN = 'full.png'
+NORMAL_SIZE = 'normal.png'
+TOOLS = 'chart_bar.png'
+WIZARD = 'wizzard.png'

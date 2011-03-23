@@ -33,7 +33,9 @@ import pywt
 from utils.log import log
 from utils.const import __name__,\
                         __version__,\
-                        WIDTH, HEIGHT
+                        WIDTH, HEIGHT,\
+                        RES, ICONS,\
+                        FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS
 from utils.guiTweaks import unfillLayout 
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
@@ -181,7 +183,7 @@ class MuScaleMainDialog(QMainWindow):
         self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGHT)/2, WIDTH, HEIGHT) )
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setWindowIcon(QIcon('../res/icons/plot.png'))
+        self.setWindowIcon(QIcon(RES + ICONS + LOGO))
     
     def initComponents(self):
         # load data items #
@@ -224,7 +226,7 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemEnabled(3, False)
         
         # etc #
-        self.trayIcon.setIcon(QIcon('../res/icons/plot.png'))
+        self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
         self.toolBar.setIconSize(QSize(48,48))
     
     def initActions(self):
@@ -240,16 +242,16 @@ class MuScaleMainDialog(QMainWindow):
         self.toggleSizeAction = QAction('Full screen', self)
         self.toggleSizeAction.triggered.connect(self.fullScreen)
         self.toggleSizeAction.setCheckable(True)
-        self.toggleSizeAction.setIcon(QIcon('../res/icons/full.png'))
+        self.toggleSizeAction.setIcon(QIcon(RES + ICONS + FULL_SCREEN))
         
         self.toggleTools = QAction('Show tools', self)
         self.toggleTools.triggered.connect(self.showTools)
         self.toggleTools.setCheckable(True)
-        self.toggleTools.setIcon(QIcon('../res/icons/tool.png'))
+        self.toggleTools.setIcon(QIcon(RES + ICONS + TOOLS))
         
         launchWizard = QAction('Launch wizard', self)
         launchWizard.triggered.connect(self.showWizard)
-        launchWizard.setIcon(QIcon('../res/icons/wizard.ico'))
+        launchWizard.setIcon(QIcon(RES + ICONS + WIZARD))
         
         self.toolBar.addAction(self.toggleSizeAction)
         self.toolBar.addAction(self.toggleTools)
@@ -271,10 +273,10 @@ class MuScaleMainDialog(QMainWindow):
     def fullScreen(self):
         if self.toggleSizeAction.isChecked():
             self.showFullScreen()
-            self.toggleSizeAction.setIcon(QIcon('../res/icons/shrink.png'))
+            self.toggleSizeAction.setIcon(QIcon(RES + ICONS + NORMAL_SIZE))
         else:
             self.showNormal()
-            self.toggleSizeAction.setIcon(QIcon('../res/icons/full.png'))
+            self.toggleSizeAction.setIcon(QIcon(RES + ICONS + FULL_SCREEN))
             
     def showTools(self):
         if self.toggleTools.isChecked():

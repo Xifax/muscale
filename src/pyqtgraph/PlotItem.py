@@ -26,6 +26,7 @@ from functions import *
 import weakref
 import numpy as np
 from scipy import *
+import os
 
 try:
     from WidgetGroup import *
@@ -148,8 +149,10 @@ class PlotItem(QtGui.QGraphicsWidget):
         ac.setDefaultWidget(w)
         self.ctrlMenu.addAction(ac)
         
-        if HAVE_WIDGETGROUP:
-            self.stateGroup = WidgetGroup(self.ctrlMenu)
+        #=======================================================================
+        # if HAVE_WIDGETGROUP:
+        #    self.stateGroup = WidgetGroup(self.ctrlMenu)
+        #=======================================================================
         
         self.fileDialog = None
         

@@ -25,6 +25,7 @@ Created on Mar 9, 2011
 
 #TODO: fix imports to parsimonious ones
 #TODO: implement parse template
+#TODO: preemptive R input validation
 
 ####################################
 #            Dependencies          #

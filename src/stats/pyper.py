@@ -103,33 +103,37 @@ except:
 	has_numpy = False
 
 _has_subp = False
+#NB: own fix
 if sys.platform == 'cli': # for IronPython
-	from System.Diagnostics import Process
-	PIPE, _STDOUT = None, None
-
-	def Popen(CMD, *a, **b): 
-		'''
-		CMD is a list - a command and its arguments
-		'''
-		p = Process()
-		p.StartInfo.UseShellExecute = False
-		p.StartInfo.RedirectStandardInput = True
-		p.StartInfo.RedirectStandardOutput = True
-		p.StartInfo.RedirectStandardError = True
-		p.StartInfo.FileName = CMD[0]
-		p.StartInfo.Arguments = ' '.join(CMD[1:])
-		p.Start()
-		return(p)
-
-	def sendAll(p, s):
-		# remove ending newline since WriteLine will add newline at the end of s!
-		if s.endswith('\r\n'): s = s[:-2]
-		elif s.endswith('\n'): s = s[:-1]
-		p.StandardInput.WriteLine(_mybytes(s)) 
-
-	def readLine(p, *a, **b):
-		return(_mystr(p.StandardOutput.ReadLine()) + '\n') # add newline since ReadLine removed it.
-
+	#NB: own fix
+	pass
+#===============================================================================
+#	from System.Diagnostics import Process
+#	PIPE, _STDOUT = None, None
+# 
+#	def Popen(CMD, *a, **b): 
+#		'''
+#		CMD is a list - a command and its arguments
+#		'''
+#		p = Process()
+#		p.StartInfo.UseShellExecute = False
+#		p.StartInfo.RedirectStandardInput = True
+#		p.StartInfo.RedirectStandardOutput = True
+#		p.StartInfo.RedirectStandardError = True
+#		p.StartInfo.FileName = CMD[0]
+#		p.StartInfo.Arguments = ' '.join(CMD[1:])
+#		p.Start()
+#		return(p)
+# 
+#	def sendAll(p, s):
+#		# remove ending newline since WriteLine will add newline at the end of s!
+#		if s.endswith('\r\n'): s = s[:-2]
+#		elif s.endswith('\n'): s = s[:-1]
+#		p.StandardInput.WriteLine(_mybytes(s)) 
+# 
+#	def readLine(p, *a, **b):
+#		return(_mystr(p.StandardOutput.ReadLine()) + '\n') # add newline since ReadLine removed it.
+#===============================================================================
 else: 
 
 	try:
