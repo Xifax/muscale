@@ -19,9 +19,17 @@ class DataParser():
         
         for element in parsed:
             if element != '':
-                try:
-                    series.append(float(element.strip()))
-                except:
+                #===============================================================
+                # try:
+                #    series.append(float(element.strip()))
+                # except:
+                #    parseErrors = parseErrors + 1
+                #    log.debug('skipped value')
+                #===============================================================
+                value = element.toDouble()      #NB: pyqt uses QString
+                if value[1]:
+                    series.append(value[0])
+                else:
                     parseErrors = parseErrors + 1
                     log.debug('skipped value')
                     

@@ -24,8 +24,7 @@ RES = '../res/'
 ICONS = 'icons/'
 
 #--------- icons ----------#
-#LOGO = 'plot.png'
-LOGO = 'chart_line_dots.png'
+LOGO = 'chart_line.png'
 FULL_SCREEN = 'full.png'
 NORMAL_SIZE = 'normal.png'
 TOOLS = 'chart_bar.png'
