@@ -25,6 +25,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
+from numpy import *
 
 #from pyqtgraph.PlotWidget import *
 #from pyqtgraph.graphicsItems import *
@@ -43,30 +44,7 @@ from utils.guiTweaks import unfillLayout
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
 from gui.guiInfo import InfoFrame
-
-
-#===============================================================================
-# class StatusFilter(QObject):
-#    """Status message mouse click filter"""
-#    def eventFilter(self, object, event):
-#        
-#        if event.type() == QEvent.HoverEnter:
-#            if object.parent().parent().testFrame.isHidden():
-#                print object.currentWidget().title()
-#                object.parent().parent().testFrame.show()
-# #            object.parent().parent().parent().parent().parent().testFrame.show()
-#            #print object.currentIndex()
-#            
-#        if event.type() == QEvent.HoverLeave:
-#            object.parent().parent().testFrame.hide()
-# #            object.parent().parent().parent().parent().parent().testFrame.hide()
-#            pass
-#            
-#        if event.type() == QEvent.MouseButtonPress:
-#            pass
-#            
-#        return True
-#===============================================================================
+from gui.graphWidget import MplWidget
 
 ####################################
 #            GUI classes           #
@@ -106,7 +84,6 @@ class MuScaleMainDialog(QMainWindow):
         self.loadDataLayout.addWidget(self.showGraph)        
         self.loadDataLayout.addWidget(self.showTable)        
         self.loadDataLayout.addWidget(self.clearAll)
-        #self.loadDataLayout.addWidget(self.tableResults)         
 
         self.loadDataGroup.setLayout(self.loadDataLayout)
         
@@ -119,12 +96,14 @@ class MuScaleMainDialog(QMainWindow):
         self.spinLevels = QSpinBox()
         self.calculateButton = QPushButton('Analyze data')
         self.resultsView = QTextEdit()
+        self.scalogramGraph = MplWidget()
         
         self.decompLayout.addWidget(self.comboWavelet, 0, 0)
         self.decompLayout.addWidget(self.comboDecomposition, 0, 1)
         self.decompLayout.addWidget(self.spinLevels, 0, 2)
         self.decompLayout.addWidget(self.calculateButton, 1, 0, 1, 3)
         self.decompLayout.addWidget(self.resultsView, 2, 0, 1, 3)
+        self.decompLayout.addWidget(self.scalogramGraph, 3, 0, 1, 3)
         
         self.decompGroup.setLayout(self.decompLayout)
         
@@ -231,11 +210,12 @@ class MuScaleMainDialog(QMainWindow):
         self.comboWavelet.addItems(pywt.families())
         self.comboDecomposition.addItems(['Discrete WT', 'Stationary WT'])
         self.spinLevels.setValue(2)
-        self.spinLevels.setRange(1, 10)
+        self.spinLevels.setRange(1, 6)
         self.resultsView.setHidden(True)
         self.resultsView.setReadOnly(True)
         self.resultsView.setMinimumWidth(WIDTH - 100)
         self.resultsView.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.scalogramGraph.setVisible(False)
         
         self.decompLayout.setAlignment(Qt.AlignCenter)
         
@@ -305,14 +285,6 @@ class MuScaleMainDialog(QMainWindow):
         
         # tooltips #
         self.statTools.currentChanged.connect(self.updateInfoTooltips)
-#        self.filter = StatusFilter()
-#        self.statTools.setAttribute(Qt.WA_Hover, True)
-#        self.statTools.installEventFilter(self.filter)
-
-#        self.loadDataGroup.setAttribute(Qt.WA_Hover, True)
-#        self.loadDataGroup.installEventFilter(self.filter)
-#        self.decompGroup.setAttribute(Qt.WA_Hover, True)
-#        self.decompGroup.installEventFilter(self.filter)
     
 #------------------- actions ------------------#
     
@@ -339,7 +311,8 @@ class MuScaleMainDialog(QMainWindow):
         self.updateInfoPosition()
         
     def updateToolsPosition(self):
-        self.toolsFrame.move( self.x() + self.width() + 20, self.y() )
+        if not self.toolsFrame.toolDetatched.isChecked():
+            self.toolsFrame.move( self.x() + self.width() + 20, self.y() )
         
     def updateToolsSize(self):
         if not self.toolsFrame.fixSize.isChecked():
@@ -408,7 +381,9 @@ class MuScaleMainDialog(QMainWindow):
         self.statusBar.showMessage('Data cleared')
         
         self.resultsView.clear()
+        self.scalogramGraph.canvas.ax.clear()
         self.resultsView.setHidden(True)
+        self.scalogramGraph.setHidden(True)
         self.calculateButton.setText('Analyze data')
         
         self.toolsFrame.hide()
@@ -459,6 +434,8 @@ class MuScaleMainDialog(QMainWindow):
             self.toggleTools.setChecked(False)
         
     def waveletTransform(self):
+        self.scalogramGraph.canvas.ax.clear()
+        
         wavelet = pywt.Wavelet( pywt.wavelist(self.comboWavelet.currentText())[0] )
         if self.comboDecomposition.currentIndex() == 0:
             #cA3, cD3, cD2, cD1
@@ -470,8 +447,17 @@ class MuScaleMainDialog(QMainWindow):
         for coeff in self.wCoefficients:
             self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i = i + 1
             #self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + ' '.join(list(coeff)) + '<br/>'); i = i + 1
+            self.scalogramGraph.canvas.ax.plot(coeff)
+            
+        #self.scalogramGraph.canvas.ax.imshow(vstack(tuple(self.wCoefficients[:-1])), interpolation='nearest')
+        #self.scalogramGraph.canvas.ax.imshow(row_stack(tuple(self.wCoefficients)), interpolation='nearest')
+#        self.scalogramGraph.canvas.ax1 = self.scalogramGraph.canvas.fig.add_subplot(211)
+#        self.scalogramGraph.canvas.ax1.plot(self.wCoefficients[-1:])
+        
+            
         self.resultsView.setVisible(True)
         self.calculateButton.setText('Reanalyze data')
+        self.scalogramGraph.setVisible(True)
         
         self.R['wcoeff'] = self.wCoefficients
         self.toolsFrame.updateNamespace()

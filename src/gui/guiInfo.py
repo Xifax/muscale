@@ -42,6 +42,9 @@ class InfoFrame(QFrame):
         self.titleLabel.setAlignment(Qt.AlignCenter)
         self.infoLabel.setAlignment(Qt.AlignCenter)
         
+        self.titleLabel.setWordWrap(True)
+        self.infoLabel.setWordWrap(True)
+        
     def updateContents(self, index):
         content = infoContens(index)
         self.titleLabel.setText('<b>' + content['title'] + '</b>')

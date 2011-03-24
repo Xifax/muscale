@@ -27,12 +27,14 @@ class StatusFilter(QObject):
         if event.type() == QEvent.HoverEnter:
             object.parent().upScale.setVisible(True)
             object.parent().fixSize.setVisible(True)
+            object.parent().toolDetatched.setVisible(True)
             
         if event.type() == QEvent.HoverLeave:
             def hideButton(): 
                 object.parent().upScale.setHidden(True)
                 object.parent().fixSize.setHidden(True)
-            QTimer.singleShot(2000, hideButton)
+                object.parent().toolDetatched.setHidden(True)
+            QTimer.singleShot(3000, hideButton)
 
         return False
 
@@ -82,12 +84,20 @@ class ToolsFrame(QWidget):
         
         # global layout #
         self.mainLayout = QVBoxLayout()
-        self.upScale = QPushButton()
-        self.fixSize = QPushButton()
+        # hover area #
+        self.hoverLayout = QHBoxLayout()
+        self.upScale = QToolButton()
+        self.fixSize = QToolButton()
+        self.toolDetatched = QToolButton()
         self.hoverArea = QLabel()
+        self.hoverLayout.addWidget(self.upScale)
+        self.hoverLayout.addWidget(self.fixSize)
+        self.hoverLayout.addWidget(self.toolDetatched)
+        
         self.mainLayout.addWidget(self.hoverArea)
-        self.mainLayout.addWidget(self.upScale)
-        self.mainLayout.addWidget(self.fixSize)
+        self.mainLayout.addLayout(self.hoverLayout)
+#        self.mainLayout.addWidget(self.upScale)
+#        self.mainLayout.addWidget(self.fixSize)
         self.mainLayout.addWidget(self.toolTabs)
         
         self.setLayout(self.mainLayout)
@@ -122,14 +132,20 @@ class ToolsFrame(QWidget):
         self.upScale.setCheckable(True)
         self.upScale.setHidden(True)
         
-        self.fixSize.setText('&Lock v.size')
+        self.fixSize.setText('&Lock vertical resize')
         self.fixSize.setMaximumHeight(18)
         self.fixSize.setCheckable(True)
         self.fixSize.setHidden(True)
         
+        self.toolDetatched.setText('&Detach')
+        self.toolDetatched.setMaximumHeight(18)
+        self.toolDetatched.setCheckable(True)
+        self.toolDetatched.setHidden(True)
+        
         self.hoverArea.setMaximumHeight(2)
         self.hoverArea.setAlignment(Qt.AlignCenter)
-        
+
+        self.hoverLayout.setAlignment(Qt.AlignCenter)
         self.mainLayout.setAlignment(Qt.AlignCenter)
         
         # r console #
@@ -157,17 +173,21 @@ class ToolsFrame(QWidget):
         self.upScale.clicked.connect(self.changeScale)
         
         self.filter = StatusFilter()
-#        self.upScale.setAttribute(Qt.WA_Hover, True)
-#        self.upScale.installEventFilter(self.filter)
         self.hoverArea.setAttribute(Qt.WA_Hover, True)
         self.hoverArea.installEventFilter(self.filter)
+        
+        #self.namesList.itemDoubleClicked.connect(self.showItemInR)
+        self.namesList.itemClicked.connect(self.appendItemInline)
     
     #--------- actions ---------#
-    def rCommand(self):
+    def rCommand(self, internalIn=None):
         #=======================================================================
         # result = '\n'.join(self.R(self.rInput.text()).split(self.R.newline)[1:])
         #=======================================================================
-        result = '\n'.join(self.R(str(self.rInput.text())).split(self.R.newline)[1:])   #PyQt shenanigans
+        if internalIn is None:
+            result = '\n'.join(self.R(str(self.rInput.text())).split(self.R.newline)[1:])   #PyQt shenanigans
+        else:
+            result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
         if result != self.R.newline:
             try:
                 self.rConsole.append(result)
@@ -231,10 +251,18 @@ class ToolsFrame(QWidget):
     def showEvent(self, event):
         self.hoverArea.setText(u'hover area')
         self.hoverArea.setMaximumHeight(16)
-        self.setStyleSheet('QLabel { border: 2px solid gray; border-radius: 4px; }')
+        self.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
         def flashLabel(): 
             self.hoverArea.setText(u'')
             self.setStyleSheet('QLabel { border: none; }')
             self.hoverArea.setMaximumHeight(2)
         QTimer.singleShot(2000, flashLabel)
+        
+    #===========================================================================
+    # def showItemInR(self):
+    #    self.rCommand(self.namesList.selectedItems()[0].text())
+    #===========================================================================
+    
+    def appendItemInline(self, event):
+        self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
         

@@ -34,9 +34,9 @@ Created on Mar 9, 2011
 # R 2.12.2 i386                          http://goo.gl/nxOOk
 # PySide 1.0.0 (PyQT 4.8.1)              http://goo.gl/owd8y
 # PypeR 1.1.0                            http://goo.gl/5Q1JX    (*)
-# PyWavelets 0.2.0                       http://goo.gl/9pp1Y
+# PyWavelets 0.2.0                       http://goo.gl/9pp1Y    (http://goo.gl/Zhb65)
 # NumPy 1.5.1                            http://goo.gl/lZfYj
-# Matplotlib 1.0.1                       http://goo.gl/3cXp
+# Matplotlib 1.0.1                       http://goo.gl/3cXp     (http://goo.gl/wgosD)
 # SciPy 0.9.0                            http://goo.gl/l4Edo
 
 # possible plot lib alternatives:
@@ -51,8 +51,9 @@ Created on Mar 9, 2011
 
 #-----------------NOTES------------------#
 #NB: (*) needs fix for python 2.6.6  DO NOT INSTALL using easy_install    (http://goo.gl/3js4H)
-#NB: (**) requires CygWin (and infamous vcvarsall.bat), yet still does not build with one
-#NB: (***) standalone mode possible (PyQt4 only), if not usingOpenGl
+#NB: (**) requires CygWin/MinGW compiler (and infamous vcvarsall.bat) and SWIG for building Traits and Enable + Cython packages  (#)   (http://goo.gl/U07x) (http://goo.gl/FCoZS)
+#NB: (***) documentation is lacking
+#NB: (#) python setup.py install build –compiler=mingw32 (Traits -> Cython -> Enable)
 
 #---------------R packages---------------#
 #Guidelines                               http://goo.gl/dVizL
