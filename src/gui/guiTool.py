@@ -157,6 +157,7 @@ class ToolsFrame(QWidget):
         
         self.rConsole.setReadOnly(True)
         self.namesList.setHidden(True)
+        #self.namesList.setMaximumHeight(self.rConsole.height()/3)
         
         # table #
         self.tableWidget.setColumnCount(1)
@@ -214,6 +215,7 @@ class ToolsFrame(QWidget):
     
     def viewNamespace(self):
         if self.namespaceButton.isChecked():
+            self.namesList.setMaximumHeight(self.rConsole.height()/3)
             self.namesList.setVisible(True)
         else:
             self.namesList.setHidden(True)
@@ -249,7 +251,7 @@ class ToolsFrame(QWidget):
             self.showNormal()
             
     def showEvent(self, event):
-        self.hoverArea.setText(u'hover area')
+        self.hoverArea.setText(u'mouse over here')
         self.hoverArea.setMaximumHeight(16)
         self.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
         def flashLabel(): 
