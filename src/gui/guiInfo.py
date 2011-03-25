@@ -41,8 +41,8 @@ class InfoFrame(QFrame):
 
         self.dockButtonUp = QPushButton()
         self.dockButtonDown = QPushButton()
-        self.dockButtonLeft = QPushButton()
-        self.dockButtonRight = QPushButton()
+#        self.dockButtonLeft = QPushButton()
+#        self.dockButtonRight = QPushButton()
 
         self.mainLayout.addWidget(self.dockButtonUp)
         self.mainLayout.addWidget(self.titleLabel)
@@ -52,15 +52,15 @@ class InfoFrame(QFrame):
         
         self.initComposition()
         self.initComponents()
+        self.initActions()
         
     def initComposition(self):
         self.setWindowFlags(Qt.ToolTip)
         self.setStyleSheet('QFrame { background-color: khaki; border: 1px solid black; border-radius: 4px; } QLabel { border: none; }')
         
         #self.setFixedSize(I_WIDTH, I_HEIGHT)
+        self.setMaximumWidth(I_WIDTH)
         self.setFocusPolicy(Qt.StrongFocus)
-        
-        #self.setMask(roundCorners(self.rect(), 4))
         
     def initComponents(self):
         #self.mainLayout.setAlignment(Qt.AlignCenter)
@@ -71,10 +71,12 @@ class InfoFrame(QFrame):
         self.infoLabel.setWordWrap(True)
         
         self.dockButtonUp.setHidden(True)
+        self.dockButtonUp.setCheckable(True)
         self.dockButtonUp.setMaximumHeight(8)
         self.dockButtonUp.setStyleSheet('QWidget { background-color: khaki; }')
 
         self.dockButtonDown.setHidden(True)
+        self.dockButtonDown.setCheckable(True)
         self.dockButtonDown.setMaximumHeight(8)
         self.dockButtonDown.setStyleSheet('QWidget { background-color: khaki; }')
 
@@ -82,10 +84,25 @@ class InfoFrame(QFrame):
         self.setAttribute(Qt.WA_Hover, True)
         self.installEventFilter(self.filter)
         
+    def initActions(self):
+        self.dockButtonUp.clicked.connect(self.setTopPosition)
+        self.dockButtonDown.clicked.connect(self.setBottomPosition)
+        pass
+        
     def updateContents(self, index):
         content = infoContens(index)
         self.titleLabel.setText('<b>' + content['title'] + '</b>')
         self.infoLabel.setText(content['info'])
+        self.adjustSize()
+        self.updateCornersMask()
+        
+    def setTopPosition(self):
+        self.dockButtonDown.setChecked(False)
+        self.parent().updateInfoPosition()
+    
+    def setBottomPosition(self):
+        self.dockButtonUp.setChecked(False)
+        self.parent().updateInfoPosition()
         
     def updateCornersMask(self):
         self.setMask(roundCorners(self.rect(), 5))

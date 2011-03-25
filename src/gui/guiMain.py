@@ -46,6 +46,7 @@ from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
 from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
+from gui.faderWidget import StackedWidget
 
 ####################################
 #            GUI classes           #
@@ -128,6 +129,10 @@ class MuScaleMainDialog(QMainWindow):
         self.implementGroup = QGroupBox('Model implementation')
         self.implementLayout = QGridLayout()
         
+        #self.modelsStack = FaderWidget()
+        
+        #self.implementLayout.addWidget(self.modelsStack)
+        
         self.implementGroup.setLayout(self.implementLayout)
         
         # menus, toolbars, layouts & composition #
@@ -182,7 +187,7 @@ class MuScaleMainDialog(QMainWindow):
         self.wizard = None
         self.toolsFrame = ToolsFrame(self.R)
         self.currentPlot = self.toolsFrame.plotWidget.plot()
-        self.infoDialog = InfoFrame()
+        self.infoDialog = InfoFrame(self)
         
         ### start ###
         self.statusBar.showMessage('Ready!')
@@ -343,7 +348,12 @@ class MuScaleMainDialog(QMainWindow):
     def updateInfoPosition(self):
         #self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() * 3./2. )
         #self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() +  self.infoDialog.height()/2 )
-        self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() +  self.height()/2 )
+        if self.infoDialog.dockButtonUp.isChecked():
+            self.infoDialog.move( self.x() + self.width()/3, self.y() -  self.infoDialog.height() - 20 )
+        elif self.infoDialog.dockButtonDown.isChecked():
+            self.infoDialog.move( self.x() + self.width()/3, self.y() + self.height() + 60 )
+        else:
+            self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() +  self.height()/3 )
     
     #------------------ functionality ----------------#
     def openFile(self):
@@ -680,6 +690,60 @@ class MuScaleMainDialog(QMainWindow):
             QMessageBox.warning(self, 'Undefined model', 'You haven not specified any methods at all!')
         else:
             self.statTools.setItemEnabled(3, True)
+            self.readyModelsStack()
+            
+    def readyModelsStack(self):
+        unfillLayout(self.implementLayout)
+        
+        previousModel = QToolButton()
+        previousModel.setText('<')
+        nextModel = QToolButton()
+        nextModel.setText('>')
+        modelsList = QComboBox()
+        
+        modelsStack = StackedWidget()
+        modelsListLayout = QHBoxLayout()
+        for model in self.multiModel:
+#            modelSelector = QToolButton()
+#            modelSelector.setText(str(model) + ' ~ ' +  self.multiModel[model])
+#            def selectModel(): modelsStack.setCurrentIndex(model)
+#            modelSelector.clicked.connect(selectModel)
+#            
+#            modelsListLayout.addWidget(modelSelector)
+
+            modelsList.addItem(str(model) + '. ' + self.multiModel[model])
+            
+            simulateButton = QPushButton('Simulate level ' + str(model))
+            
+            simulationPlot = MplWidget()
+            simulationPlot.canvas.ax.plot(self.wCoefficients[model])
+            #modelsStack.addWidget(simulateButton)
+            modelsStack.addWidget(simulationPlot)
+            
+        modelsListLayout.addWidget(previousModel)
+        modelsListLayout.addWidget(modelsList)
+        modelsListLayout.addWidget(nextModel)
+        
+        def changeStackPage(): modelsStack.setCurrentIndex(modelsList.currentIndex())
+        modelsList.currentIndexChanged.connect(changeStackPage)
+        def nextM():
+            if modelsList.currentIndex() + 1 < modelsList.count():
+                modelsList.setCurrentIndex(modelsList.currentIndex() + 1)
+            else:
+                modelsList.setCurrentIndex(0)
+        def prevM():
+            if modelsList.currentIndex() - 1 > -1:
+                modelsList.setCurrentIndex(modelsList.currentIndex() - 1)
+            else:
+                modelsList.setCurrentIndex(modelsList.count() - 1)
+                
+        nextModel.clicked.connect(nextM)
+        previousModel.clicked.connect(prevM)
+        
+        modelsListLayout.setAlignment(Qt.AlignCenter)
+        
+        self.implementLayout.addLayout(modelsListLayout, 0, 0)
+        self.implementLayout.addWidget(modelsStack, 1, 0)
             
     def showWizard(self):
         self.wizard = QWizard()
