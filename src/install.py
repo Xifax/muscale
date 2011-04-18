@@ -9,7 +9,7 @@ import sys, urllib, subprocess, os
 
 def dlProgress(count, blockSize, totalSize):
     percent = int(count*blockSize*100/totalSize)
-    sys.stdout.write("Download progress: %d%%   \r" % (percent) )
+    sys.stdout.write("Download progress: %d%%   \r" % percent)
   
 def downloadWithProgressbar(url):
     file_name = url.split('/')[-1]

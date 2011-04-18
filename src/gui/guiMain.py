@@ -338,7 +338,7 @@ class MuScaleMainDialog(QMainWindow):
         self.updateInfoPosition()
         
     def updateToolsPosition(self):
-        if not self.toolsFrame.toolDetatched.isChecked():
+        if not self.toolsFrame.toolDetached.isChecked():
             self.toolsFrame.move( self.x() + self.width() + 20, self.y() )
         
     def updateToolsSize(self):
@@ -364,7 +364,7 @@ class MuScaleMainDialog(QMainWindow):
                 if len(fileName) > 0:
                     self.currentDataSet = DataParser.getTimeSeriesFromTextData(data = open(fileName[0], 'r').read())
                     self.showParseResults()
-            except:
+            except Exception:
                 QMessageBox.warning(self, 'File error', 'Could not read specified file! ')
                 log.error('could not open ' + fileName.takeFirst())
                 
@@ -481,7 +481,7 @@ class MuScaleMainDialog(QMainWindow):
         
         self.resultsView.clear(); i = 0
         for coeff in self.wCoefficients:
-            self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i = i + 1
+            self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
             #self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + ' '.join(list(coeff)) + '<br/>'); i = i + 1
             self.scalogramGraph.canvas.ax.plot(coeff)
             
@@ -528,7 +528,7 @@ class MuScaleMainDialog(QMainWindow):
                     if widget.isCheckable():
                         #TODO: do something else
                         widget.click()
-                        
+
 #                        if not widget.isChecked():
 #                            widget.setChecked(True)
 #                            widget.setText('OK')
@@ -540,7 +540,7 @@ class MuScaleMainDialog(QMainWindow):
 #                            widget.setText('+')
 #                            combo = self.modelLayout.itemAtPosition(row + 2, 0).widget()
 #                            combo.setEnabled(True)
-    
+
     def previewAll(self):
         for row in range(0, self.modelLayout.rowCount()):
             if self.modelLayout.itemAtPosition(row, 2) is not None:
@@ -558,7 +558,7 @@ class MuScaleMainDialog(QMainWindow):
 #        self.scalogramGraph.canvas.ax.clear()
 #        self.scalogramGraph.canvas.ax.plot()
         #self.gem = self.saveGeometry()
-        if self.gem is not None: 
+        if self.gem is not None:
             if not self.toggleSizeAction.isChecked():
                 #TODO: change only vertical size, not geometry at all
                 self.restoreGeometry(self.gem)
@@ -574,13 +574,13 @@ class MuScaleMainDialog(QMainWindow):
                             #NB: for 1D array (descrete transform)
                             preview.canvas.ax.plot(self.wCoefficients[level.text().right(1).toInt()[0]])
                             preview.setVisible(True)
-                            
+
                             self.gem = self.saveGeometry()
                             self.resize(self.width(), self.height() + 220)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
                             preview.setHidden(True)
-                            
+
     def constructModelTemplate(self):
         unfillLayout(self.modelLayout)
         nLevels = len(self.wCoefficients)
@@ -634,19 +634,17 @@ class MuScaleMainDialog(QMainWindow):
             
             self.modelLayout.addWidget(labelModel, i, 0)
             self.modelLayout.addWidget(addModel, i, 1)
-            self.modelLayout.addWidget(togglePreview, i, 2); i = i +1
-#            self.modelLayout.addWidget(comboModel, i, 0, 1, 2); i = i + 1
-#            self.modelLayout.addWidget(separator, i, 0, 1, 2); i = i + 1
-            self.modelLayout.addWidget(comboModel, i, 0, 1, 3); i = i + 1
-            self.modelLayout.addWidget(componentPreview, i, 0, 1, 3); i = i + 1
-            self.modelLayout.addWidget(separator, i, 0, 1, 3); i = i + 1
+            self.modelLayout.addWidget(togglePreview, i, 2);            i += 1
+            self.modelLayout.addWidget(comboModel, i, 0, 1, 3);            i += 1
+            self.modelLayout.addWidget(componentPreview, i, 0, 1, 3);            i += 1
+            self.modelLayout.addWidget(separator, i, 0, 1, 3);            i += 1
             
         resetModel = QPushButton('Reset model setup')
         resetModel.clicked.connect(self.resetModel)
         constructModel = QPushButton('Construct multiscale model')
         constructModel.clicked.connect(self.constructModel)
         
-        self.modelLayout.addWidget(resetModel, i, 0, 1, 3); i = i + 1
+        self.modelLayout.addWidget(resetModel, i, 0, 1, 3);        i += 1
         self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 3)
             
     def addModel(self):
