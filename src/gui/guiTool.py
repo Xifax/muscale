@@ -186,7 +186,8 @@ class ToolsFrame(QWidget):
         # result = '\n'.join(self.R(self.rInput.text()).split(self.R.newline)[1:])
         #=======================================================================
         if internalIn is None:
-            result = '\n'.join(self.R(str(self.rInput.text())).split(self.R.newline)[1:])   #PyQt shenanigans
+            request = self.checkRequest(self.rInput.text())
+            result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
         else:
             result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
         if result != self.R.newline:
@@ -199,6 +200,10 @@ class ToolsFrame(QWidget):
 
         self.indicateInput()
         self.updateNamespace()
+
+    def checkRequest(self, input):
+        #TODO: add check
+        return str(input)
 
     def indicateInput(self):
         if not self.flash:

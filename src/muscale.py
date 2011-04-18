@@ -12,7 +12,7 @@ Created on Mar 9, 2011
 # -> main project file <-
 # -> contains: 
 #   - central GUI dialog
-#   - TODO list
+#   - TO DO list
 #   - dependencies & packages
 # -> structure:
 #   - gui ~ qt frontend
@@ -26,7 +26,6 @@ Created on Mar 9, 2011
 #TODO: fix imports to parsimonious ones
 #TODO: implement parse template
 #TODO: preemptive R input validation
-#TODO: fix info size fluctuation
 
 ####################################
 #            Dependencies          #
@@ -81,15 +80,14 @@ from utils.log import log
 ####################################
 #        QT application loop       #
 ####################################
-
-if __name__ == '__main__':
+def main():
 
     app = QApplication(sys.argv)
     app.setStyle('plastique')
-    
+
     muScale = MuScaleMainDialog()
     muScale.show()
-    
+
     try:
         sys.exit(app.exec_())
     except Exception, e:
@@ -98,3 +96,7 @@ if __name__ == '__main__':
     finally:
         print 'Bye!'
         
+if __name__ == '__main__':
+    main()
+
+
