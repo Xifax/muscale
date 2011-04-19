@@ -55,6 +55,13 @@ ICO_SIZE = 32
 STYLE = 'plastique'
 SPLASH = 'mu_logo.png'
 
+#--------- timers ----------#
+TIP_VISIBLE = 4000 #ms
+STATUS_CHECK_DELAY = 1000
+TRAY_VISIBLE_DELAY = 10000
+TRAY_ICON_DELAY = 2000
+LOAD_PAUSE = 3000
+
 #--------- info ------------#
 def infoContens(index):
     try:
@@ -70,3 +77,17 @@ def infoContens(index):
                 }[index]
     except KeyError:
         return {'title' : '...', 'info' : '...'}
+
+infoTipsDict = { 0 : { 'tip' : u'To begin time series modelling, you should first load some data.', 'seen' : False },
+                 1 : { 'tip' : u'Perform time series decomposition using wavelet transformation', 'seen' : False },
+                 2 : { 'tip' : u'Choose model depending on level configuration', 'seen' : False },
+                 3 : { 'tip' : u'Simulate forecast on multiple levels', 'seen' : False },
+                }
+
+def infoTips(index):
+    try:
+        if not infoTipsDict[index]['seen']:
+            infoTipsDict[index]['seen'] = True
+            return infoTipsDict[index]['tip']
+    except KeyError:
+        return None

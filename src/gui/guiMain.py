@@ -14,18 +14,11 @@ import platform
 from datetime import datetime
 
 # external #
-#import PyQt4
-from PyQt4.QtCore import *
+from PyQt4.QtCore import Qt, QRect, QSize, QTimer
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
 from numpy import *
-
-#from pyqtgraph.PlotWidget import *
-#from pyqtgraph.graphicsItems import *
-
-#from gui.qtPlot import QtDetatchedPlot
-#from graphWidget import MPL_Widget
 
 # own #
 from utils.log import log
@@ -35,13 +28,16 @@ from utils.const import __name__,\
                         RES, ICONS, ICO_SIZE,\
                         FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
                         NEXT, PREV, FIRST, LAST, QUIT, ABOUT,\
-                        P_PREVIEW_HEIGHT
+                        P_PREVIEW_HEIGHT,\
+                        LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
+                        infoTipsDict
 from utils.guiTweaks import unfillLayout 
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
 from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
+from gui.guiMessage import SystemMessage
 
 ####################################
 #            GUI classes           #
@@ -171,7 +167,7 @@ class MuScaleMainDialog(QMainWindow):
 
         # computational modules #
         self.trayIcon.show()
-        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, 10000)
+        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
         self.R = R()
         
         # external gui modules #
@@ -179,6 +175,7 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame = ToolsFrame(self.R)
         self.currentPlot = self.toolsFrame.plotWidget.plot()
         self.infoDialog = InfoFrame(self)
+        self.messageInfo = SystemMessage(self)
 
         ### start ###
         self.statusBar.showMessage('Ready!')
@@ -186,10 +183,12 @@ class MuScaleMainDialog(QMainWindow):
         ### test ###
         print 'okay.jpeg'
         loadingTime = datetime.now() - start
-        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information, 10000)
-        QTimer.singleShot(3000, self.trayIcon.hide)
+        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
+        QTimer.singleShot(TRAY_ICON_DELAY, self.trayIcon.hide)
 
-#------------------- initialization ------------------#
+        def startingTip():  self.messageInfo.showInfo(self.statTools.currentIndex())
+        QTimer.singleShot(LOAD_PAUSE, startingTip)
+    #------------------- initialization ------------------#
 
     def initComposition(self):
         self.setWindowTitle(__name__ + ' ' +  __version__)
@@ -261,7 +260,10 @@ class MuScaleMainDialog(QMainWindow):
 #        aboutAction.setIcon(QIcon(RES + ICONS + ABOUT))
 #        aboutAction.setText('About')
         aboutAction.triggered.connect(self.showAbout)
+        resetTipsAction = QAction('&Reset tips', self)
+        resetTipsAction.triggered.connect(self.resetTips)
 
+        self.menuBar.addAction(resetTipsAction)
         self.menuBar.addAction(aboutAction)
         self.menuBar.addAction(quitAction)
 
@@ -429,6 +431,9 @@ class MuScaleMainDialog(QMainWindow):
         else:
             self.parseResults.setText('Could not parse at all!')
             self.parseResults.setVisible(True)
+
+    def resetTips(self):
+        for tip in infoTipsDict: infoTipsDict[tip]['seen'] = False
 
     def resetData(self):
         self.currentDataSet = []
@@ -600,7 +605,7 @@ class MuScaleMainDialog(QMainWindow):
 
 #                            self.gem = self.saveGeometry()
                             self.gem = self.size()
-                            print self.gem.width(), self.gem.height()
+#                            print self.gem.width(), self.gem.height()
                             self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
@@ -783,6 +788,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.close()
 
     def updateInfoTooltips(self):
+        self.messageInfo.showInfo(self.statTools.currentIndex())
         if self.toggleInfo.isChecked():
             self.infoDialog.updateContents(self.statTools.currentIndex())
             self.infoDialog.show()

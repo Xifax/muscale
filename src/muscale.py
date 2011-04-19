@@ -23,9 +23,10 @@ Created on Mar 9, 2011
 #   - python muscale.py
 #===============================================================================
 
-#TODO: fix imports to parsimonious ones
 #TODO: implement parse template
 #TODO: preemptive R input validation
+#TODO: implemet scalogram
+#TODO: tweak level plot previews
 
 ####################################
 #            Dependencies          #

@@ -58,7 +58,7 @@ class InfoFrame(QFrame):
         
         #self.setFixedSize(I_WIDTH, I_HEIGHT)
         self.setMaximumWidth(I_WIDTH)
-        self.setFocusPolicy(Qt.StrongFocus)
+#        self.setFocusPolicy(Qt.StrongFocus)
         
     def initComponents(self):
         #self.mainLayout.setAlignment(Qt.AlignCenter)

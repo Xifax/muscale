@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''Muscale without console'''
+'''muScale without console'''
 __author__ = 'Yadavito'
 
 import muscale

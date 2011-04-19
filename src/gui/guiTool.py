@@ -202,7 +202,7 @@ class ToolsFrame(QWidget):
         self.updateNamespace()
 
     def checkRequest(self, input):
-        #TODO: add check
+        #TODO: add check ( uneven brackets, random dots and duplicate names )
         return str(input)
 
     def indicateInput(self):
