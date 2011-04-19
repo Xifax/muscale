@@ -6,10 +6,6 @@ Created on Mar 17, 2011
 '''
 
 # external #
-#===============================================================================
-# from PySide.QtCore import *
-# from PySide.QtGui import *
-#===============================================================================
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -23,7 +19,6 @@ from utils.log import log
 class StatusFilter(QObject):
     """Status message mouse click filter"""
     def eventFilter(self, object, event):
-
         if event.type() == QEvent.HoverEnter:
             object.parent().upScale.setVisible(True)
             object.parent().fixSize.setVisible(True)
@@ -121,9 +116,6 @@ class ToolsFrame(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
 
     def initComponents(self):
-        #=======================================================================
-        # self.toolTabs.setTabPosition(QTabWidget.TabPosition.South)
-        #=======================================================================
         # layout and tabs
         self.toolTabs.setTabPosition(QTabWidget.South)
 
@@ -182,9 +174,6 @@ class ToolsFrame(QWidget):
 
     #--------- actions ---------#
     def rCommand(self, internalIn=None):
-        #=======================================================================
-        # result = '\n'.join(self.R(self.rInput.text()).split(self.R.newline)[1:])
-        #=======================================================================
         if internalIn is None:
             request = self.checkRequest(self.rInput.text())
             result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
@@ -193,7 +182,7 @@ class ToolsFrame(QWidget):
         if result != self.R.newline:
             try:
                 self.rConsole.append(result)
-            except:
+            except Exception:
                 log.error('R interpreter crush')
         if self.enterButton.isChecked():
             self.rInput.clear()
@@ -265,10 +254,8 @@ class ToolsFrame(QWidget):
             self.hoverArea.setMaximumHeight(2)
         QTimer.singleShot(2000, flashLabel)
 
-    #===========================================================================
-    # def showItemInR(self):
-    #    self.rCommand(self.namesList.selectedItems()[0].text())
-    #===========================================================================
-
     def appendItemInline(self, event):
         self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
+
+    def closeEvent(self, QCloseEvent):
+        self.parentWidget().toggleTools.setChecked(False)

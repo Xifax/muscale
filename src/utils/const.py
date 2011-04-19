@@ -4,6 +4,8 @@ Created on Mar 9, 2011
 
 @author: Yadavito
 '''
+# external
+from flufl.enum import make_enum
 
 #--------- global ---------#
 __name__    = 'muScale'
@@ -91,3 +93,7 @@ def infoTips(index):
             return infoTipsDict[index]['tip']
     except KeyError:
         return None
+
+#--------- models ----------#
+
+Models = make_enum('Models', 'HoltWinters HarmonicRegression ARMA')

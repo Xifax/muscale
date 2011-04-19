@@ -12,19 +12,21 @@ def showSplash(app):
 
     # splash pixmap
     logo = QPixmap(RES + ICONS + SPLASH)
-    splash = QSplashScreen(logo)
+    splash = QSplashScreen(logo, Qt.WindowStaysOnTopHint)
+#    splash.setWindowFlags(Qt.WindowStaysOnTopHint)
 
     # shadow effect
     #TODO: make shadow effect work!
-    
-    #shadow = QGraphicsDropShadowEffect()
+
+#    shadow = QGraphicsDropShadowEffect()
     #shadow.setOffset(QPointF(3,3))
     #shadow.setBlurRadius(8)
-    #splash.setGraphicsEffect(shadow)
+#    splash.setGraphicsEffect(shadow)
 
     # alpha mask
     splash.show()
     splash.setMask(logo.mask())
+#    splash.setGraphicsEffect(shadow)
 
     # status message
     labelAlignment = Qt.Alignment(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute)

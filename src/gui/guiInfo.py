@@ -15,7 +15,6 @@ from utils.guiTweaks import roundCorners
 class InfoFilter(QObject):
     """Status message mouse click filter"""
     def eventFilter(self, object, event):
-        
         if event.type() == QEvent.HoverEnter:
             object.dockButtonUp.setVisible(True)
             object.dockButtonDown.setVisible(True)
@@ -85,7 +84,6 @@ class InfoFrame(QFrame):
     def initActions(self):
         self.dockButtonUp.clicked.connect(self.setTopPosition)
         self.dockButtonDown.clicked.connect(self.setBottomPosition)
-        pass
         
     def updateContents(self, index):
         content = infoContens(index)
@@ -106,7 +104,8 @@ class InfoFrame(QFrame):
     def updateCornersMask(self):
         self.setMask(roundCorners(self.rect(), 5))
     
-#    def showEvent(self, event):
+    def showEvent(self, event):
+        pass
 #        self.infoLabel.adjustSize()
 #        self.adjustSize()
 #        self.updateCornersMask()

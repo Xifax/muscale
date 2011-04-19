@@ -32,7 +32,7 @@ def install_with_easyinstall(package):
     
 if __name__ == '__main__':
 
-    packages = ['pyqt', 'pyper', 'pywavelets', 'enum', 'userconfig', 'numpy', 'scipy', 'matplotlib']
+    packages = ['pyqt', 'pyper', 'pywavelets', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib']
     for package in packages:
         print 'Installing ' + package
         install_with_easyinstall(package)

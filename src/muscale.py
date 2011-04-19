@@ -103,8 +103,7 @@ def main():
     try:
         sys.exit(app.exec_())
     except Exception, e:
-        #TODO: and muScale.info(e)
-        print e
+        muScale.messageInfo.showInfo(str(e))
         log.debug(e)
     finally:
         print 'Bye!'

@@ -14,7 +14,7 @@ import platform
 from datetime import datetime
 
 # external #
-from PyQt4.QtCore import Qt, QRect, QSize, QTimer
+from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
@@ -172,7 +172,7 @@ class MuScaleMainDialog(QMainWindow):
         
         # external gui modules #
         self.wizard = None
-        self.toolsFrame = ToolsFrame(self.R)
+        self.toolsFrame = ToolsFrame(self.R, self)
         self.currentPlot = self.toolsFrame.plotWidget.plot()
         self.infoDialog = InfoFrame(self)
         self.messageInfo = SystemMessage(self)
@@ -434,6 +434,7 @@ class MuScaleMainDialog(QMainWindow):
 
     def resetTips(self):
         for tip in infoTipsDict: infoTipsDict[tip]['seen'] = False
+        self.messageInfo.showInfo('Already seen tips will be shown anew.')
 
     def resetData(self):
         self.currentDataSet = []
