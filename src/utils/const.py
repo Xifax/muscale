@@ -9,6 +9,13 @@ Created on Mar 9, 2011
 __name__    = 'muScale'
 __version__ = '0.0.1'
 
+#----------- id -----------#
+_company = 'nonbyte'
+_product = __name__.lower()
+_subproduct = _product
+_version = __version__.replace('.', '')
+_separator = '.'
+
 #------- main window ------#
 WIDTH = 640
 HEIGHT = 570
@@ -33,7 +40,7 @@ ICONS = 'icons/'
 LOGO = 'chart_line.png'
 FULL_SCREEN = 'full.png'
 NORMAL_SIZE = 'normal.png'
-TOOLS = 'chart_bar.png'
+TOOLS = 'chart_line_dots.png'
 WIZARD = 'wizzard.png'
 INFO = 'info.png'
 NEXT = 'next.png'
@@ -42,6 +49,11 @@ FIRST = 'first.png'
 LAST = 'last.png'
 ABOUT = 'about.png'
 QUIT = 'quit.png'
+
+ICO_SIZE = 32
+#---------- styles ---------#
+STYLE = 'plastique'
+SPLASH = 'mu_logo.png'
 
 #--------- info ------------#
 def infoContens(index):

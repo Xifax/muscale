@@ -60,6 +60,10 @@ Created on Mar 9, 2011
 #stats, tseries, ast, lmtest              http://goo.gl/4WIeW
 #TSA (Time Series Analysis)               http://goo.gl/Chh0z
 
+#--------------- IDE ---------------------#
+# PyDev ~ .project; .pydevproject; /.settings
+# PyCharm ~ /.idea
+
 ####################################
 #            Imports               #
 ####################################
@@ -68,13 +72,13 @@ Created on Mar 9, 2011
 import sys
 
 # external packages
-#===============================================================================
-# from PySide.QtGui import QApplication
-#===============================================================================
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QApplication, QIcon
+from PyQt4.QtCore import Qt
 
 # own packages #
 from gui.guiMain import MuScaleMainDialog
+from gui.guiSplash import showSplash
+from utils.const import RES, ICONS, LOGO, STYLE
 from utils.log import log
 
 ####################################
@@ -82,21 +86,27 @@ from utils.log import log
 ####################################
 def main():
 
+    # qt application
     app = QApplication(sys.argv)
-    app.setStyle('plastique')
+    app.setStyle(STYLE)
+    app.setWindowIcon(QIcon(RES + ICONS + LOGO))
 
+    # splash screen
+    splash = showSplash(app)
+
+    # main widget
     muScale = MuScaleMainDialog()
     muScale.show()
+    splash.finish(muScale)
 
     try:
         sys.exit(app.exec_())
     except Exception, e:
+        #TODO: and muScale.info(e)
         print e
         log.debug(e)
     finally:
         print 'Bye!'
-        
+
 if __name__ == '__main__':
     main()
-
-

@@ -14,13 +14,6 @@ import platform
 from datetime import datetime
 
 # external #
-
-#===============================================================================
-# PYSIDE
-# import PySide
-# from PySide.QtCore import *
-# from PySide.QtGui import *
-#===============================================================================
 #import PyQt4
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -39,7 +32,7 @@ from utils.log import log
 from utils.const import __name__,\
                         __version__,\
                         WIDTH, HEIGHT,\
-                        RES, ICONS,\
+                        RES, ICONS, ICO_SIZE,\
                         FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
                         NEXT, PREV, FIRST, LAST, QUIT, ABOUT,\
                         P_PREVIEW_HEIGHT
@@ -178,9 +171,6 @@ class MuScaleMainDialog(QMainWindow):
 
         # computational modules #
         self.trayIcon.show()
-        #=======================================================================
-        # self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.MessageIcon.Information, 10000)
-        #=======================================================================
         self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, 10000)
         self.R = R()
         
@@ -196,9 +186,6 @@ class MuScaleMainDialog(QMainWindow):
         ### test ###
         print 'okay.jpeg'
         loadingTime = datetime.now() - start
-        #=======================================================================
-        # self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.MessageIcon.Information, 10000)
-        #=======================================================================
         self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information, 10000)
         QTimer.singleShot(3000, self.trayIcon.hide)
 
@@ -262,7 +249,7 @@ class MuScaleMainDialog(QMainWindow):
 
         # etc #
         self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
-        self.toolBar.setIconSize(QSize(48,48))
+        self.toolBar.setIconSize(QSize(ICO_SIZE, ICO_SIZE))
 
     def initActions(self):
         # menu actions #
@@ -500,9 +487,6 @@ class MuScaleMainDialog(QMainWindow):
 
     def showAbout(self):
         QMessageBox.about(self, 'About muScale','Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
-                           #====================================================
-                           # '\nPySide:\t' + PySide.__version__ + '\nQtCore:\t' + PySide.QtCore.__version__ +
-                           #====================================================
                            '\nQtCore:\t' + PYQT_VERSION_STR +
                            '\nPlatform:\t' + platform.system())
 
@@ -787,19 +771,18 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         layout = QVBoxLayout()
         layout.addWidget(label)
         page.setLayout(layout)
-        #page.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
+#        page.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
 
         self.wizard.addPage(page)
         self.wizard.setWindowTitle("A Wizard")
-        #self.wizard.setWizardStyle(QWizard.ClassicStyle)
-        #self.wizard.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
+#        self.wizard.setWizardStyle(QWizard.ClassicStyle)
+        self.wizard.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
         self.wizard.show()
 
     def quitApplication(self):
         self.close()
 
     def updateInfoTooltips(self):
-        #print self.statTools.currentWidget().title()
         if self.toggleInfo.isChecked():
             self.infoDialog.updateContents(self.statTools.currentIndex())
             self.infoDialog.show()
