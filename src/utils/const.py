@@ -57,6 +57,12 @@ ICO_SIZE = 32
 STYLE = 'plastique'
 SPLASH = 'mu_logo.png'
 
+#---------- parser ---------#
+LR_PRNTH_MAPPINGS = { "(":")", "[":"]", "{":"}" }
+
+L_PRNTH = set(LR_PRNTH_MAPPINGS.iterkeys())
+R_PRNTH = set(LR_PRNTH_MAPPINGS.itervalues())
+
 #--------- timers ----------#
 TIP_VISIBLE = 4000 #ms
 STATUS_CHECK_DELAY = 1000

@@ -14,6 +14,7 @@ from pyqtgraph.graphicsItems import *
 
 # own #
 from utils.const import T_WIDTH, T_HEIGHT
+from utils.tools import checkParentheses
 from utils.log import log
 
 class StatusFilter(QObject):
@@ -174,15 +175,17 @@ class ToolsFrame(QWidget):
 
     #--------- actions ---------#
     def rCommand(self, internalIn=None):
-        if internalIn is None:
-            request = self.checkRequest(self.rInput.text())
-            result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
-        else:
-            result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
-        if result != self.R.newline:
-            try:
+        try:
+            if internalIn is None:
+                request = self.checkRequest(self.rInput.text())
+                if request is not None: result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
+                else: result = None
+            else:
+                result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
+            if result != self.R.newline and result is not None:
                 self.rConsole.append(result)
-            except Exception:
+        except Exception:
+                self.parentWidget().messageInfo.showInfo('Sudden PypeR combustion!', True)
                 log.error('R interpreter crush')
         if self.enterButton.isChecked():
             self.rInput.clear()
@@ -191,8 +194,9 @@ class ToolsFrame(QWidget):
         self.updateNamespace()
 
     def checkRequest(self, input):
-        #TODO: add check ( uneven brackets, random dots and duplicate names )
-        return str(input)
+        if str(input).strip() == '': self.parentWidget().messageInfo.showInfo('Empty query! Use "help(topic)" for help.', True);  return None
+        elif checkParentheses(str(input)): return str(input)
+        else: self.parentWidget().messageInfo.showInfo('Incorrect input: check if brackets are evenly matched.', True);  return None
 
     def indicateInput(self):
         if not self.flash:

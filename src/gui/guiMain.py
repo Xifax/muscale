@@ -27,9 +27,9 @@ from utils.const import __name__,\
                         WIDTH, HEIGHT,\
                         RES, ICONS, ICO_SIZE,\
                         FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
-                        NEXT, PREV, FIRST, LAST, QUIT, ABOUT,\
                         P_PREVIEW_HEIGHT,\
                         LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
+                        FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
                         infoTipsDict
 from utils.guiTweaks import unfillLayout 
 from stats.parser import DataParser

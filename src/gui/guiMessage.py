@@ -28,15 +28,21 @@ class SystemMessage(QFrame):
     def initComposition(self):
 #        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
         self.setWindowFlags(Qt.ToolTip)
-        self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
+#        self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
+        self.updateStyle()
 
     def initComponents(self):
         self.info.setAlignment(Qt.AlignCenter)
         self.info.setWordWrap(True)
 
-    def showInfo(self, message):
+    def updateStyle(self, error=False):
+        if not error: self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
+        else: self.setStyleSheet('QFrame { background-color: red; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
+
+    def showInfo(self, message, error=False):
         if not self.isShown:
             self.info.setText('')
+            self.updateStyle(error)
             if isinstance(message, int):
                 tip = infoTips(message)
                 if tip is not None:
