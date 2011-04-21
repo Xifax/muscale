@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+from numpy.lib.function_base import append
+
 __author__ = 'Yadavito'
 
 # external #
-from stats.pyper import R
+from stats.pyper import R, Str4R
 import pywt
-from numpy import *
+#from numpy import *
 import matplotlib.pyplot as plt
+
+# own #
+from stats.wavelets import iswt
 
 def modelling_cycle():
 
@@ -32,12 +37,13 @@ def modelling_cycle():
 
     plt.figure()
     plt.plot(initial_data, color='g')
-
+#--------------- wavelet decomposition -------------------#
     decomposition_level = 2
     wavelet_families = pywt.families()
-    wavelet_type = wavelet_families[0]
+    wavelet_family = wavelet_families[0]
+    selected_wavelet = pywt.wavelist(wavelet_family)[0]
 
-    wavelet = pywt.Wavelet(pywt.wavelist(wavelet_type)[0])  #NB: taking first variant of wavelet (e.g. haar1)
+    wavelet = pywt.Wavelet(selected_wavelet)  #NB: taking first variant of wavelet (e.g. haar1)
     # discrete (non stationary) multilevel decomposition
     wCoefficients_Discrete = pywt.wavedec(initial_data, wavelet, level=decomposition_level) #NB: output length also depends on wavelet type
     # stationary (Algorithme à trous ~ does not decimate coefficients at every transformation level) multilevel decomposition
@@ -45,7 +51,7 @@ def modelling_cycle():
 
     fig_discrete = plt.figure(); n_coeff = 1
     for coeff in wCoefficients_Discrete:
-        print coeff
+#        print coeff
         fig_discrete.add_subplot(len(wCoefficients_Discrete), 1, n_coeff); n_coeff += 1
         plt.plot(coeff)
 
@@ -53,9 +59,69 @@ def modelling_cycle():
     for item in wCoefficients_Stationary: rows += len(item)
     for coeff in wCoefficients_Stationary:
         for subcoeff in coeff:
-            print subcoeff
+#            print subcoeff
             fig_stationary.add_subplot(rows, 1, n_coeff); n_coeff += 1
             plt.plot(subcoeff)
+#    plt.show()
+
+#------------------ modelling by level -------------------#
+
+    r = R()
+    r.i_data = initial_data     # or r['i_data'] = initial_data
+
+    ### Holt-Winters ###
+    # non-seasonal Holt-Winters
+    print r('hw <- HoltWinters( i_data, gamma = FALSE )')
+
+    # seasonal Holt-Winters
+    r.freq = 4  #series sampling (month, days, years, etc)
+#    print r( 'hw <- HoltWinters( ts ( %s, frequency = %s ) )' % ( Str4R(r.i_data), Str4R(r.freq) ) )
+#    print r( 'hw <- HoltWinters( ts ( %s, frequency = %s, start = c(1,1) ) )' % ( Str4R(r.i_data), Str4R(r.freq) ) )
+
+    # resulting Square Estimation Sum
+    print r.hw['SSE']
+
+    # bruteforce frequency search
+#    print 'test ahead:'
+#    sse_dict = {}
+#    for i in xrange(2, 50):
+#        r.freq = i
+##        r( 'hw <- HoltWinters( ts ( %s, frequency = %s, start = c(1,1) ) )' % ( Str4R(r.i_data), Str4R(r.freq) ) )
+#        r( 'hw <- HoltWinters( ts ( %s, frequency = %s ) )' % ( Str4R(r.i_data), Str4R(r.freq) ) )
+#        print r.hw['SSE']
+#        sse_dict[r.hw['SSE']] = i; i += 1
+#    print 'Resulting:'
+#    m = min(sse_dict.keys())
+#    print sse_dict[m], m
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+#    ax.plot(r.hw['fitted'][:,0])   # the colums are: xhat, level, trend
+#    plt.show()
+
+    # forecast length
+    r.steps_ahead = 50
+#    print r('pred <- predict(%s, %s, prediction.interval = TRUE)' % ( Str4R(r.hw), Str4R(r.steps_ahead)) )
+#    print r( 'pred <- predict(hw, %s, prediction.interval = TRUE)', Str4R(r.steps_ahead) )
+    print r( 'pred <- predict(hw, 50, prediction.interval = TRUE)')
+#    plt.plot(r.pred)
+    ax.plot(initial_data)
+    ax.plot(append(r.hw['fitted'][:,0], r.pred[:,0]))   # concatenating reconstructed model and resulting forecast
+
+#    plt.show()
+
+#------------------ reconstruction -------------------#
+    # multilevel idwt
+    reconstructed_Discrete = pywt.waverec(wCoefficients_Discrete, selected_wavelet)
+    plt.figure()
+    plt.plot(reconstructed_Discrete)
+#    plt.show()
+
+    # multilevel stationary
+    reconstructed_Stationary = iswt(wCoefficients_Stationary, selected_wavelet)
+
+    plt.figure()
+    plt.plot(reconstructed_Stationary)
     plt.show()
 
     print 'end'
