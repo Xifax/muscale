@@ -30,7 +30,7 @@ from utils.const import __name__,\
     P_PREVIEW_HEIGHT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
-    infoTipsDict, Models
+    infoTipsDict, Models, Tabs
 from utils.guiTweaks import unfillLayout, createSeparator
 from utils.tools import prettifyNames
 from stats.parser import DataParser
@@ -122,11 +122,21 @@ class MuScaleMainDialog(QMainWindow):
         self.implementGroup = QGroupBox('Model implementation')
         self.implementLayout = QGridLayout()
 
-        #self.modelsStack = FaderWidget()
-
-        #self.implementLayout.addWidget(self.modelsStack)
-
         self.implementGroup.setLayout(self.implementLayout)
+
+        # model composition #
+        self.reconsGroup = QGroupBox('Reconstruction')
+        self.reconsLayout = QGridLayout()
+
+        self.reconTS = QPushButton('Update from WT coeff''s')
+        self.plotInitial = QPushButton('Plot initial data')
+        self.resultingGraph = MplWidget()
+
+        self.reconsLayout.addWidget(self.reconTS,0, 0)
+        self.reconsLayout.addWidget(self.plotInitial, 0, 1)
+        self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 2)
+
+        self.reconsGroup.setLayout(self.reconsLayout)
 
         # menus, toolbars, layouts & composition #
         self.centralWidget = QWidget(self)
@@ -136,6 +146,7 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.addItem(self.decompGroup, 'Anal&yzing data')
         self.statTools.addItem(self.modelGroup, '&Multiscale model')
         self.statTools.addItem(self.implementGroup, '&Simulation')
+        self.statTools.addItem(self.reconsGroup, '&Results')
 
         self.menuBar = QMenuBar()
         self.toolBar = QToolBar()
@@ -250,10 +261,14 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemEnabled(1, False)
         self.statTools.setItemEnabled(2, False)
         self.statTools.setItemEnabled(3, False)
+        self.statTools.setItemEnabled(4, False)
 
         # etc #
         self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
         self.toolBar.setIconSize(QSize(ICO_SIZE, ICO_SIZE))
+
+        # results #
+        self.resultingGraph.setVisible(False)
 
     def initActions(self):
         # menu actions #
@@ -340,6 +355,10 @@ class MuScaleMainDialog(QMainWindow):
 
         # tooltips #
         self.statTools.currentChanged.connect(self.updateInfoTooltips)
+
+        # results #
+        self.reconTS.clicked.connect(self.updateResultingTS)
+        self.plotInitial.clicked.connect(self.updateResultingTSWithInitialData)
 
     #------------------- actions ------------------#
 
@@ -441,7 +460,7 @@ class MuScaleMainDialog(QMainWindow):
 
     def resetTips(self):
         for tip in infoTipsDict: infoTipsDict[tip]['seen'] = False
-        self.messageInfo.showInfo('Already seen tips will be shown anew.')
+        self.messageInfo.showInfo('Already seen tips will be shown anew')
 
     def resetData(self):
         self.currentDataSet = []
@@ -461,6 +480,7 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemEnabled(1, False)
         self.statTools.setItemEnabled(2, False)
         self.statTools.setItemEnabled(3, False)
+        self.statTools.setItemEnabled(4, False)
         self.statusBar.showMessage('Data cleared')
 
         self.resultsView.clear()
@@ -523,13 +543,13 @@ class MuScaleMainDialog(QMainWindow):
         self.isSWT = False
 
         try:
-            wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
+            self.wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
             w_level = self.spinLevels.value() - 1
             if self.comboDecomposition.currentIndex() == 0:
                 #cA3, cD3, cD2, cD1, etc
-                self.wCoefficients = pywt.wavedec(self.currentDataSet[0], wavelet, level=w_level)
+                self.wCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet, level=w_level)
             elif self.comboDecomposition.currentIndex() == 1:
-                self.wCoefficients = pywt.swt(self.currentDataSet[0], wavelet, level=w_level)
+                self.wCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
                 self.isSWT = True
 
                 #TODO: update graphWidget implementation
@@ -571,7 +591,7 @@ class MuScaleMainDialog(QMainWindow):
             self.showCoefficients.setVisible(True)
             self.decompInfoLabel.setVisible(True)
             self.calculateButton.setText('Reanalyze data')
-            self.decompInfoLabel.setText('Using <b>' + wavelet.name + '</b> wavelet')
+            self.decompInfoLabel.setText('Using <b>' + self.wavelet.name + '</b> wavelet')
 
             self.R['wcoeff'] = self.wCoefficients
             self.toolsFrame.updateNamespace()
@@ -580,6 +600,9 @@ class MuScaleMainDialog(QMainWindow):
             #self.resultsView.updateGeometry()
             self.constructModelTemplate()
             self.statTools.setItemEnabled(2, True)
+            #TODO: refactor temporal solution
+            self.statTools.setItemEnabled(4, True)
+            self.processedWCoeffs = None
 
             self.scalogramGraph.canvas.draw()
             self.update()
@@ -758,6 +781,9 @@ class MuScaleMainDialog(QMainWindow):
             self.readyModelsStack()
 
     def readyModelsStack(self):
+        if not self.isSWT:
+            self.processedWCoeffs = [0] * len(self.wCoefficients)
+
         unfillLayout(self.implementLayout)
 
         previousModel = QToolButton()
@@ -815,6 +841,8 @@ class MuScaleMainDialog(QMainWindow):
             model = modelsList.currentIndex()
             if not self.isSWT:
                 result = processModel(self.multiModel[model], self.wCoefficients[model], self.R)
+                self.processedWCoeffs[model] = result
+
                 #TODO: update, but not plot anew (repetitive plotting cause lag)
                 modelsStack.currentWidget().canvas.ax.plot(result)
                 modelsStack.currentWidget().canvas.draw()
@@ -823,6 +851,8 @@ class MuScaleMainDialog(QMainWindow):
             model = modelsList.currentIndex()
             if not self.isSWT:
                 result = calculateForecast(self.multiModel[model], self.wCoefficients[model], self.R)
+                self.processedWCoeffs[model] = result
+
                 modelsStack.currentWidget().canvas.ax.plot(result)
                 modelsStack.currentWidget().canvas.draw()
 
@@ -844,6 +874,33 @@ class MuScaleMainDialog(QMainWindow):
 #        self.implementLayout.addWidget(simulateButton, 0, 0)
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
+
+    def updateResultingTS(self):
+        if self.processedWCoeffs is None:
+            if not self.isSWT:
+                self.resultingGraph.canvas.ax.clear()
+                self.resultingGraph.canvas.ax.plot(pywt.waverec(self.wCoefficients, self.wavelet))
+                self.resultingGraph.show()
+                self.resultingGraph.canvas.draw()
+            else:
+                pass
+        else:
+            try:
+                if not self.isSWT:
+                    self.resultingGraph.canvas.ax.clear()
+                    self.resultingGraph.canvas.ax.plot(pywt.waverec(self.processedWCoeffs, self.wavelet))
+                    self.resultingGraph.show()
+                    self.resultingGraph.canvas.draw()
+                else:
+                    pass
+            except Exception, e:
+                self.messageInfo.showInfo('Not all were processed!', True)
+                log.error(e)
+
+    def updateResultingTSWithInitialData(self):
+        self.resultingGraph.canvas.ax.plot(self.currentDataSet[0])
+        self.resultingGraph.show()
+        self.resultingGraph.canvas.draw()
 
     def showWizard(self):
         self.wizard = QWizard()

@@ -81,15 +81,18 @@ def infoContens(index):
                     2  : { 'title' : u'Формирование модели', 'info' : u'Выбор прогностических моделей в зависимости от уровня представления. \
 Предполагается использование гармонической регрессии для компонент с ярко выраженной периодичностью, модели Хольта-Винтерса — для выявления общего тренда.'},
                     3  : { 'title' : u'Настройка и симуляция', 'info' : u'Задание параметров результирующей модели и формирование прогноза для каждой из компонент \
-с последующим обратным вейвлет-преобразованием и формированием конечного прогноза.'}
+с последующим обратным вейвлет-преобразованием и формированием конечного прогноза.'},
+                    4  : { 'title' : u'Конечная модель и прогноз', 'info' : u'Композиция результирующего временного ряда на основе преобразованных уровней \
+вейвлет-разложения.'}
                 }[index]
     except KeyError:
         return {'title' : '...', 'info' : '...'}
 
-infoTipsDict = { 0 : { 'tip' : u'To begin time series modelling, you should first load some data.', 'seen' : False },
+infoTipsDict = { 0 : { 'tip' : u'To begin time series modelling, you should first load some data', 'seen' : False },
                  1 : { 'tip' : u'Perform time series decomposition using wavelet transformation', 'seen' : False },
                  2 : { 'tip' : u'Choose model depending on level configuration', 'seen' : False },
                  3 : { 'tip' : u'Simulate forecast on multiple levels', 'seen' : False },
+                 4 : { 'tip' : u'Reconstruct time series based on processed multiscale levels', 'seen' : False },
                 }
 
 def infoTips(index):
@@ -103,3 +106,7 @@ def infoTips(index):
 #--------- models ----------#
 
 Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARMA ARIMA')
+
+#-------- gui tabs ---------#
+#TODO: update guiMain
+Tabs = make_enum('Tabs', 'Loading_data Analyzing_data Multiscale_model Simulation Results')     #NB: use in gui ~ int(Tabs.smth)
