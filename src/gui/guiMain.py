@@ -335,10 +335,10 @@ class MuScaleMainDialog(QMainWindow):
         self.toolBar.addAction(self.toggleInfo)
         self.toolBar.addAction(launchWizard)
         self.toolBar.addSeparator()
-        self.toolBar.addAction(goToFirstAction)
+#        self.toolBar.addAction(goToFirstAction)
         self.toolBar.addAction(previousStepAction)
         self.toolBar.addAction(nextStepAction)
-        self.toolBar.addAction(goToLastAction)
+#        self.toolBar.addAction(goToLastAction)
 
         # load data actions #
         self.toggleManual.clicked.connect(self.toggleInputField)

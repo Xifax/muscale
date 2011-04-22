@@ -28,13 +28,25 @@ except ImportError:
     else: sys.exit(0)
 
 def install_with_easyinstall(package):
-    easy_install.main(["-U", package])
-    
-if __name__ == '__main__':
-
-    packages = ['pyqt', 'pyper', 'pywavelets', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib']
-    for package in packages:
+    try:
+        if package == 'pyqt': __import__('PyQt4')
+        else: __import__(package)
+        in_system.append(package)
+    except ImportError:
         print 'Installing ' + package
+        easy_install.main(['-U', package])
+        installed.append(package)
+
+if __name__ == '__main__':
+    installed = []; in_system = []
+    packages = ['pywt', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib', 'pyqt']
+    for package in packages:
         install_with_easyinstall(package)
-        
-    print 'completed'
+
+    #TODO: for PyQt and Matplotlib it may be better to use binary installer
+
+    print 'Install/Update complete. Status:\n'
+    print '\n'.join(installed), '\n\n(total installed: ' + str(len(installed)) + ')\n'
+    print '\n------------ # # # ------------\n'
+    print '\n'.join(in_system), '\n\n(already in system: ' + str(len(in_system)) + ')\n'
+    raw_input('Press any key and so on.')

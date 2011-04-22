@@ -1,4 +1,4 @@
-Time series forecast utility, implementing multiscale model.
+Time series forecasting utility, implementing multiscale model.
 
 ---
 
