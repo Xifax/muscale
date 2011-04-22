@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Mar 18, 2011
 
@@ -5,7 +6,7 @@ Created on Mar 18, 2011
 '''
 
 from PyQt4.QtCore import QRect, QSize
-from PyQt4.QtGui import QRegion
+from PyQt4.QtGui import QRegion, QFrame
 
 def unfillLayout(layoutName):
     '''Empty layout from widgets (should be reinit'd, if in another layout)'''
@@ -39,3 +40,10 @@ def roundCorners(rectangle, radius):
         region += QRegion(corner, QRegion.Ellipse)
         
         return region
+
+def createSeparator():
+    '''Create simple separator'''
+    separator = QFrame()
+    separator.setFrameShape(QFrame.HLine)
+    separator.setFrameShadow(QFrame.Sunken)
+    return separator

@@ -24,9 +24,10 @@ Created on Mar 9, 2011
 #===============================================================================
 
 #TODO: implement parse template
-#TODO: preemptive R input validation
-#TODO: implemet scalogram
+#TODO: preemptive R input validation (partially done)
+#TODO: implement scalogram
 #TODO: tweak level plot previews
+#TODO: somehow prevent post-startup lag
 
 ####################################
 #            Dependencies          #

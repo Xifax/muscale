@@ -23,21 +23,23 @@ from numpy import *
 # own #
 from utils.log import log
 from utils.const import __name__,\
-                        __version__,\
-                        WIDTH, HEIGHT,\
-                        RES, ICONS, ICO_SIZE,\
-                        FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
-                        P_PREVIEW_HEIGHT,\
-                        LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
-                        FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
-                        infoTipsDict
-from utils.guiTweaks import unfillLayout 
+    __version__,\
+    WIDTH, HEIGHT,\
+    RES, ICONS, ICO_SIZE,\
+    FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
+    P_PREVIEW_HEIGHT,\
+    LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
+    FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
+    infoTipsDict, Models
+from utils.guiTweaks import unfillLayout, createSeparator
+from utils.tools import prettifyNames
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
 from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
+from stats.models import *
 
 ####################################
 #            GUI classes           #
@@ -70,7 +72,7 @@ class MuScaleMainDialog(QMainWindow):
         self.showTable = QPushButton('Show table')
         self.clearAll = QPushButton('Reset data')
 
-        self.separator = QFrame();   self.separator.setFrameShape(QFrame.HLine);    self.separator.setFrameShadow(QFrame.Sunken)
+        self.separator = createSeparator()
 
         self.loadDataLayout.addWidget(self.loadFromFile)
         self.loadDataLayout.addWidget(self.toggleManual)
@@ -130,10 +132,10 @@ class MuScaleMainDialog(QMainWindow):
         self.centralWidget = QWidget(self)
 
         self.statTools = QToolBox()
-        self.statTools.addItem(self.loadDataGroup, 'Loading data')
-        self.statTools.addItem(self.decompGroup, 'Analyzing data')
-        self.statTools.addItem(self.modelGroup, 'Multiscale model')
-        self.statTools.addItem(self.implementGroup, 'Modelling')
+        self.statTools.addItem(self.loadDataGroup, 'Loading &data')
+        self.statTools.addItem(self.decompGroup, 'Anal&yzing data')
+        self.statTools.addItem(self.modelGroup, '&Multiscale model')
+        self.statTools.addItem(self.implementGroup, '&Simulation')
 
         self.menuBar = QMenuBar()
         self.toolBar = QToolBar()
@@ -169,7 +171,7 @@ class MuScaleMainDialog(QMainWindow):
         self.trayIcon.show()
         self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
         self.R = R()
-        
+
         # external gui modules #
         self.wizard = None
         self.toolsFrame = ToolsFrame(self.R, self)
@@ -183,18 +185,21 @@ class MuScaleMainDialog(QMainWindow):
         ### test ###
         print 'okay.jpeg'
         loadingTime = datetime.now() - start
-        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
+        self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information,
+                                  TRAY_VISIBLE_DELAY)
         QTimer.singleShot(TRAY_ICON_DELAY, self.trayIcon.hide)
 
         def startingTip():  self.messageInfo.showInfo(self.statTools.currentIndex())
+
         QTimer.singleShot(LOAD_PAUSE, startingTip)
+
     #------------------- initialization ------------------#
 
     def initComposition(self):
-        self.setWindowTitle(__name__ + ' ' +  __version__)
+        self.setWindowTitle(__name__ + ' ' + __version__)
 
         desktop = QApplication.desktop()
-        self.setGeometry(QRect( (desktop.width() - WIDTH)/2, (desktop.height() - HEIGHT)/2, WIDTH, HEIGHT) )
+        self.setGeometry(QRect((desktop.width() - WIDTH) / 2, (desktop.height() - HEIGHT) / 2, WIDTH, HEIGHT))
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowIcon(QIcon(RES + ICONS + LOGO))
@@ -216,7 +221,7 @@ class MuScaleMainDialog(QMainWindow):
         self.comboWavelet.addItems(pywt.families())
         self.comboDecomposition.addItems(['Discrete WT', 'Stationary WT'])
         self.spinLevels.setValue(2)
-        self.spinLevels.setRange(1, 6)
+        self.spinLevels.setRange(2, 10)
         self.resultsView.setHidden(True)
         self.resultsView.setReadOnly(True)
         self.resultsView.setMinimumWidth(WIDTH - 100)
@@ -253,12 +258,12 @@ class MuScaleMainDialog(QMainWindow):
     def initActions(self):
         # menu actions #
         quitAction = QAction('&Quit', self)
-#        quitAction.setIcon(QIcon(RES + ICONS + QUIT))
-#        quitAction.setText('Quit')
+        #        quitAction.setIcon(QIcon(RES + ICONS + QUIT))
+        #        quitAction.setText('Quit')
         quitAction.triggered.connect(self.quitApplication)
         aboutAction = QAction('&About', self)
-#        aboutAction.setIcon(QIcon(RES + ICONS + ABOUT))
-#        aboutAction.setText('About')
+        #        aboutAction.setIcon(QIcon(RES + ICONS + ABOUT))
+        #        aboutAction.setText('About')
         aboutAction.triggered.connect(self.showAbout)
         resetTipsAction = QAction('&Reset tips', self)
         resetTipsAction.triggered.connect(self.resetTips)
@@ -287,8 +292,8 @@ class MuScaleMainDialog(QMainWindow):
         self.addAction(previousStepAction)
         self.addAction(goToFirstAction)
         self.addAction(goToLastAction)
-#        self.addAction(aboutAction)
-#        self.addAction(quitAction)
+        #        self.addAction(aboutAction)
+        #        self.addAction(quitAction)
 
         # toolbar #
         self.toggleSizeAction = QAction('Full screen', self)
@@ -362,7 +367,7 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateToolsPosition(self):
         if not self.toolsFrame.toolDetached.isChecked():
-            self.toolsFrame.move( self.x() + self.width() + 20, self.y() )
+            self.toolsFrame.move(self.x() + self.width() + 20, self.y())
 
     def updateToolsSize(self):
         if not self.toolsFrame.fixSize.isChecked():
@@ -372,11 +377,11 @@ class MuScaleMainDialog(QMainWindow):
         #self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() * 3./2. )
         #self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() +  self.infoDialog.height()/2 )
         if self.infoDialog.dockButtonUp.isChecked():
-            self.infoDialog.move( self.x() + self.width()/3, self.y() -  self.infoDialog.height() - 20 )
+            self.infoDialog.move(self.x() + self.width() / 3, self.y() - self.infoDialog.height() - 20)
         elif self.infoDialog.dockButtonDown.isChecked():
-            self.infoDialog.move( self.x() + self.width()/3, self.y() + self.height() + 60 )
+            self.infoDialog.move(self.x() + self.width() / 3, self.y() + self.height() + 60)
         else:
-            self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() +  self.height()/3 )
+            self.infoDialog.move(self.x() - self.infoDialog.width() - 20, self.y() + self.height() / 3)
 
     def goToFirstStep(self):
         self.statTools.setCurrentIndex(0)
@@ -401,7 +406,7 @@ class MuScaleMainDialog(QMainWindow):
             fileName = self.openFileDialog.selectedFiles()   #NB: multiple files selection also possible!
             try:
                 if len(fileName) > 0:
-                    self.currentDataSet = DataParser.getTimeSeriesFromTextData(data = open(fileName[0], 'r').read())
+                    self.currentDataSet = DataParser.getTimeSeriesFromTextData(data=open(fileName[0], 'r').read())
                     self.showParseResults()
             except Exception:
                 QMessageBox.warning(self, 'File error', 'Could not read specified file! ')
@@ -416,7 +421,9 @@ class MuScaleMainDialog(QMainWindow):
 
     def showParseResults(self):
         if len(self.currentDataSet) == 2:
-            self.parseResults.setText('Success! Loaded<b> ' + str(len(self.currentDataSet[0])) +'</b> values, errors: <b>' + str(self.currentDataSet[1]) + '</b>')
+            self.parseResults.setText(
+                'Success! Loaded<b> ' + str(len(self.currentDataSet[0])) + '</b> values, errors: <b>' + str(
+                    self.currentDataSet[1]) + '</b>')
             self.parseResults.setVisible(True)
             self.showGraph.setVisible(True)
             self.showTable.setVisible(True)
@@ -468,7 +475,6 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.hide()
 
     def updateTable(self):
-
         if self.showTable.text() == 'Show table':
             self.toolsFrame.updateTable(self.currentDataSet[0])
             self.toolsFrame.show()
@@ -492,9 +498,10 @@ class MuScaleMainDialog(QMainWindow):
             self.loadManualData.setHidden(True)
 
     def showAbout(self):
-        QMessageBox.about(self, 'About muScale','Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
-                           '\nQtCore:\t' + PYQT_VERSION_STR +
-                           '\nPlatform:\t' + platform.system())
+        QMessageBox.about(self, 'About muScale',
+                          'Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
+                          '\nQtCore:\t' + PYQT_VERSION_STR +
+                          '\nPlatform:\t' + platform.system())
 
     def updateGraph(self):
         if self.showGraph.text() == 'Show graph':
@@ -510,43 +517,75 @@ class MuScaleMainDialog(QMainWindow):
             self.toggleTools.setChecked(False)
 
     def waveletTransform(self):
-        self.scalogramGraph.canvas.ax.clear()
+    #        self.scalogramGraph.canvas.ax.clear()
+    #        self.scalogramGraph.canvas.fig.clear()
+        # stationary decomposition flag
+        self.isSWT = False
 
-        wavelet = pywt.Wavelet( pywt.wavelist(self.comboWavelet.currentText())[0] )
-        if self.comboDecomposition.currentIndex() == 0:
-            #cA3, cD3, cD2, cD1
-            self.wCoefficients = pywt.wavedec(self.currentDataSet[0], wavelet, level=self.spinLevels.value())
-        elif self.comboDecomposition.currentIndex() == 1:
-            self.wCoefficients = pywt.swt(self.currentDataSet[0], wavelet, level=self.spinLevels.value())
+        try:
+            wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
+            w_level = self.spinLevels.value() - 1
+            if self.comboDecomposition.currentIndex() == 0:
+                #cA3, cD3, cD2, cD1, etc
+                self.wCoefficients = pywt.wavedec(self.currentDataSet[0], wavelet, level=w_level)
+            elif self.comboDecomposition.currentIndex() == 1:
+                self.wCoefficients = pywt.swt(self.currentDataSet[0], wavelet, level=w_level)
+                self.isSWT = True
 
-        self.resultsView.clear(); i = 0
-        for coeff in self.wCoefficients:
-            self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
-            #self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + ' '.join(list(coeff)) + '<br/>'); i = i + 1
-            self.scalogramGraph.canvas.ax.plot(coeff)
+                #TODO: update graphWidget implementation
+            self.scalogramGraph.canvas.fig.clear()
+            self.resultsView.clear();
+            i = 0;
+            rows = 0
 
-        #self.scalogramGraph.canvas.ax.imshow(vstack(tuple(self.wCoefficients[:-1])), interpolation='nearest')
-        #self.scalogramGraph.canvas.ax.imshow(row_stack(tuple(self.wCoefficients)), interpolation='nearest')
-#        self.scalogramGraph.canvas.ax1 = self.scalogramGraph.canvas.fig.add_subplot(211)
-#        self.scalogramGraph.canvas.ax1.plot(self.wCoefficients[-1:])
+            if not self.isSWT: rows = len(self.wCoefficients)
+            else:
+                for item in self.wCoefficients: rows += len(item)
 
+            for coeff in self.wCoefficients:
+                if not self.isSWT:
+                    ax = self.scalogramGraph.canvas.fig.add_subplot(rows, 1, i + 1)
+                    ax.plot(coeff)
+                    MplWidget.hideAxes(ax)
 
-        #self.resultsView.setVisible(True)
-        #self.scalogramGraph.setVisible(True)
+                    self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>');
+                    i += 1
+                else:
+                    for subcoeff in coeff:
+                        ax = self.scalogramGraph.canvas.fig.add_subplot(rows, 1, i + 1)
+                        ax.plot(subcoeff)
+                        MplWidget.hideAxes(ax)
 
-        self.showScalogram.setVisible(True)
-        self.showCoefficients.setVisible(True)
-        self.decompInfoLabel.setVisible(True)
-        self.calculateButton.setText('Reanalyze data')
-        self.decompInfoLabel.setText('Using <b>' + wavelet.name + '</b> wavelet')
+                        self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>');
+                        i += 1
 
-        self.R['wcoeff'] = self.wCoefficients
-        self.toolsFrame.updateNamespace()
-        self.statusBar.showMessage("Added 'wcoeff' variable to R namespace")
+                        #self.scalogramGraph.canvas.ax.imshow(vstack(tuple(self.wCoefficients[:-1])), interpolation='nearest')
+                        #self.scalogramGraph.canvas.ax.imshow(row_stack(tuple(self.wCoefficients)), interpolation='nearest')
+                        #        self.scalogramGraph.canvas.ax1 = self.scalogramGraph.canvas.fig.add_subplot(211)
+                        #        self.scalogramGraph.canvas.ax1.plot(self.wCoefficients[-1:])
 
-        #self.resultsView.updateGeometry()
-        self.constructModelTemplate()
-        self.statTools.setItemEnabled(2, True)
+                        #self.resultsView.setVisible(True)
+            #self.scalogramGraph.setVisible(True)
+
+            self.showScalogram.setVisible(True)
+            self.showCoefficients.setVisible(True)
+            self.decompInfoLabel.setVisible(True)
+            self.calculateButton.setText('Reanalyze data')
+            self.decompInfoLabel.setText('Using <b>' + wavelet.name + '</b> wavelet')
+
+            self.R['wcoeff'] = self.wCoefficients
+            self.toolsFrame.updateNamespace()
+            self.statusBar.showMessage("Added 'wcoeff' variable to R namespace")
+
+            #self.resultsView.updateGeometry()
+            self.constructModelTemplate()
+            self.statTools.setItemEnabled(2, True)
+
+            self.scalogramGraph.canvas.draw()
+            self.update()
+        except Exception, e:
+            self.messageInfo.showInfo(str(e), True)
+            log.error(e)
 
     def viewScalogram(self):
         if self.showScalogram.isChecked():
@@ -568,14 +607,14 @@ class MuScaleMainDialog(QMainWindow):
                     if widget.isCheckable():
                         if not widget.isChecked():
                             widget.click()
-                            
+
     def previewAll(self):
         for row in range(0, self.modelLayout.rowCount()):
             if self.modelLayout.itemAtPosition(row, 2) is not None:
-                    widget = self.modelLayout.itemAtPosition(row, 2).widget()
-                    if hasattr(widget, 'isCheckable'):
-                        if widget.isCheckable():
-                            widget.click()
+                widget = self.modelLayout.itemAtPosition(row, 2).widget()
+                if hasattr(widget, 'isCheckable'):
+                    if widget.isCheckable():
+                        widget.click()
 
     def autoModel(self):
         #TODO: Implement automatic configuration
@@ -583,11 +622,11 @@ class MuScaleMainDialog(QMainWindow):
         combo.setCurrentIndex(1)
 
     def showComponentPreview(self):
-#        self.scalogramGraph.canvas.ax.clear()
-#        self.scalogramGraph.canvas.ax.plot()
+    #        self.scalogramGraph.canvas.ax.clear()
+    #        self.scalogramGraph.canvas.ax.plot()
         if self.gem is not None:
             if not self.toggleSizeAction.isChecked():
-#                self.restoreGeometry(self.gem)
+            #                self.restoreGeometry(self.gem)
                 self.resize(self.width(), self.gem.height())
             self.gem = None
 
@@ -600,13 +639,21 @@ class MuScaleMainDialog(QMainWindow):
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
                             level = self.modelLayout.itemAtPosition(row, 0).widget()
                             #NB: for 1D array (descrete transform)
-                            preview.canvas.ax.plot(self.wCoefficients[level.text().right(1).toInt()[0]])
+                            if not self.isSWT:
+                                preview.canvas.ax.plot(self.wCoefficients[level.text().right(1).toInt()[0]])
+                            else:
+                                #TODO: somehow, refactor this felony
+                                preview.canvas.fig.clear()
+                                sub_ax_0 = preview.canvas.fig.add_subplot(211)
+                                sub_ax_0.plot(self.wCoefficients[level.text().right(1).toInt()[0]][0])
+                                sub_ax_1 = preview.canvas.fig.add_subplot(212)
+                                sub_ax_1.plot(self.wCoefficients[level.text().right(1).toInt()[0]][1])
+
                             preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.setVisible(True)
-
-#                            self.gem = self.saveGeometry()
+                            #                            self.gem = self.saveGeometry()
                             self.gem = self.size()
-#                            print self.gem.width(), self.gem.height()
+                            #                            print self.gem.width(), self.gem.height()
                             self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
@@ -614,17 +661,18 @@ class MuScaleMainDialog(QMainWindow):
 
     def constructModelTemplate(self):
         unfillLayout(self.modelLayout)
+        #TODO: add use case for level = 2, SWT
         nLevels = len(self.wCoefficients)
 
         addAll = QPushButton()
         previewAll = QPushButton()
         autoAll = QPushButton()
         addAll.setText('Add all')
-#        addAll.setCheckable(True)
+        #        addAll.setCheckable(True)
         previewAll.setText('Preview all')
         previewAll.setCheckable(True)
         autoAll.setText('Auto model')
-#        autoAll.setCheckable(True)
+        #        autoAll.setCheckable(True)
 
         addAll.clicked.connect(self.addAllLevelToModel)
         previewAll.clicked.connect(self.previewAll)
@@ -635,10 +683,8 @@ class MuScaleMainDialog(QMainWindow):
         buttonsLayout.addWidget(autoAll)
         buttonsLayout.addWidget(previewAll)
 
-        separator_b = QFrame();   separator_b.setFrameShape(QFrame.HLine);    separator_b.setFrameShadow(QFrame.Sunken)
-
         self.modelLayout.addLayout(buttonsLayout, 0, 0, 1, 3)
-        self.modelLayout.addWidget(separator_b, 1, 0, 1, 3)
+        self.modelLayout.addWidget(createSeparator(), 1, 0, 1, 3)
 
         i = 2
         for level in range(0, nLevels):
@@ -650,9 +696,8 @@ class MuScaleMainDialog(QMainWindow):
             addModel.clicked.connect(self.addModel)
 
             comboModel = QComboBox()
-            comboModel.addItems(['Harmonic Regression', 'Holt-Winters', 'ARMA'])
-
-            separator = QFrame();   separator.setFrameShape(QFrame.HLine);    separator.setFrameShadow(QFrame.Sunken)
+            comboModel.addItems(
+                prettifyNames(Models._enums.values()))
 
             togglePreview = QToolButton()
             togglePreview.setText('Preview')
@@ -667,14 +712,14 @@ class MuScaleMainDialog(QMainWindow):
             self.modelLayout.addWidget(togglePreview, i, 2);            i += 1
             self.modelLayout.addWidget(comboModel, i, 0, 1, 3);            i += 1
             self.modelLayout.addWidget(componentPreview, i, 0, 1, 3);            i += 1
-            self.modelLayout.addWidget(separator, i, 0, 1, 3);            i += 1
+            self.modelLayout.addWidget(createSeparator(), i, 0, 1, 3);            i += 1
 
         resetModel = QPushButton('Reset model setup')
         resetModel.clicked.connect(self.resetModel)
         constructModel = QPushButton('Construct multiscale model')
         constructModel.clicked.connect(self.constructModel)
 
-        self.modelLayout.addWidget(resetModel, i, 0, 1, 3);        i += 1
+        self.modelLayout.addWidget(resetModel, i, 0, 1, 3); i += 1
         self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 3)
 
     def addModel(self):
@@ -702,7 +747,9 @@ class MuScaleMainDialog(QMainWindow):
             widget = self.modelLayout.itemAtPosition(level * 4 + 2, 1).widget()
             if isinstance(widget, QWidget):
                 if widget.isChecked():
-                    self.multiModel[level] = self.modelLayout.itemAtPosition(level * 4 + 3 , 0).widget().currentText()
+                #                    self.multiModel[level] = self.modelLayout.itemAtPosition(level * 4 + 3 , 0).widget().currentText()
+                    self.multiModel[level] = Models(
+                        self.modelLayout.itemAtPosition(level * 4 + 3, 0).widget().currentIndex() + 1)
         print self.multiModel
         if self.multiModel == {}:
             QMessageBox.warning(self, 'Undefined model', 'You haven not specified any methods at all!')
@@ -721,21 +768,20 @@ class MuScaleMainDialog(QMainWindow):
 
         modelsStack = StackedWidget()
         modelsListLayout = QHBoxLayout()
+
         for model in self.multiModel:
-#            modelSelector = QToolButton()
-#            modelSelector.setText(str(model) + ' ~ ' +  self.multiModel[model])
-#            def selectModel(): modelsStack.setCurrentIndex(model)
-#            modelSelector.clicked.connect(selectModel)
-#
-#            modelsListLayout.addWidget(modelSelector)
 
-            modelsList.addItem(str(model) + '. ' + self.multiModel[model])
-
-            simulateButton = QPushButton('Simulate level ' + str(model))
+            modelsList.addItem(str(model) + '. ' + self.multiModel[model].enumname.replace('_', ' '))
 
             simulationPlot = MplWidget()
-            simulationPlot.canvas.ax.plot(self.wCoefficients[model])
-            #modelsStack.addWidget(simulateButton)
+            if not self.isSWT: simulationPlot.canvas.ax.plot(self.wCoefficients[model])
+            else:
+                simulationPlot.canvas.fig.clear()
+                sub_ax_0 = simulationPlot.canvas.fig.add_subplot(211)
+                sub_ax_0.plot(self.wCoefficients[model][0])
+                sub_ax_1 = simulationPlot.canvas.fig.add_subplot(212)
+                sub_ax_1.plot(self.wCoefficients[model][1])
+                
             modelsStack.addWidget(simulationPlot)
 
         modelsListLayout.addWidget(previousModel)
@@ -743,12 +789,15 @@ class MuScaleMainDialog(QMainWindow):
         modelsListLayout.addWidget(nextModel)
 
         def changeStackPage(): modelsStack.setCurrentIndex(modelsList.currentIndex())
+
         modelsList.currentIndexChanged.connect(changeStackPage)
+
         def nextM():
             if modelsList.currentIndex() + 1 < modelsList.count():
                 modelsList.setCurrentIndex(modelsList.currentIndex() + 1)
             else:
                 modelsList.setCurrentIndex(0)
+
         def prevM():
             if modelsList.currentIndex() - 1 > -1:
                 modelsList.setCurrentIndex(modelsList.currentIndex() - 1)
@@ -760,6 +809,39 @@ class MuScaleMainDialog(QMainWindow):
 
         modelsListLayout.setAlignment(Qt.AlignCenter)
 
+        #TODO: move into class namespace and refactor
+        def constructModel():
+            #TODO: refactor
+            model = modelsList.currentIndex()
+            if not self.isSWT:
+                result = processModel(self.multiModel[model], self.wCoefficients[model], self.R)
+                #TODO: update, but not plot anew (repetitive plotting cause lag)
+                modelsStack.currentWidget().canvas.ax.plot(result)
+                modelsStack.currentWidget().canvas.draw()
+                
+        def forecastModel():
+            model = modelsList.currentIndex()
+            if not self.isSWT:
+                result = calculateForecast(self.multiModel[model], self.wCoefficients[model], self.R)
+                modelsStack.currentWidget().canvas.ax.plot(result)
+                modelsStack.currentWidget().canvas.draw()
+
+        def resetModel():
+            model = modelsList.currentIndex()
+            if not self.isSWT:
+                modelsStack.currentWidget().canvas.ax.clear()
+                modelsStack.currentWidget().canvas.ax.plot(self.wCoefficients[model])
+                modelsStack.currentWidget().canvas.draw()
+
+        simulateButton = QPushButton('Simulate')
+        actionsMenu = QMenu()
+        actionsMenu.addAction(QAction('Fit model', self, triggered=constructModel))
+        actionsMenu.addAction(QAction('Forecast', self, triggered=forecastModel))
+        actionsMenu.addAction(QAction('Reset', self, triggered=resetModel))
+        simulateButton.setMenu(actionsMenu)
+
+        modelsListLayout.addWidget(simulateButton)
+#        self.implementLayout.addWidget(simulateButton, 0, 0)
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
 
@@ -777,11 +859,11 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         layout = QVBoxLayout()
         layout.addWidget(label)
         page.setLayout(layout)
-#        page.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
+        #        page.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
 
         self.wizard.addPage(page)
         self.wizard.setWindowTitle("A Wizard")
-#        self.wizard.setWizardStyle(QWizard.ClassicStyle)
+        #        self.wizard.setWizardStyle(QWizard.ClassicStyle)
         self.wizard.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
         self.wizard.show()
 

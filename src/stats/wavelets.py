@@ -1,11 +1,50 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Yadavito'
+__author__ = 'Michael Marino, Yadavito'
 
 # internal #
 import math
 
 # external #
 import pywt, numpy
+
+def apply_threshold(output, scaler = 1., input=None):
+    """
+        output
+          approx and detail coefficients, arranged in level value
+          exactly as output from swt:
+          e.g. [(cA1, cD1), (cA2, cD2), ..., (cAn, cDn)]
+        scaler
+          float to allow runtime tuning of thresholding
+        input
+          vector with length len(output).  If not None, these values are used for thresholding
+          if None, then the vector applies a calculation to estimate the proper thresholding
+          given this waveform.
+    """
+    for j in range(len(output)):
+        cA, cD = output[j]
+        if input is None:
+            dev = numpy.median(numpy.abs(cD - numpy.median(cD)))/0.6745
+            thresh = math.sqrt(2*math.log(len(cD)))*dev*scaler
+        else: thresh = scaler*input[j]
+        cD = pywt.thresholding.hard(cD, thresh)
+        output[j] = (cA, cD)
+def measure_threshold(output, scaler = 1.):
+    """
+        output
+          approx and detail coefficients, arranged in level value
+          exactly as output from swt:
+          e.g. [(cA1, cD1), (cA2, cD2), ..., (cAn, cDn)]
+        scaler
+          float to allow runtime tuning of thresholding
+        returns vector of length len(output) with treshold values
+    """
+    measure = []
+    for j in range(len(output)):
+        cA, cD = output[j]
+        dev = numpy.median(numpy.abs(cD - numpy.median(cD)))/0.6745
+        thresh = math.sqrt(2*math.log(len(cD)))*dev*scaler
+        measure.append(thresh)
+    return measure 
 
 def iswt(coefficients, wavelet):
     """

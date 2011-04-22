@@ -103,9 +103,8 @@ except:
 	has_numpy = False
 
 _has_subp = False
-#NB: own fix
+#NB: fix for stability (won't work with IP)
 if sys.platform == 'cli': # for IronPython
-	#NB: own fix
 	pass
 #===============================================================================
 #	from System.Diagnostics import Process
@@ -138,7 +137,7 @@ else:
 
 	try:
 		import subprocess
-		#NB: user fix
+		#NB: fix for use in Python 2.6.6
 		import _subprocess
 		_has_subp = True
 		Popen, PIPE, _STDOUT = subprocess.Popen, subprocess.PIPE, subprocess.STDOUT

@@ -9,6 +9,7 @@ import collections
 from utils.const import LR_PRNTH_MAPPINGS, L_PRNTH, R_PRNTH
 
 class RepeatTimer(Thread):
+    '''Timer with custom number of iterations'''
     def __init__(self, interval, function, iterations=0, args=[], kwargs={}):
         Thread.__init__(self)
         self.interval = interval
@@ -42,3 +43,6 @@ def checkParentheses(string):
             except IndexError:
                 return False
     return not parenstack
+
+'''Name 'parser' for enum model objects'''
+prettifyNames = lambda list: [item.replace('_', ' ') for item in list]

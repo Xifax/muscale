@@ -64,7 +64,7 @@ L_PRNTH = set(LR_PRNTH_MAPPINGS.iterkeys())
 R_PRNTH = set(LR_PRNTH_MAPPINGS.itervalues())
 
 #--------- timers ----------#
-TIP_VISIBLE = 4000 #ms
+TIP_VISIBLE = 3000 #ms
 STATUS_CHECK_DELAY = 1000
 TRAY_VISIBLE_DELAY = 10000
 TRAY_ICON_DELAY = 2000
@@ -102,4 +102,4 @@ def infoTips(index):
 
 #--------- models ----------#
 
-Models = make_enum('Models', 'HoltWinters HarmonicRegression ARMA')
+Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARMA ARIMA')

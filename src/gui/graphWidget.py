@@ -39,3 +39,8 @@ class MplWidget(QtGui.QWidget):
         # set the layout to th vertical box
         self.setLayout(self.vbl)
 
+    @staticmethod
+    def hideAxes(axes):
+        axes.get_xaxis().set_visible(False)
+        axes.get_yaxis().set_visible(False)
+
