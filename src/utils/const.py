@@ -108,5 +108,12 @@ def infoTips(index):
 Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARMA ARIMA')
 
 #-------- gui tabs ---------#
-#TODO: update guiMain
-Tabs = make_enum('Tabs', 'Loading_data Analyzing_data Multiscale_model Simulation Results')     #NB: use in gui ~ int(Tabs.smth)
+#TODO: update guiMain (active/inactive tabs)
+Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results')     #NB: use in gui ~ int(Tabs.smth)
+
+#------ gui tooltips -------#
+Tooltips = {# data input
+            'load_from_file': u'Load data series from text file',
+            'load_manual' : u'Input data series manually',
+            # decomposition
+}

@@ -55,9 +55,7 @@ class InfoFrame(QFrame):
         self.setWindowFlags(Qt.ToolTip)
         self.setStyleSheet('QFrame { background-color: khaki; border: 1px solid black; border-radius: 4px; } QLabel { border: none; }')
         
-        #self.setFixedSize(I_WIDTH, I_HEIGHT)
         self.setMaximumWidth(I_WIDTH)
-#        self.setFocusPolicy(Qt.StrongFocus)
         
     def initComponents(self):
         #self.mainLayout.setAlignment(Qt.AlignCenter)
@@ -105,7 +103,6 @@ class InfoFrame(QFrame):
         self.setMask(roundCorners(self.rect(), 5))
     
     def showEvent(self, event):
-        pass
-#        self.infoLabel.adjustSize()
-#        self.adjustSize()
+        self.infoLabel.adjustSize()
+        self.adjustSize()
 #        self.updateCornersMask()

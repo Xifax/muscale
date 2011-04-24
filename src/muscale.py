@@ -27,7 +27,11 @@ Created on Mar 9, 2011
 #TODO: preemptive R input validation (partially done)
 #TODO: implement scalogram
 #TODO: tweak level plot previews
-#TODO: somehow prevent post-startup lag
+#TODO: investingate post-startup lag
+#TODO: set tooltips handsomely
+#TODO: output formats
+#TODO: wizard template
+#TODO: fix info dialog text wrap
 
 ####################################
 #            Dependencies          #

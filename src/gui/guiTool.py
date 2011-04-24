@@ -100,6 +100,7 @@ class ToolsFrame(QWidget):
 
         # flags #
         self.flash = False
+        self.shownHoverInfo = False
 
         # initialization #
         self.initComposition()
@@ -249,14 +250,16 @@ class ToolsFrame(QWidget):
             self.showNormal()
 
     def showEvent(self, event):
-        self.hoverArea.setText(u'mouse over here')
-        self.hoverArea.setMaximumHeight(16)
-        self.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
-        def flashLabel():
-            self.hoverArea.setText(u'')
-            self.setStyleSheet('QLabel { border: none; }')
-            self.hoverArea.setMaximumHeight(2)
-        QTimer.singleShot(2000, flashLabel)
+        if not self.shownHoverInfo:
+            self.hoverArea.setText(u'mouse over here')
+            self.hoverArea.setMaximumHeight(16)
+            self.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
+            def flashLabel():
+                self.hoverArea.setText(u'')
+                self.setStyleSheet('QLabel { border: none; }')
+                self.hoverArea.setMaximumHeight(2)
+            QTimer.singleShot(2000, flashLabel)
+            self.shownHoverInfo = True
 
     def appendItemInline(self, event):
         self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())

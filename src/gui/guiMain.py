@@ -30,7 +30,7 @@ from utils.const import __name__,\
     P_PREVIEW_HEIGHT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
-    infoTipsDict, Models, Tabs
+    infoTipsDict, Models, Tabs, Tooltips
 from utils.guiTweaks import unfillLayout, createSeparator
 from utils.tools import prettifyNames
 from stats.parser import DataParser
@@ -215,6 +215,8 @@ class MuScaleMainDialog(QMainWindow):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowIcon(QIcon(RES + ICONS + LOGO))
 
+        self.setStyleSheet('QToolTip { background-color: black; color: white; border: 1px solid white; border-radius: 2px; }')
+
     def initComponents(self):
         # load data items #
         self.toggleManual.setCheckable(True)
@@ -258,10 +260,10 @@ class MuScaleMainDialog(QMainWindow):
         self.loadDataLayout.setAlignment(Qt.AlignCenter)
 
         # tabs #
-        self.statTools.setItemEnabled(1, False)
-        self.statTools.setItemEnabled(2, False)
-        self.statTools.setItemEnabled(3, False)
-        self.statTools.setItemEnabled(4, False)
+        self.statTools.setItemEnabled(int(Tabs.Decomposition), False)
+        self.statTools.setItemEnabled(int(Tabs.Model), False)
+        self.statTools.setItemEnabled(int(Tabs.Simulation), False)
+        self.statTools.setItemEnabled(int(Tabs.Results), False)
 
         # etc #
         self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
@@ -269,6 +271,9 @@ class MuScaleMainDialog(QMainWindow):
 
         # results #
         self.resultingGraph.setVisible(False)
+
+        # tooltips #
+        self.setCustomTooltips()
 
     def initActions(self):
         # menu actions #
@@ -360,6 +365,11 @@ class MuScaleMainDialog(QMainWindow):
         self.reconTS.clicked.connect(self.updateResultingTS)
         self.plotInitial.clicked.connect(self.updateResultingTSWithInitialData)
 
+    def setCustomTooltips(self):
+        # data input #
+        self.loadFromFile.setToolTip(Tooltips['load_from_file'])
+        self.toggleManual.setToolTip(Tooltips['load_manual'])
+
     #------------------- actions ------------------#
 
     def fullScreen(self):
@@ -449,7 +459,7 @@ class MuScaleMainDialog(QMainWindow):
             self.clearAll.setVisible(True)
             self.separator.setVisible(True)
 
-            self.statTools.setItemEnabled(1, True)
+            self.statTools.setItemEnabled(int(Tabs.Decomposition), True)
 
             self.R['data'] = self.currentDataSet[0]
             self.toolsFrame.updateNamespace()
@@ -477,10 +487,10 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.plotWidget.update()
         self.showGraph.setText('Show graph')
 
-        self.statTools.setItemEnabled(1, False)
-        self.statTools.setItemEnabled(2, False)
-        self.statTools.setItemEnabled(3, False)
-        self.statTools.setItemEnabled(4, False)
+        self.statTools.setItemEnabled(int(Tabs.Decomposition), False)
+        self.statTools.setItemEnabled(int(Tabs.Model), False)
+        self.statTools.setItemEnabled(int(Tabs.Simulation), False)
+        self.statTools.setItemEnabled(int(Tabs.Results), False)
         self.statusBar.showMessage('Data cleared')
 
         self.resultsView.clear()
@@ -599,9 +609,9 @@ class MuScaleMainDialog(QMainWindow):
 
             #self.resultsView.updateGeometry()
             self.constructModelTemplate()
-            self.statTools.setItemEnabled(2, True)
+            self.statTools.setItemEnabled(int(Tabs.Model), True)
             #TODO: refactor temporal solution
-            self.statTools.setItemEnabled(4, True)
+            self.statTools.setItemEnabled(int(Tabs.Results), True)
             self.processedWCoeffs = None
 
             self.scalogramGraph.canvas.draw()
@@ -762,7 +772,7 @@ class MuScaleMainDialog(QMainWindow):
 
     def resetModel(self):
         self.constructModelTemplate()
-        self.statTools.setItemEnabled(3, False)
+        self.statTools.setItemEnabled(int(Tabs.Simulation), False)
 
     def constructModel(self):
         self.multiModel.clear()
@@ -777,7 +787,7 @@ class MuScaleMainDialog(QMainWindow):
         if self.multiModel == {}:
             QMessageBox.warning(self, 'Undefined model', 'You haven not specified any methods at all!')
         else:
-            self.statTools.setItemEnabled(3, True)
+            self.statTools.setItemEnabled(int(Tabs.Simulation), True)
             self.readyModelsStack()
 
     def readyModelsStack(self):
@@ -894,7 +904,7 @@ class MuScaleMainDialog(QMainWindow):
                 else:
                     pass
             except Exception, e:
-                self.messageInfo.showInfo('Not all were processed!', True)
+                self.messageInfo.showInfo('Not all levels were processed!', True)
                 log.error(e)
 
     def updateResultingTSWithInitialData(self):
