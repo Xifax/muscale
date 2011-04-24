@@ -266,3 +266,5 @@ class ToolsFrame(QWidget):
 
     def closeEvent(self, QCloseEvent):
         self.parentWidget().toggleTools.setChecked(False)
+        self.parentWidget().showGraph.setText('Show graph')
+        self.parentWidget().showTable.setText('Show table')

@@ -33,6 +33,8 @@ Created on Mar 9, 2011
 #TODO: wizard template
 #TODO: fix info dialog text wrap
 #TODO: restructure resulting levels for SWT
+#TODO: fix button states on reset; update graphs on levels change
+#TODO: check wavelet reconstruction procedure
 
 ####################################
 #            Dependencies          #

@@ -59,6 +59,8 @@ def LOC(root='', ignore=[], recurse=True):
 def show_results():
     ignore_list = ['pyqtgraph']
     loc_result = LOC('../', ignore_list)
+    
+    print 'Excluded modules: ' + ', '.join(ignore_list)
     print 'LOC (with blanks and comments): ', loc_result[1]
     print 'LOC (code only): ', loc_result[0]
 
