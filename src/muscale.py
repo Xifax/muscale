@@ -32,6 +32,7 @@ Created on Mar 9, 2011
 #TODO: output formats
 #TODO: wizard template
 #TODO: fix info dialog text wrap
+#TODO: restructure resulting levels for SWT
 
 ####################################
 #            Dependencies          #

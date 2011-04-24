@@ -51,6 +51,12 @@ FIRST = 'first.png'
 LAST = 'last.png'
 ABOUT = 'about.png'
 QUIT = 'quit.png'
+# ~*~ #
+LOAD = 'load.png'
+DECOM = 'cog.png'
+LAYERS = 'layers.png'
+ANALYSIS = 'forecast.png'
+FIN = 'fin.png'
 
 ICO_SIZE = 32
 #---------- styles ---------#
@@ -108,8 +114,8 @@ def infoTips(index):
 Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARMA ARIMA')
 
 #-------- gui tabs ---------#
-#TODO: update guiMain (active/inactive tabs)
 Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results')     #NB: use in gui ~ int(Tabs.smth)
+Tabs.Data = 0
 
 #------ gui tooltips -------#
 Tooltips = {# data input

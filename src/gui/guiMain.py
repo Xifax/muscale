@@ -30,6 +30,7 @@ from utils.const import __name__,\
     P_PREVIEW_HEIGHT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
+    LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, Models, Tabs, Tooltips
 from utils.guiTweaks import unfillLayout, createSeparator
 from utils.tools import prettifyNames
@@ -63,7 +64,7 @@ class MuScaleMainDialog(QMainWindow):
 
         self.loadFromFile = QPushButton('&Load from file')
         # manual
-        self.toggleManual = QPushButton('&Manual input')
+        self.toggleManual = QPushButton('Manual &input')
         self.manualDataInput = QTextEdit()
         self.loadManualData = QPushButton('Parse')
         # results
@@ -275,6 +276,13 @@ class MuScaleMainDialog(QMainWindow):
         # tooltips #
         self.setCustomTooltips()
 
+        # tabs icons #
+        self.statTools.setItemIcon(int(Tabs.Data), QIcon(RES + ICONS + LOAD))
+        self.statTools.setItemIcon(int(Tabs.Decomposition), QIcon(RES + ICONS + DECOM))
+        self.statTools.setItemIcon(int(Tabs.Model), QIcon(RES + ICONS + LAYERS))
+        self.statTools.setItemIcon(int(Tabs.Simulation), QIcon(RES + ICONS + ANALYSIS))
+        self.statTools.setItemIcon(int(Tabs.Results), QIcon(RES + ICONS + FIN))
+
     def initActions(self):
         # menu actions #
         quitAction = QAction('&Quit', self)
@@ -285,7 +293,7 @@ class MuScaleMainDialog(QMainWindow):
         #        aboutAction.setIcon(QIcon(RES + ICONS + ABOUT))
         #        aboutAction.setText('About')
         aboutAction.triggered.connect(self.showAbout)
-        resetTipsAction = QAction('&Reset tips', self)
+        resetTipsAction = QAction('Reset &tips', self)
         resetTipsAction.triggered.connect(self.resetTips)
 
         self.menuBar.addAction(resetTipsAction)
@@ -564,9 +572,7 @@ class MuScaleMainDialog(QMainWindow):
 
                 #TODO: update graphWidget implementation
             self.scalogramGraph.canvas.fig.clear()
-            self.resultsView.clear();
-            i = 0;
-            rows = 0
+            self.resultsView.clear(); i = 0; rows = 0
 
             if not self.isSWT: rows = len(self.wCoefficients)
             else:
@@ -578,16 +584,14 @@ class MuScaleMainDialog(QMainWindow):
                     ax.plot(coeff)
                     MplWidget.hideAxes(ax)
 
-                    self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>');
-                    i += 1
+                    self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
                 else:
                     for subcoeff in coeff:
                         ax = self.scalogramGraph.canvas.fig.add_subplot(rows, 1, i + 1)
                         ax.plot(subcoeff)
                         MplWidget.hideAxes(ax)
 
-                        self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>');
-                        i += 1
+                        self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
 
                         #self.scalogramGraph.canvas.ax.imshow(vstack(tuple(self.wCoefficients[:-1])), interpolation='nearest')
                         #self.scalogramGraph.canvas.ax.imshow(row_stack(tuple(self.wCoefficients)), interpolation='nearest')
@@ -671,9 +675,10 @@ class MuScaleMainDialog(QMainWindow):
                         if widget.isChecked():
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
                             level = self.modelLayout.itemAtPosition(row, 0).widget()
-                            #NB: for 1D array (descrete transform)
+                            #for 1D array (descrete transform)
                             if not self.isSWT:
                                 preview.canvas.ax.plot(self.wCoefficients[level.text().right(1).toInt()[0]])
+                            # for SWT
                             else:
                                 #TODO: somehow, refactor this felony
                                 preview.canvas.fig.clear()
@@ -847,7 +852,6 @@ class MuScaleMainDialog(QMainWindow):
 
         #TODO: move into class namespace and refactor
         def constructModel():
-            #TODO: refactor
             model = modelsList.currentIndex()
             if not self.isSWT:
                 result = processModel(self.multiModel[model], self.wCoefficients[model], self.R)
@@ -856,7 +860,9 @@ class MuScaleMainDialog(QMainWindow):
                 #TODO: update, but not plot anew (repetitive plotting cause lag)
                 modelsStack.currentWidget().canvas.ax.plot(result)
                 modelsStack.currentWidget().canvas.draw()
-                
+            else:
+                pass
+
         def forecastModel():
             model = modelsList.currentIndex()
             if not self.isSWT:
@@ -865,6 +871,8 @@ class MuScaleMainDialog(QMainWindow):
 
                 modelsStack.currentWidget().canvas.ax.plot(result)
                 modelsStack.currentWidget().canvas.draw()
+            else:
+                pass
 
         def resetModel():
             model = modelsList.currentIndex()
@@ -872,6 +880,8 @@ class MuScaleMainDialog(QMainWindow):
                 modelsStack.currentWidget().canvas.ax.clear()
                 modelsStack.currentWidget().canvas.ax.plot(self.wCoefficients[model])
                 modelsStack.currentWidget().canvas.draw()
+            else:
+                pass
 
         simulateButton = QPushButton('Simulate')
         actionsMenu = QMenu()
@@ -881,7 +891,6 @@ class MuScaleMainDialog(QMainWindow):
         simulateButton.setMenu(actionsMenu)
 
         modelsListLayout.addWidget(simulateButton)
-#        self.implementLayout.addWidget(simulateButton, 0, 0)
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
 

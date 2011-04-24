@@ -35,10 +35,11 @@ def modelling_cycle():
 , 44.4, 42.7, 45.2, 41.0, 37.0, 37.5, 41.0, 45.0, 47.9, 56.5
 , 55.6, 54.2, 52.5, 52.4, 44.9, 40.9, 41.1, 44.8, 46.7, 49.4]
 
-    plt.figure()
+    fig_init = plt.figure()
+    fig_init.canvas.manager.set_window_title('Initial data')
     plt.plot(initial_data, color='g')
 #--------------- wavelet decomposition -------------------#
-    decomposition_level = 2
+    decomposition_level = 3
     wavelet_families = pywt.families()
     wavelet_family = wavelet_families[0]
     selected_wavelet = pywt.wavelist(wavelet_family)[0]
@@ -50,18 +51,28 @@ def modelling_cycle():
     wCoefficients_Stationary = pywt.swt(initial_data, wavelet, level=decomposition_level)
 
     fig_discrete = plt.figure(); n_coeff = 1
+    fig_discrete.canvas.manager.set_window_title('Discrete decomposition [ ' + str(decomposition_level) + ' level(s) ]') 
     for coeff in wCoefficients_Discrete:
 #        print coeff
         fig_discrete.add_subplot(len(wCoefficients_Discrete), 1, n_coeff); n_coeff += 1
         plt.plot(coeff)
 
     fig_stationary = plt.figure(); n_coeff = 1; rows = 0
+    fig_stationary.canvas.manager.set_window_title('Stationary decomposition [ ' + str(decomposition_level) + ' level(s) ]')
     for item in wCoefficients_Stationary: rows += len(item)
     for coeff in wCoefficients_Stationary:
         for subcoeff in coeff:
 #            print subcoeff
             fig_stationary.add_subplot(rows, 1, n_coeff); n_coeff += 1
             plt.plot(subcoeff)
+
+    fig_stat_sum = plt.figure(); n_coeff = 1; rows = 0
+    fig_stat_sum.canvas.manager.set_window_title('SWT sum by levels [ ' + str(decomposition_level) + ' level(s) ]')
+    for coeff in wCoefficients_Stationary:
+        sum = coeff[0] + coeff[1]
+        fig_stat_sum.add_subplot(len(wCoefficients_Discrete), 1, n_coeff); n_coeff += 1
+        plt.plot(sum)
+        
 #    plt.show()
 
 #------------------ modelling by level -------------------#
@@ -95,6 +106,7 @@ def modelling_cycle():
 #    print sse_dict[m], m
 
     fig = plt.figure()
+    fig.canvas.manager.set_window_title('Holt-winters model')
     ax = fig.add_subplot(111)
 #    ax.plot(r.hw['fitted'][:,0])   # the colums are: xhat, level, trend
 #    plt.show()
@@ -113,14 +125,16 @@ def modelling_cycle():
 #------------------ reconstruction -------------------#
     # multilevel idwt
     reconstructed_Discrete = pywt.waverec(wCoefficients_Discrete, selected_wavelet)
-    plt.figure()
+    fig_dis_r = plt.figure()
+    fig_dis_r.canvas.manager.set_window_title('DWT reconstruction')
     plt.plot(reconstructed_Discrete)
 #    plt.show()
 
     # multilevel stationary
     reconstructed_Stationary = iswt(wCoefficients_Stationary, selected_wavelet)
 
-    plt.figure()
+    fig_sta_r = plt.figure()
+    fig_sta_r.canvas.manager.set_window_title('SWT reconstruction')
     plt.plot(reconstructed_Stationary)
     plt.show()
 

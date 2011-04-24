@@ -30,14 +30,14 @@ class DataParser():
                     if value[1]:
                         series.append(value[0])
                     else:
-                        parseErrors = parseErrors + 1
+                        parseErrors += 1
                         log.debug('skipped value')
                 # str (from file)        
                 elif isinstance(element, str):
                  try:
                     series.append(float(element.strip()))
                  except:
-                    parseErrors = parseErrors + 1
+                    parseErrors += 1
                     log.debug('skipped value')
                     
         return (series, parseErrors)
