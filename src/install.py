@@ -21,7 +21,7 @@ try:
     from setuptools.command import easy_install
 except ImportError:
     print 'Please, install easy_install!'
-    if raw_input('Download setuptools now? [y/n]: ') == 'y' or 'Y':
+    if raw_input('Download setuptools now? [y/n]: ') == ('y' or 'Y'):
         file = downloadWithProgressbar('http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe')
         subprocess.call('./' + file)
         os.remove('./' + file)
@@ -39,11 +39,11 @@ def install_with_easyinstall(package):
 
 if __name__ == '__main__':
     installed = []; in_system = []
-    packages = ['pywt', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib', 'pyqt']
+    packages = ['pywt', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib', 'simpledropbox', 'pyqt']
     for package in packages:
         install_with_easyinstall(package)
 
-    #TODO: for PyQt and Matplotlib it may be better to use binary installer
+    #TODO: for PyQt and Matplotlib it may be better to use binary installer(s)
 
     print 'Install/Update complete. Status:\n'
     print '\n'.join(installed), '\n\n(total installed: ' + str(len(installed)) + ')\n'

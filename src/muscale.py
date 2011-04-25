@@ -19,6 +19,8 @@ Created on Mar 9, 2011
 #   - stats ~ processing backend
 #   - utils ~ constants & useful methods
 #   - res ~ gui objects & initial data
+#   - pyqtgraph ~ additionaly plot moduels
+#   - user ~ project utilities, stats, docs and so on
 # -> launch:
 #   - python muscale.py
 #===============================================================================
@@ -70,7 +72,6 @@ Created on Mar 9, 2011
 #TSA (Time Series Analysis)               http://goo.gl/Chh0z
 
 #--------------- IDE ---------------------#
-# PyDev ~ .project; .pydevproject; /.settings
 # PyCharm ~ /.idea
 
 ####################################

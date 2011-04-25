@@ -866,7 +866,7 @@ class MuScaleMainDialog(QMainWindow):
         def forecastModel():
             model = modelsList.currentIndex()
             if not self.isSWT:
-                result = calculateForecast(self.multiModel[model], self.wCoefficients[model], self.R)
+                result = calculateForecast(self.multiModel[model], self.wCoefficients[model], self.R, forecastSteps.value())
                 self.processedWCoeffs[model] = result
 
                 modelsStack.currentWidget().canvas.ax.plot(result)
@@ -890,7 +890,13 @@ class MuScaleMainDialog(QMainWindow):
         actionsMenu.addAction(QAction('Reset', self, triggered=resetModel))
         simulateButton.setMenu(actionsMenu)
 
+        #TODO: move to 'additional options'
+        forecastSteps = QSpinBox()
+        forecastSteps.setRange(2, 100)
+        forecastSteps.valueChanged.connect(forecastModel)
+
         modelsListLayout.addWidget(simulateButton)
+        modelsListLayout.addWidget(forecastSteps)
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
 
