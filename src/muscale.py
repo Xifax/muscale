@@ -28,15 +28,13 @@ Created on Mar 9, 2011
 #TODO: implement parse template
 #TODO: preemptive R input validation (partially done)
 #TODO: implement scalogram
-#TODO: tweak level plot previews
 #TODO: investingate post-startup lag
-#TODO: set tooltips handsomely
 #TODO: output formats
 #TODO: wizard template
 #TODO: fix info dialog text wrap
 #TODO: restructure resulting levels for SWT
 #TODO: fix button states on reset; update graphs on levels change
-#TODO: check wavelet reconstruction procedure
+#TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2)
 
 ####################################
 #            Dependencies          #

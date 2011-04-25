@@ -40,7 +40,7 @@ from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
-from stats.models import *
+from stats.models import processModel, calculateForecast
 
 ####################################
 #            GUI classes           #
@@ -690,9 +690,10 @@ class MuScaleMainDialog(QMainWindow):
                             preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.setVisible(True)
                             #                            self.gem = self.saveGeometry()
-                            self.gem = self.size()
+                            if not self.toggleSizeAction.isChecked():
+                                self.gem = self.size()
                             #                            print self.gem.width(), self.gem.height()
-                            self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
+                                self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
                             preview.setHidden(True)

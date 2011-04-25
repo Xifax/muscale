@@ -49,35 +49,3 @@ class StackedWidget(QStackedWidget):
     def setCurrentIndex(self, index):
         self.fader_widget = FaderWidget(self.currentWidget(), self.widget(index))
         QStackedWidget.setCurrentIndex(self, index)
-    
-#    def setPage1(self):
-#        self.setCurrentIndex(0)
-#    
-#    def setPage2(self):
-#        self.setCurrentIndex(1)
-
-#if __name__ == "__main__":
-#
-#    app = QApplication(sys.argv)
-#    
-#    window = QWidget()
-#    
-#    stack = StackedWidget()
-#    stack.addWidget(QCalendarWidget())
-#    editor = QTextEdit()
-#    editor.setPlainText("Hello world! "*100)
-#    stack.addWidget(editor)
-#    
-#    page1Button = QPushButton("Page 1")
-#    page2Button = QPushButton("Page 2")
-#    page1Button.clicked.connect(stack.setPage1)
-#    page2Button.clicked.connect(stack.setPage2)
-#    
-#    layout = QGridLayout(window)
-#    layout.addWidget(stack, 0, 0, 1, 2)
-#    layout.addWidget(page1Button, 1, 0)
-#    layout.addWidget(page2Button, 1, 1)
-#    
-#    window.show()
-#    
-#    sys.exit(app.exec_())

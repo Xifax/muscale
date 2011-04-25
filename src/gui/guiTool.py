@@ -15,6 +15,7 @@ from pyqtgraph.graphicsItems import *
 # own #
 from utils.const import T_WIDTH, T_HEIGHT
 from utils.tools import checkParentheses
+from utils.const import LABEL_VISIBLE, FLASH_LABEL
 from utils.log import log
 
 class StatusFilter(QObject):
@@ -30,7 +31,7 @@ class StatusFilter(QObject):
                 object.parent().upScale.setHidden(True)
                 object.parent().fixSize.setHidden(True)
                 object.parent().toolDetached.setHidden(True)
-            QTimer.singleShot(3000, hideButton)
+            QTimer.singleShot(LABEL_VISIBLE, hideButton)
 
         return False
 
@@ -221,7 +222,7 @@ class ToolsFrame(QWidget):
 
     def updateNamespace(self):
         self.namesList.clear()
-        for object in  self.R('objects()').split(self.R.newline)[1:]:
+        for object in self.R('objects()').split(self.R.newline)[1:]:
             if object != self.R.newline:
                 for e in object.split(' '):
                     if e != '[1]' and e != '':
@@ -258,8 +259,9 @@ class ToolsFrame(QWidget):
                 self.hoverArea.setText(u'')
                 self.setStyleSheet('QLabel { border: none; }')
                 self.hoverArea.setMaximumHeight(2)
-            QTimer.singleShot(2000, flashLabel)
+            QTimer.singleShot(FLASH_LABEL, flashLabel)
             self.shownHoverInfo = True
+        self.updateNamespace()
 
     def appendItemInline(self, event):
         self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())

@@ -3,7 +3,7 @@ __author__ = 'Yadavito'
 
 # external #
 from stats.pyper import R, Str4R
-from numpy import append
+from numpy import append, array
 
 # own #
 from utils.const import Models
@@ -24,30 +24,42 @@ def hwPredict(data, r, steps = steps_default):
 
 # Least Squares Fit
 def lsfProcess(data, r):
-    pass
+    r( 'lsf <- ar.ols(%s)' % Str4R(data) )
+    return []
 
 def lsfPredict(data, r, steps = steps_default):
-    pass
+    lsfProcess(data, r)
+    r( 'pred <- predict( lsf, n.ahead = %s ) ' % Str4R(steps) )
+    return append(data, r.pred['pred'])
 
-# ARMA
-def armaProcess(data, r):
-    pass
+# ARIMA
+def arimaProcess(data, r):
+    r.d = 1; r.p = 0; r.q = 1   #temporary
+    r( 'amafit <- arima(%s, order = c(d, p ,q))' % Str4R(data) )
+#    r( 'amafit <- arima(%s, order = c(1, 0 , 1))' % Str4R(data) )
+    return []
 
-def armaPredict(data, r, steps = steps_default):
-    pass
+def arimaPredict(data, r, steps = steps_default):
+    arimaProcess(data, r)
+    r( 'pred <- predict(amafit, n.ahead = %s)' % Str4R(steps) )
+    return append(data, r.pred['pred'])
 
 # Harmonic Regression
 def arProcess(data, r):
-    pass
+    #NB: Yule-Walker by default (optional: method='burg', 'ols')
+    r( 'afit <- ar( %s )' % Str4R(data) )
+    return []
 
 def arPredict(data, r, steps = steps_default):
-    pass
+    arProcess(data, r)
+    r( 'pred <- predict( afit, n.ahead = %s )' % Str4R(steps) )
+    return append(data, r.pred['pred'])
 
 # methods dicts
 model_process_methods = { Models.Holt_Winters : hwProcess,  Models.Least_Squares_Fit : lsfProcess,
-                          Models.ARMA : armaProcess, Models.Harmonic_Regression : arProcess }
+                          Models.ARIMA : arimaProcess, Models.Harmonic_Regression : arProcess }
 model_predict_methods = { Models.Holt_Winters : hwPredict, Models.Least_Squares_Fit : lsfPredict,
-                          Models.ARMA : armaPredict, Models.Harmonic_Regression : arPredict }
+                          Models.ARIMA : arimaPredict, Models.Harmonic_Regression : arPredict }
 
 # interface methods
 def processModel(model, data, r):
@@ -55,11 +67,3 @@ def processModel(model, data, r):
 
 def calculateForecast(model, data, r, steps = steps_default):
     return model_predict_methods[model](data, r, steps)
-
-#r = R()
-#r.test = 5
-#print Str4R(r.test)
-#r('hw <- HoltWinters(c(1,2,3,4,5,6), gamma=FALSE)')
-##r('a <- c(%s, 1, 2)' % Str4R(r.test))
-#r('a <- predict(hw, %s)' % Str4R(r.test))
-#print r.a

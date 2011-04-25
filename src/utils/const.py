@@ -75,6 +75,8 @@ STATUS_CHECK_DELAY = 1000
 TRAY_VISIBLE_DELAY = 10000
 TRAY_ICON_DELAY = 2000
 LOAD_PAUSE = 3000
+FLASH_LABEL = 2000
+LABEL_VISIBLE = 3000
 
 #--------- info ------------#
 def infoContens(index):
@@ -111,15 +113,14 @@ def infoTips(index):
 
 #--------- models ----------#
 
-Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARMA ARIMA')
+Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA')
 
 #-------- gui tabs ---------#
-Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results')
-Tabs.Data = 0
+Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results'); Tabs.Data = 0
 
 #------ gui tooltips -------#
 Tooltips = {# data input
-            'load_from_file': u'Load data series from text file',
+            'load_from_file' : u'Load data series from text file',
             'load_manual' : u'Input data series manually',
             
             # decomposition
