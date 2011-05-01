@@ -47,9 +47,18 @@ if __name__ == '__main__':
     for package in packages:
         install_with_easyinstall(package)
 
+    #TODO: convert links to tinyurl and move to constants
     # PyQt
-    try:  __import__('PyQt4')
-    except ImportError: download_and_install('http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.3-1.exe')
+    try:  import PyQt4
+    except ImportError: download_and_install('http://cran.r-project.org/bin/windows/base/R-2.13.0-win.exe')
+
+    # matplotlib
+    try: import matplotlib
+    except ImportError: download_and_install('http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1.win32-py2.6.exe/download')
+    
+    # R
+    if raw_input('Download and install R? [y/n]: ') == ('y' or 'Y'):
+        download_and_install('http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.3-1.exe')
 
     print 'Install/Update complete. Status:\n'
     print '\n'.join(installed), '\n\n(total installed: ' + str(len(installed)) + ')\n'

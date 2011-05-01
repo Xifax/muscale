@@ -2,5 +2,5 @@
 *.pyc
 *.pyo
 *.pdf
-#*.doc
-#*.docx
+*.doc
+*.docx
