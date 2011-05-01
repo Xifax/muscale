@@ -14,7 +14,7 @@ import platform
 from datetime import datetime
 
 # external #
-from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR
+from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR, QPointF
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
@@ -32,7 +32,8 @@ from utils.const import __name__,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, Models, Tabs, Tooltips
-from utils.guiTweaks import unfillLayout, createSeparator
+from utils.guiTweaks import unfillLayout, createSeparator, createShadow,\
+    walkNonGridLayoutShadow, walkGridLayoutShadow
 from utils.tools import prettifyNames
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
@@ -195,7 +196,6 @@ class MuScaleMainDialog(QMainWindow):
         self.statusBar.showMessage('Ready!')
 
         ### test ###
-        print 'okay.jpeg'
         loadingTime = datetime.now() - start
         self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information,
                                   TRAY_VISIBLE_DELAY)
@@ -205,8 +205,7 @@ class MuScaleMainDialog(QMainWindow):
 
         QTimer.singleShot(LOAD_PAUSE, startingTip)
 
-    #------------------- initialization ------------------#
-
+#------------------- initialization ------------------#
     def initComposition(self):
         self.setWindowTitle(__name__ + ' ' + __version__)
 
@@ -282,6 +281,26 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemIcon(int(Tabs.Model), QIcon(RES + ICONS + LAYERS))
         self.statTools.setItemIcon(int(Tabs.Simulation), QIcon(RES + ICONS + ANALYSIS))
         self.statTools.setItemIcon(int(Tabs.Results), QIcon(RES + ICONS + FIN))
+
+        # effects #
+        walkNonGridLayoutShadow(self.loadDataLayout)
+        walkGridLayoutShadow(self.decompLayout)
+#        walkGridLayoutShadow(self.modelLayout)
+#        walkGridLayoutShadow(self.implementLayout)
+        walkGridLayoutShadow(self.reconsLayout)
+
+#        self.loadFromFile.setGraphicsEffect(createShadow())
+#        self.toggleManual.setGraphicsEffect(createShadow())
+#        self.manualDataInput.setGraphicsEffect(createShadow())
+#        self.showGraph.setGraphicsEffect(createShadow())
+#        self.showTable.setGraphicsEffect(createShadow())
+#        self.parseResults.setGraphicsEffect(createShadow())
+#        self.clearAll.setGraphicsEffect(createShadow())
+
+#        self.toolBar.setGraphicsEffect(self.shadow)
+#        self.toolBar.setMovable(False)
+#        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+
 
     def initActions(self):
         # menu actions #
@@ -378,8 +397,7 @@ class MuScaleMainDialog(QMainWindow):
         self.loadFromFile.setToolTip(Tooltips['load_from_file'])
         self.toggleManual.setToolTip(Tooltips['load_manual'])
 
-    #------------------- actions ------------------#
-
+#------------------- actions ------------------#
     def fullScreen(self):
         if self.toggleSizeAction.isChecked():
             self.showFullScreen()
@@ -397,10 +415,12 @@ class MuScaleMainDialog(QMainWindow):
     def resizeEvent(self, event):
         self.updateToolsPosition()
         self.updateToolsSize()
+        self.updateMessagePosition()
 
     def moveEvent(self, event):
         self.updateToolsPosition()
         self.updateInfoPosition()
+        self.updateMessagePosition()
 
     def updateToolsPosition(self):
         if not self.toolsFrame.toolDetached.isChecked():
@@ -409,6 +429,9 @@ class MuScaleMainDialog(QMainWindow):
     def updateToolsSize(self):
         if not self.toolsFrame.fixSize.isChecked():
             self.toolsFrame.resize(QSize(self.toolsFrame.width(), self.height()))
+
+    def updateMessagePosition(self):
+        self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + self.messageInfo.height())
 
     def updateInfoPosition(self):
         #self.infoDialog.move( self.x() - self.infoDialog.width() - 20, self.y() * 3./2. )
@@ -437,7 +460,7 @@ class MuScaleMainDialog(QMainWindow):
             if self.statTools.isItemEnabled(self.statTools.currentIndex() - 1):
                 self.statTools.setCurrentIndex(self.statTools.currentIndex() - 1)
 
-    #------------------ functionality ----------------#
+#------------------ functionality ----------------#
     def openFile(self):
         if self.openFileDialog.exec_():
             fileName = self.openFileDialog.selectedFiles()   #NB: multiple files selection also possible!
@@ -761,6 +784,9 @@ class MuScaleMainDialog(QMainWindow):
         self.modelLayout.addWidget(resetModel, i, 0, 1, 3); i += 1
         self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 3)
 
+        walkNonGridLayoutShadow(buttonsLayout)
+        walkGridLayoutShadow(self.modelLayout)
+
     def addModel(self):
         for row in range(0, self.modelLayout.rowCount()):
             if self.modelLayout.itemAtPosition(row, 1) is not None:
@@ -789,7 +815,7 @@ class MuScaleMainDialog(QMainWindow):
                 #                    self.multiModel[level] = self.modelLayout.itemAtPosition(level * 4 + 3 , 0).widget().currentText()
                     self.multiModel[level] = Models(
                         self.modelLayout.itemAtPosition(level * 4 + 3, 0).widget().currentIndex() + 1)
-        print self.multiModel
+#        print self.multiModel
         if self.multiModel == {}:
             QMessageBox.warning(self, 'Undefined model', 'You haven not specified any methods at all!')
         else:
@@ -823,7 +849,7 @@ class MuScaleMainDialog(QMainWindow):
                 sub_ax_0.plot(self.wCoefficients[model][0])
                 sub_ax_1 = simulationPlot.canvas.fig.add_subplot(212)
                 sub_ax_1.plot(self.wCoefficients[model][1])
-                
+
             modelsStack.addWidget(simulationPlot)
 
         modelsListLayout.addWidget(previousModel)
@@ -900,6 +926,9 @@ class MuScaleMainDialog(QMainWindow):
         modelsListLayout.addWidget(forecastSteps)
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
+
+        walkNonGridLayoutShadow(modelsListLayout)
+#        modelsStack.currentWidget().setGraphicsEffect(createShadow())  #NB: alas, does not look so good
 
     def updateResultingTS(self):
         if self.processedWCoeffs is None:

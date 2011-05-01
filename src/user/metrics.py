@@ -10,6 +10,9 @@ def walkIgnore(root, ignore):
         subdirs[:] = [
             d for d in subdirs
             if d not in ignore ]
+        files[:] = [
+            f for f in files
+            if f not in ignore ]
         yield path, subdirs, files
 
 def Walk(root='.', recurse=True, pattern='*', ignore=[]):

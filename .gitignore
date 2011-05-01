@@ -1,6 +1,6 @@
 *.class
 *.pyc
 *.pyo
-*.doc
-*.docx
 *.pdf
+#*.doc
+#*.docx

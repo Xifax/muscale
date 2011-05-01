@@ -17,33 +17,39 @@ def downloadWithProgressbar(url):
     urllib.urlretrieve(url, file_name, reporthook=dlProgress)
     return file_name
 
+def download_and_install(file_url):
+        file = downloadWithProgressbar(file_url)
+        subprocess.call('./' + file)
+        os.remove('./' + file)
 try:
     from setuptools.command import easy_install
 except ImportError:
     print 'Please, install easy_install!'
     if raw_input('Download setuptools now? [y/n]: ') == ('y' or 'Y'):
-        file = downloadWithProgressbar('http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe')
-        subprocess.call('./' + file)
-        os.remove('./' + file)
+        download_and_install('http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe')
     else: sys.exit(0)
 
 def install_with_easyinstall(package):
     try:
-        if package == 'pyqt': __import__('PyQt4')
-        else: __import__(package)
+        __import__(package)
         in_system.append(package)
     except ImportError:
         print 'Installing ' + package
-        easy_install.main(['-U', package])
-        installed.append(package)
+        try:
+            easy_install.main(['-U', package])
+            installed.append(package)
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     installed = []; in_system = []
-    packages = ['pywt', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib', 'simpledropbox', 'pyqt']
+    packages = ['pywt', 'flufl.enum', 'userconfig', 'numpy', 'scipy', 'matplotlib', 'simpledropbox']
     for package in packages:
         install_with_easyinstall(package)
 
-    #TODO: for PyQt and Matplotlib it may be better to use binary installer(s)
+    # PyQt
+    try:  __import__('PyQt4')
+    except ImportError: download_and_install('http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.3-1.exe')
 
     print 'Install/Update complete. Status:\n'
     print '\n'.join(installed), '\n\n(total installed: ' + str(len(installed)) + ')\n'

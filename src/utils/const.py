@@ -9,7 +9,7 @@ from flufl.enum import make_enum
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 #----------- id -----------#
 _company = 'nonbyte'

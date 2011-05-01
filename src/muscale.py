@@ -7,6 +7,10 @@ Created on Mar 9, 2011
 @requires: preferably python 2.6.6
 '''
 
+####################################
+#        Project structure         #
+####################################
+
 #===============================================================================
 # --- muScale ---
 # -> main project file <-
@@ -25,6 +29,10 @@ Created on Mar 9, 2011
 #   - python muscale.py
 #===============================================================================
 
+####################################
+#             TODO list            #
+####################################
+
 #TODO: implement parse template
 #TODO: preemptive R input validation (partially done)
 #TODO: implement scalogram
@@ -35,6 +43,9 @@ Created on Mar 9, 2011
 #TODO: restructure resulting levels for SWT
 #TODO: fix button states on reset; update graphs on levels change
 #TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2)
+#TODO: add history
+#TODO: remove console prints in w/console version
+#TODO: add test QUICK PLAY (automated)
 
 ####################################
 #            Dependencies          #
@@ -58,7 +69,10 @@ Created on Mar 9, 2011
 # additional statistical packages:
 # scikits.timeseries                     http://goo.gl/t6Hy8
 
-#-----------------NOTES------------------#
+####################################
+#               Notes              #
+####################################
+
 #NB: (*) needs fix for python 2.6.6  DO NOT INSTALL using easy_install    (http://goo.gl/3js4H)
 #NB: (**) requires CygWin/MinGW compiler (and infamous vcvarsall.bat) and SWIG for building Traits and Enable + Cython packages  (#)   (http://goo.gl/U07x) (http://goo.gl/FCoZS)
 #NB: (***) documentation is lacking
@@ -72,8 +86,11 @@ Created on Mar 9, 2011
 #--------------- IDE ---------------------#
 # PyCharm ~ /.idea
 
+#--------------- Data sets ---------------#
+# http://goo.gl/Hlts0
+
 ####################################
-#            Imports               #
+#             Imports              #
 ####################################
 
 # internal packages #
@@ -112,8 +129,6 @@ def main():
     except Exception, e:
         muScale.messageInfo.showInfo(str(e))
         log.debug(e)
-    finally:
-        print 'Bye!'
 
 if __name__ == '__main__':
     main()

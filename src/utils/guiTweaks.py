@@ -5,8 +5,8 @@ Created on Mar 18, 2011
 @author: Yadavito
 '''
 
-from PyQt4.QtCore import QRect, QSize
-from PyQt4.QtGui import QRegion, QFrame
+from PyQt4.QtCore import QRect, QSize, QPointF
+from PyQt4.QtGui import QRegion, QFrame, QGraphicsDropShadowEffect
 
 def unfillLayout(layoutName):
     '''Empty layout from widgets (should be reinit'd, if in another layout)'''
@@ -47,3 +47,26 @@ def createSeparator():
     separator.setFrameShape(QFrame.HLine)
     separator.setFrameShadow(QFrame.Sunken)
     return separator
+
+def createShadow():
+    '''Create shadow effect'''
+    shadow = QGraphicsDropShadowEffect()
+    shadow.setOffset(QPointF(3,3))
+    shadow.setBlurRadius(8)
+    return shadow
+
+def walkNonGridLayoutShadow(layout):
+    '''Add shadow effect to every widget in V/H layout'''
+    for position in range(0, layout.count()):
+        widget = layout.itemAt(position)
+        # in case there are layouts in layout
+        if widget is not None:
+            if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())
+
+def walkGridLayoutShadow(layout):
+    '''Add shadow effect to every widget in grid layout'''
+    for row in range(0, layout.rowCount()):
+        for column in range(0, layout.columnCount()):
+            widget = layout.itemAtPosition(row, column)
+            if widget is not None:
+                if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())
