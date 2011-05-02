@@ -20,7 +20,7 @@ _separator = '.'
 
 #------- main window ------#
 WIDTH = 640
-HEIGHT = 570
+HEIGHT = 600
 
 #------ tools dialog ------#
 T_WIDTH = 400
@@ -125,7 +125,7 @@ Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results'); Tabs.Data = 
 Tooltips = {# data input
             'load_from_file' : u'Load data series from text file',
             'load_manual' : u'Input data series manually',
-            
+
             # decomposition
             'max_level' : u'Maximum level depends on wavelet family and initial data ()',
 

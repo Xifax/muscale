@@ -35,7 +35,6 @@ Created on Mar 9, 2011
 
 #TODO: implement parse template
 #TODO: preemptive R input validation (partially done)
-#TODO: implement scalogram (partially done)
 #TODO: output formats
 #TODO: wizard template
 #TODO: fix info dialog text wrap
@@ -46,6 +45,7 @@ Created on Mar 9, 2011
 #TODO: write a couple of unit tests for ISWT and levels rearrangement
 #TODO: fix 'construct model' lag
 #TODO: fix mismatch glitches
+#TODO: implement some kind of automatic resize mechanism
 
 ####################################
 #            Dependencies          #

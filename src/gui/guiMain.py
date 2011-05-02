@@ -454,6 +454,7 @@ class MuScaleMainDialog(QMainWindow):
 #------------------ loading data -----------------#
 ###################################################
     def openFile(self):
+        self.resetData()
         if self.openFileDialog.exec_():
             fileName = self.openFileDialog.selectedFiles()   #NB: multiple files selection also possible!
             try:
@@ -465,6 +466,7 @@ class MuScaleMainDialog(QMainWindow):
                 log.error('could not open ' + fileName.takeFirst())
 
     def manualData(self):
+        self.resetData()
         if self.manualDataInput.toPlainText() != '':
             self.currentDataSet = DataParser.getTimeSeriesFromTextData(self.manualDataInput.toPlainText())
             self.showParseResults()
@@ -519,6 +521,8 @@ class MuScaleMainDialog(QMainWindow):
 
         self.wavelistGraph.canvas.ax.clear()
         self.wavelistGraph.hide()
+        self.scalogramGraph.clearCanvas()
+        self.scalogramGraph.hide()
         self.showWavelist.hide()
         self.showScalogram.hide()
         self.decompInfoLabel.hide()
@@ -573,8 +577,6 @@ class MuScaleMainDialog(QMainWindow):
         self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' (' + str(self.spinLevels.maximum()) + ')')
 
     def waveletTransform(self):
-        self.wavelistGraph.canvas.ax.clear()
-        self.wavelistGraph.canvas.fig.clear()
         # stationary decomposition flag
         self.isSWT = False
 
@@ -591,19 +593,19 @@ class MuScaleMainDialog(QMainWindow):
                 self.wCoefficients = select_levels_from_swt(self.wInitialCoefficients)
                 self.isSWT = True
 
-            #TODO: prettify graphWidget implementation
-            self.wavelistGraph.canvas.fig.clear()
-
             # resulting wavelist
+            self.wavelistGraph.clearCanvas(repaint_axes=False)
             rows = len(self.wCoefficients);  i = 0
             for coeff in self.wCoefficients:
                  ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1); i += 1
                  ax.plot(coeff)
                  MplWidget.hideAxes(ax)
+                
             self.wavelistGraph.show()
+            self.showWavelist.setChecked(True)
 
             # resulting scalogram
-            #TODO:
+            self.scalogramGraph.scalogram(self.wCoefficients)
 
             self.showWavelist.show()
             self.showScalogram.show()
@@ -686,7 +688,6 @@ class MuScaleMainDialog(QMainWindow):
                             #                            self.gem = self.saveGeometry()
                             if not self.toggleSizeAction.isChecked():
                                 self.gem = self.size()
-                            #                            print self.gem.width(), self.gem.height()
                                 self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
@@ -782,7 +783,6 @@ class MuScaleMainDialog(QMainWindow):
             widget = self.modelLayout.itemAtPosition(level * 4 + 2, 1).widget()
             if isinstance(widget, QWidget):
                 if widget.isChecked():
-                #                    self.multiModel[level] = self.modelLayout.itemAtPosition(level * 4 + 3 , 0).widget().currentText()
                     self.multiModel[level] = Models(
                         self.modelLayout.itemAtPosition(level * 4 + 3, 0).widget().currentIndex() + 1)
         if self.multiModel == {}:
@@ -796,7 +796,6 @@ class MuScaleMainDialog(QMainWindow):
 #-------------- model simulation -----------------#
 ###################################################
     def readyModelsStack(self):
-#        if not self.isSWT:
         self.processedWCoeffs = [0] * len(self.wCoefficients)
 
         unfillLayout(self.implementLayout)
