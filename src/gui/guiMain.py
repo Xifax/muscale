@@ -42,6 +42,7 @@ from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from stats.models import processModel, calculateForecast
+from stats.wavelets import select_levels_from_swt, update_selected_levels_swt
 
 ####################################
 #            GUI classes           #
@@ -96,20 +97,22 @@ class MuScaleMainDialog(QMainWindow):
         self.comboDecomposition = QComboBox()
         self.spinLevels = QSpinBox()
         self.calculateButton = QPushButton('A&nalyze data')
+        self.showWavelist = QPushButton('Show wavelist')
         self.showScalogram = QPushButton('Show scalogram')
-        self.showCoefficients = QPushButton('Show coefficients')
         self.decompInfoLabel = QLabel(u'')
-        self.resultsView = QTextEdit()
+#        self.resultsView = QTextEdit()
+        self.wavelistGraph = MplWidget()
         self.scalogramGraph = MplWidget()
 
         self.decompLayout.addWidget(self.comboWavelet, 0, 0)
         self.decompLayout.addWidget(self.comboDecomposition, 0, 1)
         self.decompLayout.addWidget(self.spinLevels, 0, 2)
         self.decompLayout.addWidget(self.calculateButton, 1, 0, 1, 3)
-        self.decompLayout.addWidget(self.showScalogram, 2, 0)
+        self.decompLayout.addWidget(self.showWavelist, 2, 0)
         self.decompLayout.addWidget(self.decompInfoLabel, 2, 1)
-        self.decompLayout.addWidget(self.showCoefficients, 2, 2)
-        self.decompLayout.addWidget(self.resultsView, 3, 0, 1, 3)
+        self.decompLayout.addWidget(self.showScalogram, 2, 2)
+#        self.decompLayout.addWidget(self.resultsView, 3, 0, 1, 3)
+        self.decompLayout.addWidget(self.wavelistGraph, 3, 0, 1, 3)
         self.decompLayout.addWidget(self.scalogramGraph, 4, 0, 1, 3)
 
         self.decompGroup.setLayout(self.decompLayout)
@@ -220,30 +223,31 @@ class MuScaleMainDialog(QMainWindow):
     def initComponents(self):
         # load data items #
         self.toggleManual.setCheckable(True)
-        self.manualDataInput.setHidden(True)
-        self.loadManualData.setHidden(True)
-        self.parseResults.setHidden(True)
-        self.showGraph.setHidden(True)
-        self.showTable.setHidden(True)
-        self.clearAll.setHidden(True)
-        self.separator.setHidden(True)
+        self.manualDataInput.hide()
+        self.loadManualData.hide()
+        self.parseResults.hide()
+        self.showGraph.hide()
+        self.showTable.hide()
+        self.clearAll.hide()
+        self.separator.hide()
 
         self.parseResults.setAlignment(Qt.AlignCenter)
 
         # wavelets #
         self.comboWavelet.addItems(pywt.families())
-        self.comboDecomposition.addItems(['Discrete WT', 'Stationary WT'])
+        self.comboDecomposition.addItems(['Stationary WT', 'Discrete WT'])
         self.spinLevels.setValue(2)
         self.spinLevels.setRange(2, 10)
-        self.resultsView.setHidden(True)
-        self.resultsView.setReadOnly(True)
-        self.resultsView.setMinimumWidth(WIDTH - 100)
-        self.resultsView.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+#        self.resultsView.hide()
+#        self.resultsView.setReadOnly(True)
+#        self.resultsView.setMinimumWidth(WIDTH - 100)
+#        self.resultsView.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.wavelistGraph.setVisible(False)
         self.scalogramGraph.setVisible(False)
-        self.showCoefficients.setVisible(False)
-        self.showCoefficients.setCheckable(True)
         self.showScalogram.setVisible(False)
         self.showScalogram.setCheckable(True)
+        self.showWavelist.setVisible(False)
+        self.showWavelist.setCheckable(True)
         self.decompInfoLabel.setVisible(False)
         self.decompInfoLabel.setAlignment(Qt.AlignCenter)
 
@@ -382,8 +386,8 @@ class MuScaleMainDialog(QMainWindow):
 
         # wavelet decomposition actions #
         self.calculateButton.clicked.connect(self.waveletTransform)
+        self.showWavelist.clicked.connect(self.viewWavelist)
         self.showScalogram.clicked.connect(self.viewScalogram)
-        self.showCoefficients.clicked.connect(self.viewCoeffs)
 
         # tooltips #
         self.statTools.currentChanged.connect(self.updateInfoTooltips)
@@ -484,11 +488,11 @@ class MuScaleMainDialog(QMainWindow):
             self.parseResults.setText(
                 'Success! Loaded<b> ' + str(len(self.currentDataSet[0])) + '</b> values, errors: <b>' + str(
                     self.currentDataSet[1]) + '</b>')
-            self.parseResults.setVisible(True)
-            self.showGraph.setVisible(True)
-            self.showTable.setVisible(True)
-            self.clearAll.setVisible(True)
-            self.separator.setVisible(True)
+            self.parseResults.show()
+            self.showGraph.show()
+            self.showTable.show()
+            self.clearAll.show()
+            self.separator.show()
 
             self.statTools.setItemEnabled(int(Tabs.Decomposition), True)
 
@@ -497,7 +501,7 @@ class MuScaleMainDialog(QMainWindow):
             self.statusBar.showMessage("Added 'data' variable to R namespace")
         else:
             self.parseResults.setText('Could not parse at all!')
-            self.parseResults.setVisible(True)
+            self.parseResults.show()
 
     def resetTips(self):
         for tip in infoTipsDict: infoTipsDict[tip]['seen'] = False
@@ -505,11 +509,11 @@ class MuScaleMainDialog(QMainWindow):
 
     def resetData(self):
         self.currentDataSet = []
-        self.parseResults.setHidden(True)
-        self.showGraph.setHidden(True)
-        self.showTable.setHidden(True)
-        self.clearAll.setHidden(True)
-        self.separator.setHidden(True)
+        self.parseResults.hide()
+        self.showGraph.hide()
+        self.showTable.hide()
+        self.clearAll.hide()
+        self.separator.hide()
 
         self.toolsFrame.tableWidget.setRowCount(0)
         self.showTable.setText('Show table')
@@ -524,13 +528,13 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemEnabled(int(Tabs.Results), False)
         self.statusBar.showMessage('Data cleared')
 
-        self.resultsView.clear()
-        self.scalogramGraph.canvas.ax.clear()
-        self.resultsView.setHidden(True)
-        self.scalogramGraph.setHidden(True)
-        self.showScalogram.setHidden(True)
-        self.showCoefficients.setHidden(True)
-        self.decompInfoLabel.setHidden(True)
+#        self.resultsView.clear()
+        self.wavelistGraph.canvas.ax.clear()
+#        self.resultsView.hide()
+        self.wavelistGraph.hide()
+        self.showWavelist.hide()
+        self.showScalogram.hide()
+        self.decompInfoLabel.hide()
         self.calculateButton.setText('Analyze data')
 
         self.toolsFrame.hide()
@@ -550,13 +554,13 @@ class MuScaleMainDialog(QMainWindow):
 
     def toggleInputField(self):
         if self.toggleManual.isChecked():
-            self.manualDataInput.setVisible(True)
-            self.loadManualData.setVisible(True)
+            self.manualDataInput.show()
+            self.loadManualData.show()
 
             self.manualDataInput.setFocus()
         else:
-            self.manualDataInput.setHidden(True)
-            self.loadManualData.setHidden(True)
+            self.manualDataInput.hide()
+            self.loadManualData.hide()
 
     def showAbout(self):
         QMessageBox.about(self, 'About muScale',
@@ -578,55 +582,69 @@ class MuScaleMainDialog(QMainWindow):
             self.toggleTools.setChecked(False)
 
     def waveletTransform(self):
-    #        self.scalogramGraph.canvas.ax.clear()
-    #        self.scalogramGraph.canvas.fig.clear()
+        self.wavelistGraph.canvas.ax.clear()
+        self.wavelistGraph.canvas.fig.clear()
         # stationary decomposition flag
         self.isSWT = False
 
         try:
             self.wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
             w_level = self.spinLevels.value() - 1
-            if self.comboDecomposition.currentIndex() == 0:
+            # discrete
+            if self.comboDecomposition.currentIndex() == 1:
                 #cA3, cD3, cD2, cD1, etc
-                self.wCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet, level=w_level)
-            elif self.comboDecomposition.currentIndex() == 1:
-                self.wCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
+                self.wInitialCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet, level=w_level)
+                self.wCoefficients = self.wInitialCoefficients
+            # stationary
+            elif self.comboDecomposition.currentIndex() == 0:
+#                self.wCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
+#                self.wSelectedCoeffs = select_levels_from_swt(self.wCoefficients)
+                self.wInitialCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
+                self.wCoefficients = select_levels_from_swt(self.wInitialCoefficients)
                 self.isSWT = True
 
                 #TODO: update graphWidget implementation
-            self.scalogramGraph.canvas.fig.clear()
-            self.resultsView.clear(); i = 0; rows = 0
+            self.wavelistGraph.canvas.fig.clear()
+#            self.resultsView.clear()
 
-            if not self.isSWT: rows = len(self.wCoefficients)
-            else:
-                for item in self.wCoefficients: rows += len(item)
-
+            rows = len(self.wCoefficients);  i = 0
             for coeff in self.wCoefficients:
-                if not self.isSWT:
-                    ax = self.scalogramGraph.canvas.fig.add_subplot(rows, 1, i + 1)
-                    ax.plot(coeff)
-                    MplWidget.hideAxes(ax)
+                 ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1); i += 1
+                 ax.plot(coeff)
+                 MplWidget.hideAxes(ax)
 
-                    self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
-                else:
-                    for subcoeff in coeff:
-                        ax = self.scalogramGraph.canvas.fig.add_subplot(rows, 1, i + 1)
-                        ax.plot(subcoeff)
-                        MplWidget.hideAxes(ax)
+#            if not self.isSWT: rows = len(self.wCoefficients)
+#            else:
+##                for item in self.wCoefficients: rows += len(item)
+#                row = len(self.wCoefficients)
 
-                        self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
+#            for coeff in self.wCoefficients:
+                
+#                if not self.isSWT:
+#                    ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1)
+#                    ax.plot(coeff)
+#                    MplWidget.hideAxes(ax)
+#
+#                    self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
+#                else:
+#                    for subcoeff in coeff:
+#                        ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1)
+#                        ax.plot(subcoeff)
+#                        MplWidget.hideAxes(ax)
+#
+#                        self.resultsView.append('<b>Level ' + str(i) + ':</b>\t' + str(coeff) + '<br/>'); i += 1
 
-                        #self.scalogramGraph.canvas.ax.imshow(vstack(tuple(self.wCoefficients[:-1])), interpolation='nearest')
-                        #self.scalogramGraph.canvas.ax.imshow(row_stack(tuple(self.wCoefficients)), interpolation='nearest')
-                        #        self.scalogramGraph.canvas.ax1 = self.scalogramGraph.canvas.fig.add_subplot(211)
-                        #        self.scalogramGraph.canvas.ax1.plot(self.wCoefficients[-1:])
+                        #self.wavelistGraph.canvas.ax.imshow(vstack(tuple(self.wCoefficients[:-1])), interpolation='nearest')
+                        #self.wavelistGraph.canvas.ax.imshow(row_stack(tuple(self.wCoefficients)), interpolation='nearest')
+                        #        self.wavelistGraph.canvas.ax1 = self.wavelistGraph.canvas.fig.add_subplot(211)
+                        #        self.wavelistGraph.canvas.ax1.plot(self.wCoefficients[-1:])
 
-                        #self.resultsView.setVisible(True)
-            #self.scalogramGraph.setVisible(True)
+                        #self.resultsView.show()
+            #self.wavelistGraph.show()
 
-            self.showScalogram.setVisible(True)
-            self.showCoefficients.setVisible(True)
-            self.decompInfoLabel.setVisible(True)
+            self.showWavelist.show()
+            self.showScalogram.show()
+            self.decompInfoLabel.show()
             self.calculateButton.setText('Reanalyze data')
             self.decompInfoLabel.setText('Using <b>' + self.wavelet.name + '</b> wavelet')
 
@@ -641,23 +659,23 @@ class MuScaleMainDialog(QMainWindow):
             self.statTools.setItemEnabled(int(Tabs.Results), True)
             self.processedWCoeffs = None
 
-            self.scalogramGraph.canvas.draw()
+            self.wavelistGraph.canvas.draw()
             self.update()
         except Exception, e:
             self.messageInfo.showInfo(str(e), True)
             log.error(e)
 
+    def viewWavelist(self):
+        if self.showWavelist.isChecked():
+            self.wavelistGraph.show()
+        else:
+            self.wavelistGraph.hide()
+
     def viewScalogram(self):
         if self.showScalogram.isChecked():
-            self.scalogramGraph.setVisible(True)
+            self.scalogramGraph.show()
         else:
-            self.scalogramGraph.setHidden(True)
-
-    def viewCoeffs(self):
-        if self.showCoefficients.isChecked():
-            self.resultsView.setVisible(True)
-        else:
-            self.resultsView.setHidden(True)
+            self.scalogramGraph.hide()
 
     def addAllLevelToModel(self):
         for row in range(0, self.modelLayout.rowCount()):
@@ -682,8 +700,8 @@ class MuScaleMainDialog(QMainWindow):
         combo.setCurrentIndex(1)
 
     def showComponentPreview(self):
-    #        self.scalogramGraph.canvas.ax.clear()
-    #        self.scalogramGraph.canvas.ax.plot()
+    #        self.wavelistGraph.canvas.ax.clear()
+    #        self.wavelistGraph.canvas.ax.plot()
         if self.gem is not None:
             if not self.toggleSizeAction.isChecked():
             #                self.restoreGeometry(self.gem)
@@ -711,7 +729,7 @@ class MuScaleMainDialog(QMainWindow):
                                 sub_ax_1.plot(self.wCoefficients[level.text().right(1).toInt()[0]][1])
 
                             preview.setMaximumHeight(P_PREVIEW_HEIGHT)
-                            preview.setVisible(True)
+                            preview.show()
                             #                            self.gem = self.saveGeometry()
                             if not self.toggleSizeAction.isChecked():
                                 self.gem = self.size()
@@ -719,7 +737,7 @@ class MuScaleMainDialog(QMainWindow):
                                 self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
-                            preview.setHidden(True)
+                            preview.hide()
 
     def constructModelTemplate(self):
         unfillLayout(self.modelLayout)
@@ -767,7 +785,7 @@ class MuScaleMainDialog(QMainWindow):
             togglePreview.clicked.connect(self.showComponentPreview)
 
             componentPreview = MplWidget()
-            componentPreview.setHidden(True)
+            componentPreview.hide()
 
             self.modelLayout.addWidget(labelModel, i, 0)
             self.modelLayout.addWidget(addModel, i, 1)

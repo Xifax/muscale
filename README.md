@@ -15,11 +15,11 @@ Launch
 
 * with console:
 
-        `python muscale.py`
+        python muscale.py
 
 * without one:
 
-        `pythonw mu.pyw`
+        pythonw mu.pyw
 
 Additional info
 

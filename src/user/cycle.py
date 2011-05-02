@@ -39,7 +39,7 @@ def modelling_cycle():
     fig_init.canvas.manager.set_window_title('Initial data')
     plt.plot(initial_data, color='g')
 #--------------- wavelet decomposition -------------------#
-    decomposition_level = 3
+    decomposition_level = 2
     wavelet_families = pywt.families()
     wavelet_family = wavelet_families[0]
     selected_wavelet = pywt.wavelist(wavelet_family)[0]
@@ -143,7 +143,6 @@ def modelling_cycle():
     fig_sta_r.canvas.manager.set_window_title('SWT reconstruction')
     plt.plot(reconstructed_Stationary)
     plt.show()
-
     print 'end'
 
 if __name__ == '__main__':

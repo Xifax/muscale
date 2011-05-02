@@ -45,7 +45,6 @@ Created on Mar 9, 2011
 #TODO: add test QUICK PLAY (automated cycle)
 #TODO: calculate swt_max_level for current data set
 #TODO: write a couple of unit tests for ISWT and levels rearrangement
-#TODO: share y axis for wavelist
 
 ####################################
 #            Dependencies          #
