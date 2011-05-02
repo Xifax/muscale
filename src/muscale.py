@@ -43,8 +43,9 @@ Created on Mar 9, 2011
 #TODO: fix button states on reset; update graphs on levels change
 #TODO: add iterations/actions history
 #TODO: add test QUICK PLAY (automated cycle)
-#TODO: calculate swt_max_level for current data set
 #TODO: write a couple of unit tests for ISWT and levels rearrangement
+#TODO: fix 'construct model' lag
+#TODO: fix mismatch glitches
 
 ####################################
 #            Dependencies          #

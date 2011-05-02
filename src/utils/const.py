@@ -111,6 +111,9 @@ def infoTips(index):
     except KeyError:
         return None
 
+#----------- WT ------------#
+WT = make_enum('WT', 'StationaryWT DiscreteWT')
+
 #--------- models ----------#
 
 Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA')
@@ -124,6 +127,7 @@ Tooltips = {# data input
             'load_manual' : u'Input data series manually',
             
             # decomposition
+            'max_level' : u'Maximum level depends on wavelet family and initial data ()',
 
 }
 
