@@ -1,4 +1,4 @@
-μScale<br/>
+**μScale**<br/>
 Time series forecasting utility, implementing multiscale model.
 
 ---
@@ -15,16 +15,16 @@ Launch
 
 * with console:
 
-    `python muscale.py`
+        `python muscale.py`
 
 * without one:
 
-    `pythonw mu.pyw`
+        `pythonw mu.pyw`
 
 Additional info
 
 * installer *(should download and install setuptools, PyQt, matplotlib and R)*:
 
-    `python install.py`
+        `python install.py`
 
 * setup.py and build.py do not work yet

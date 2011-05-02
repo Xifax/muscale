@@ -60,11 +60,17 @@ def modelling_cycle():
     fig_stationary = plt.figure(); n_coeff = 1; rows = 0
     fig_stationary.canvas.manager.set_window_title('Stationary decomposition [ ' + str(decomposition_level) + ' level(s) ]')
     for item in wCoefficients_Stationary: rows += len(item)
+    i = 0; j = 0    # tree coeffs
     for coeff in wCoefficients_Stationary:
         for subcoeff in coeff:
+            print i, j
 #            print subcoeff
             fig_stationary.add_subplot(rows, 1, n_coeff); n_coeff += 1
             plt.plot(subcoeff)
+            j += 1
+        i += 1
+
+    plt.show()
 
     fig_stat_sum = plt.figure(); n_coeff = 1; rows = 0
     fig_stat_sum.canvas.manager.set_window_title('SWT sum by levels [ ' + str(decomposition_level) + ' level(s) ]')

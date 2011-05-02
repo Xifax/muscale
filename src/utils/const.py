@@ -126,3 +126,16 @@ Tooltips = {# data input
             # decomposition
 
 }
+
+#------ install url --------#
+URL_PYQT = 'http://cran.r-project.org/bin/windows/base/R-2.13.0-win.exe'
+URL_R = 'http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.3-1.exe'
+URL_MATPLOTLIB = 'http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1.win32-py2.6.exe/download'
+URL_NUMPY = 'http://sourceforge.net/projects/numpy/files/NumPy/1.6.0rc1/numpy-1.6.0c1-win32-superpack-python2.6.exe/download'
+URL_SCIPY = 'http://sourceforge.net/projects/scipy/files/scipy/0.9.0/scipy-0.9.0-win32-superpack-python2.6.exe/download'
+URL_SETUPTOOLS = 'http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe'
+
+#---- required packages ----#
+easy_packages = ['pywt', 'flufl.enum', 'userconfig', 'simpledropbox']
+downloadable_packages = {'PyQt4' : URL_PYQT, 'matplotlib' : URL_MATPLOTLIB,
+                         'numpy' : URL_NUMPY, 'scipy' : URL_SCIPY}

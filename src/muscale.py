@@ -35,17 +35,17 @@ Created on Mar 9, 2011
 
 #TODO: implement parse template
 #TODO: preemptive R input validation (partially done)
-#TODO: implement scalogram
-#TODO: investingate post-startup lag
+#TODO: implement scalogram (partially done)
 #TODO: output formats
 #TODO: wizard template
 #TODO: fix info dialog text wrap
-#TODO: restructure resulting levels for SWT
+#TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2) [2]
 #TODO: fix button states on reset; update graphs on levels change
-#TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2)
-#TODO: add history
-#TODO: remove console prints in w/console version
-#TODO: add test QUICK PLAY (automated)
+#TODO: add iterations/actions history
+#TODO: add test QUICK PLAY (automated cycle)
+#TODO: calculate swt_max_level for current data set
+#TODO: write a couple of unit tests for ISWT and levels rearrangement
+#TODO: share y axis for wavelist
 
 ####################################
 #            Dependencies          #

@@ -6,6 +6,7 @@ import math
 
 # external #
 import pywt, numpy
+from numpy import array, vstack, append
 
 def apply_threshold(output, scaler = 1., input=None):
     """
@@ -89,3 +90,62 @@ def iswt(coefficients, wavelet):
             output[indices] = (x1 + x2)/2.
 
     return output
+
+def select_levels_from_swt(coeffs):
+    '''Selects appropriate levels from resulting WT coeff tree
+        For SWT in pyWavelets:
+                 0
+                /  \
+             {0} <- {1} <- last levels
+             / \
+        {0,0}  {0,1) <- penultimate
+        /   \
+        .....   <- first
+
+        May also go backwards, conceptually not important
+        N.B: coeffs should be in pywt [ [( ) , ( )], ... ] format
+    '''
+    # rearrange coeffs tuples into matrix
+    by_rows = vstack(coeffs)
+    # pre-allocating rearranged matrix
+    rearranged = numpy.zeros( shape = ( len(by_rows)/2 + 1, len(by_rows[0]) ) )
+    # inserting row by row (more effective than iterative appending)
+    index = len(by_rows) - 1; r_index = 0
+    while True:
+        if index > 1:
+            rearranged[r_index] = by_rows[index]
+            index -= 2
+        elif index >= 0:
+            # inserting two last levels
+            rearranged[r_index] = by_rows[index]
+            index -= 1
+        else: break
+        r_index += 1
+
+    return rearranged
+
+def update_selected_levels_swt(inital_coeffs, selected_coeffs):
+    '''Restores tree structure for further ISWT'''
+    # rearranging back to how it was
+    by_rows = vstack(inital_coeffs)
+    index = len(by_rows) - 1; s_index = 0
+    while True:
+        if index > 1:
+            by_rows[index] = selected_coeffs[s_index]
+            index -= 2
+        elif index >= 0:
+            by_rows[index] = selected_coeffs[s_index]
+            index -= 1
+        else: break
+        s_index += 1
+    # tupling and listing
+    all_of_coeffs = []; element = 0
+    while element <= len(by_rows)/2 + 1:
+        all_of_coeffs.append( (by_rows[element],  by_rows[element + 1]) )
+        element += 2
+    return all_of_coeffs
+
+
+
+
+    
