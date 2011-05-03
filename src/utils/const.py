@@ -49,6 +49,7 @@ NEXT = 'next.png'
 PREV = 'prev.png'
 FIRST = 'first.png'
 LAST = 'last.png'
+TEST = 'flag.png'
 ABOUT = 'about.png'
 QUIT = 'quit.png'
 # ~*~ #

@@ -29,7 +29,7 @@ from utils.const import __name__,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
     P_PREVIEW_HEIGHT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
-    FIRST, LAST, NEXT, PREV, ABOUT, QUIT,\
+    FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, WT, Models, Tabs, Tooltips
 from utils.guiTweaks import unfillLayout, createSeparator, createShadow,\
@@ -43,6 +43,7 @@ from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from stats.models import processModel, calculateForecast
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, normalize_dwt_dimensions, iswt
+from user.test import test_data
 
 ####################################
 #            GUI classes           #
@@ -350,6 +351,9 @@ class MuScaleMainDialog(QMainWindow):
         self.toggleInfo.setIcon(QIcon(RES + ICONS + INFO))
         self.toggleInfo.triggered.connect(self.updateInfoTooltips)
 
+        quickTest = QAction(QIcon(RES + ICONS + TEST), 'Full modelling cycle', self)
+        quickTest.triggered.connect(self.performModellingCycleGUI)
+
         self.toolBar.addAction(self.toggleSizeAction)
         self.toolBar.addAction(self.toggleTools)
         self.toolBar.addAction(self.toggleInfo)
@@ -358,6 +362,9 @@ class MuScaleMainDialog(QMainWindow):
 #        self.toolBar.addAction(goToFirstAction)
         self.toolBar.addAction(previousStepAction)
         self.toolBar.addAction(nextStepAction)
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(quickTest)
+
 #        self.toolBar.addAction(goToLastAction)
 
         # load data actions #
@@ -975,4 +982,21 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 #####################################################
 
     def performModellingCycleGUI(self):
-        pass
+        #TODO: add to wizard
+        self.toolsFrame.updateLog(['~starting modelling cycle test...'])
+        # loading data
+        self.manualDataInput.setText(' '.join([str(value) for value in test_data]))
+        # parse data
+        self.manualData()
+        # perform SWT
+        self.spinLevels.setValue(4)
+        self.waveletTransform()
+        # construct model
+        self.autoModel()
+        self.addAllLevelToModel()
+        self.constructModel()
+
+        self.toolsFrame.updateLog(['~modelling cycle test complete'])
+        self.messageInfo.showInfo('Modelling cycle performed successfully')
+        
+        self.statTools.setCurrentIndex(int(Tabs.Simulation))

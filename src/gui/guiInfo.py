@@ -103,6 +103,7 @@ class InfoFrame(QFrame):
         self.setMask(roundCorners(self.rect(), 5))
     
     def showEvent(self, event):
-        self.infoLabel.adjustSize()
-        self.adjustSize()
+        pass
+#        self.infoLabel.adjustSize()
+#        self.adjustSize()
 #        self.updateCornersMask()

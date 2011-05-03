@@ -6,7 +6,7 @@ import math
 
 # external #
 import pywt, numpy
-from numpy import array, vstack, append, zeros
+from numpy import array, vstack, append, zeros, resize
 
 def apply_threshold(output, scaler = 1., input=None):
     """
@@ -147,16 +147,7 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
 
 def normalize_dwt_dimensions(coeffs):
     new_dimension = len(coeffs[-1])
-    by_rows = zeros
+    by_rows = zeros(shape=(len(coeffs), new_dimension)); i = 0
     for element in coeffs:
-        by_rows.append(element.resize(new_dimension))
-#        by_rows.append(element)
-        
-#    by_rows = vstack(coeffs)
-#    return by_rows.resize(new_dimension)
-    
-
-    
-
-
-    
+        by_rows[i] = resize(element, new_dimension); i += 1
+    return by_rows

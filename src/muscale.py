@@ -40,12 +40,9 @@ Created on Mar 9, 2011
 #TODO: fix info dialog text wrap
 #TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2) [2]
 #TODO: fix button states on reset; update graphs on levels change
-#TODO: add test QUICK PLAY (automated cycle)
 #TODO: write a couple of unit tests for ISWT and levels rearrangement
-#TODO: fix 'construct model' lag
 #TODO: fix mismatch glitches
 #TODO: implement some kind of automatic resize mechanism
-#TODO: DWT cove have size inconsistencies: glitch in np.arange (normalization required)
 #TODO: allow multicolumn table
 
 ####################################
@@ -129,6 +126,7 @@ def main():
         sys.exit(app.exec_())
     except Exception, e:
         muScale.messageInfo.showInfo(str(e))
+        muScale.toolsFrame.updateLog([str(e)])
         log.debug(e)
 
 if __name__ == '__main__':

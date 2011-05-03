@@ -225,9 +225,11 @@ class ToolsFrame(QWidget):
         self.logClear.clicked.connect(self.clearEntries)
         self.logSearh.textChanged.connect(self.highlightSearh)
         self.logSearh.returnPressed.connect(self.logSearh.clear)
-#        self.logList.itemDoubleClicked.connect(self.removeFromList)
-#        self.logList.addAction(QAction(QIcon(ROOT + RES + ICONS + REMOVE), '&Remove selected', self, triggered=self.removeItems))
+        #TODO: implement context menu features
+#        self.logList.itemDoubleClicked.connect(self.copyToClipboard)
         self.logList.addAction(QAction('Toggle controls', self, triggered=self.toggleLogControls))
+#        self.logList.addAction(QAction('Export to file', self, triggered=self.toggleLogControls))
+#        self.logList.addAction(QAction('Copy to clipboard', self, triggered=self.toggleLogControls))
 
 #--------- actions ---------#
 
