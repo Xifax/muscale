@@ -4,6 +4,8 @@ Created on Mar 17, 2011
 
 @author: Yadavito
 '''
+# internal #
+import time
 
 # external #
 from PyQt4.QtCore import *
@@ -45,6 +47,20 @@ class ToolsFrame(QWidget):
         # tabs #
         self.toolTabs = QTabWidget()
 
+        # log tab #
+        self.rLogGroup = QGroupBox()
+        self.rlogLayout = QVBoxLayout()
+
+        self.logList = QListWidget()
+        self.logClear = QPushButton('Clear')
+        self.logSearh = QLineEdit()
+        self.rlogLayout.addWidget(self.logClear)
+        self.rlogLayout.addWidget(self.logList)
+        self.rlogLayout.addWidget(self.logSearh)
+
+        self.rLogGroup.setLayout(self.rlogLayout)
+        self.toolTabs.addTab(self.rLogGroup, 'Log')
+
         # r console tab #
         self.rConsoleGroup = QGroupBox()
         self.rConsoleLayout = QGridLayout()
@@ -72,12 +88,19 @@ class ToolsFrame(QWidget):
 
         #NB: to fix such behavior, one may try to plot empty list/array at initialization
         geometry = self.saveGeometry()      # somehow, PlotWidget assumes very large size automatically
-        self.toolTabs.addTab(self.plotWidget,'Graph')
+        self.toolTabs.addTab(self.plotWidget, 'Graph')
         self.restoreGeometry(geometry)
 
         # table tab #
         self.tableWidget = QTableWidget()
-        self.toolTabs.addTab(self.tableWidget,'Table')
+        self.toolTabs.addTab(self.tableWidget, 'Table')
+
+        # export tab #
+        self.exportGroup = QGroupBox()
+        self.exportLayout = QGridLayout()
+
+        self.exportGroup.setLayout(self.exportLayout)
+        self.toolTabs.addTab(self.exportGroup, 'Export')
 
         # global layout #
         self.mainLayout = QVBoxLayout()
@@ -161,21 +184,87 @@ class ToolsFrame(QWidget):
         # graph #
         self.plotWidget.plot()
 
+        # log #
+        self.logList.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.logList.setAlternatingRowColors(True)
+        self.logList.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.logList.setWordWrap(True)
+
+        self.logList.setStyleSheet(
+            'QListView { alternate-background-color: whitesmoke; }'\
+            'QListView::item {'\
+                'border: 1px solid #d9d9d9;'\
+                'border-top-color: transparent;'\
+                'border-bottom-color: transparent;'\
+                    '}'\
+            'QListView::item:selected {'\
+                'border: 1px solid dimgray; border-radius: 4px; '\
+            '}'\
+            'QListView::item:selected:active {'\
+                 'background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);'\
+            '}'\
+            'QListView::item:hover {'\
+                 'background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);'\
+                 'border: 1px solid #bfcde4;'\
+            '}')
+
     def initActions(self):
+        # R
         self.rInput.returnPressed.connect(self.rCommand)
         self.clearButton.clicked.connect(self.clearRConsole)
         self.namespaceButton.clicked.connect(self.viewNamespace)
-
+        self.namesList.itemClicked.connect(self.appendItemInline)
+        # dialog
         self.upScale.clicked.connect(self.changeScale)
 
         self.filter = StatusFilter()
         self.hoverArea.setAttribute(Qt.WA_Hover, True)
         self.hoverArea.installEventFilter(self.filter)
 
-        #self.namesList.itemDoubleClicked.connect(self.showItemInR)
-        self.namesList.itemClicked.connect(self.appendItemInline)
+        # log
+        self.logClear.clicked.connect(self.clearEntries)
+        self.logSearh.textChanged.connect(self.highlightSearh)
+        self.logSearh.returnPressed.connect(self.logSearh.clear)
+#        self.logList.itemDoubleClicked.connect(self.removeFromList)
+#        self.logList.addAction(QAction(QIcon(ROOT + RES + ICONS + REMOVE), '&Remove selected', self, triggered=self.removeItems))
+        self.logList.addAction(QAction('Toggle controls', self, triggered=self.toggleLogControls))
 
-    #--------- actions ---------#
+#--------- actions ---------#
+
+    #------ ---- log -----------#
+    def updateLog(self, entries):
+        timestamp = time.strftime('%H:%M:%S')
+        for entry in entries:
+            item = QListWidgetItem(13 * ' ' + entry)      # one tab is too much, it seems
+            label = QLabel("<font style='font-size: 7pt; color: gray'>" + timestamp + "</font>")
+            label.setAlignment(Qt.AlignTop)
+            self.logList.addItem(item)
+            self.logList.setItemWidget(item, label)
+
+    def clearEntries(self):
+        self.logList.clear()
+
+    def highlightSearh(self):
+        self.logList.clearSelection()
+        if unicode(self.logSearh.text()).strip() != '':
+            match = self.logList.findItems(self.logSearh.text(), Qt.MatchContains)
+            for item in match: self.logList.setItemSelected(item, True)
+
+            if len(match) > 0: self.logList.scrollToItem(match[0])
+#            self.logList.setText('<b>' + str(len(match)) + '</b> items found')
+        else:
+            pass
+#            self.updateItemsCount()
+
+    def toggleLogControls(self):
+        if self.logClear.isHidden():
+            self.logClear.show()
+            self.logSearh.show()
+        else:
+            self.logClear.hide()
+            self.logSearh.hide()
+
+    #----------- R -------------#
     def rCommand(self, internalIn=None):
         try:
             if internalIn is None:
@@ -229,6 +318,10 @@ class ToolsFrame(QWidget):
                         item = QListWidgetItem(e.strip('"')); item.setTextAlignment(Qt.AlignCenter)
                         self.namesList.addItem(item)
 
+    def appendItemInline(self, event):
+        self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
+
+    #---------- Table -----------#
     def updateTable(self, dataSet):
 
         self.tableWidget.clearContents()
@@ -244,6 +337,7 @@ class ToolsFrame(QWidget):
 
         del iterList
 
+    #------ dialog behavior ------#
     def changeScale(self):
         if self.upScale.isChecked():
             self.showFullScreen()
@@ -262,9 +356,6 @@ class ToolsFrame(QWidget):
             QTimer.singleShot(FLASH_LABEL, flashLabel)
             self.shownHoverInfo = True
         self.updateNamespace()
-
-    def appendItemInline(self, event):
-        self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
 
     def closeEvent(self, QCloseEvent):
         self.parentWidget().toggleTools.setChecked(False)

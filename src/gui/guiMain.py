@@ -42,7 +42,7 @@ from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from stats.models import processModel, calculateForecast
-from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, iswt
+from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, normalize_dwt_dimensions, iswt
 
 ####################################
 #            GUI classes           #
@@ -205,6 +205,8 @@ class MuScaleMainDialog(QMainWindow):
         def startingTip():  self.messageInfo.showInfo(self.statTools.currentIndex())
 
         QTimer.singleShot(LOAD_PAUSE, startingTip)
+
+        self.toolsFrame.updateLog(['muScale ' + __version__ + ' launched', 'loading time: ' + str(loadingTime)])
 
 #------------------- initialization ------------------# #--------------- * * * ---------------#
     def initComposition(self):
@@ -460,15 +462,18 @@ class MuScaleMainDialog(QMainWindow):
             try:
                 if len(fileName) > 0:
                     self.currentDataSet = DataParser.getTimeSeriesFromTextData(data=open(fileName[0], 'r').read())
+                    self.toolsFrame.updateLog(['loading data from file:', fileName.takeFirst()])
                     self.showParseResults()
             except Exception:
                 self.messageInfo.showInfo('Could not read specified file!', True)
+                self.toolsFrame.updateLog(['error reading file:', fileName.takeFirst()])
                 log.error('could not open ' + fileName.takeFirst())
 
     def manualData(self):
         self.resetData()
         if self.manualDataInput.toPlainText() != '':
             self.currentDataSet = DataParser.getTimeSeriesFromTextData(self.manualDataInput.toPlainText())
+            self.toolsFrame.updateLog(['data entered manually'])
             self.showParseResults()
         else:
             self.messageInfo.showInfo('Would you kindly enter at least something?', True)
@@ -490,6 +495,8 @@ class MuScaleMainDialog(QMainWindow):
             self.R['data'] = self.currentDataSet[0]
             self.toolsFrame.updateNamespace()
             self.statusBar.showMessage("Added 'data' variable to R namespace")
+
+            self.toolsFrame.updateLog([str(len(self.currentDataSet[0])) + ' values loaded'])
         else:
             self.parseResults.setText('Could not parse at all!')
             self.parseResults.show()
@@ -528,7 +535,8 @@ class MuScaleMainDialog(QMainWindow):
         self.decompInfoLabel.hide()
         self.calculateButton.setText('Analyze data')
 
-        self.toolsFrame.hide()
+        self.toolsFrame.updateLog(['data reset'])
+#        self.toolsFrame.hide()
 
     def updateTable(self):
         if self.showTable.text() == 'Show table':
@@ -605,7 +613,8 @@ class MuScaleMainDialog(QMainWindow):
             self.showWavelist.setChecked(True)
 
             # resulting scalogram
-            self.scalogramGraph.scalogram(self.wCoefficients)
+            if not self.isSWT: self.scalogramGraph.scalogram(normalize_dwt_dimensions(self.wCoefficients))
+            else: self.scalogramGraph.scalogram(self.wCoefficients)
 
             self.showWavelist.show()
             self.showScalogram.show()
@@ -623,6 +632,10 @@ class MuScaleMainDialog(QMainWindow):
 
             self.wavelistGraph.canvas.draw()
             self.update()
+
+            if self.isSWT: self.toolsFrame.updateLog(['performed SWT'])
+            else: self.toolsFrame.updateLog(['performed DWT'])
+            self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' + self.wavelet.name + ' wavelet'])
         except Exception, e:
             self.messageInfo.showInfo(str(e), True)
             log.error(e)
@@ -791,6 +804,7 @@ class MuScaleMainDialog(QMainWindow):
             self.statTools.setItemEnabled(int(Tabs.Simulation), True)
             self.readyModelsStack()
             self.statTools.setItemEnabled(int(Tabs.Results), True)
+            self.toolsFrame.updateLog(['multiscale model complete'])
 
 ###################################################
 #-------------- model simulation -----------------#

@@ -60,7 +60,7 @@ def LOC(root='', ignore=[], recurse=True):
     return count_mini, count_maxi
 
 def show_results():
-    ignore_list = ['pyqtgraph']
+    ignore_list = ['pyqtgraph', 'user']
     loc_result = LOC('../', ignore_list)
     
     print 'Excluded modules: ' + ', '.join(ignore_list)

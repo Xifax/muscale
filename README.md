@@ -25,6 +25,6 @@ Additional info
 
 * installer *(should download and install setuptools, PyQt, matplotlib and R)*:
 
-        `python install.py`
+        python install.py
 
 * setup.py and build.py do not work yet

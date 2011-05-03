@@ -40,12 +40,13 @@ Created on Mar 9, 2011
 #TODO: fix info dialog text wrap
 #TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2) [2]
 #TODO: fix button states on reset; update graphs on levels change
-#TODO: add iterations/actions history
 #TODO: add test QUICK PLAY (automated cycle)
 #TODO: write a couple of unit tests for ISWT and levels rearrangement
 #TODO: fix 'construct model' lag
 #TODO: fix mismatch glitches
 #TODO: implement some kind of automatic resize mechanism
+#TODO: DWT cove have size inconsistencies: glitch in np.arange (normalization required)
+#TODO: allow multicolumn table
 
 ####################################
 #            Dependencies          #
