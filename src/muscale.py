@@ -39,13 +39,13 @@ Created on Mar 9, 2011
 #TODO: preemptive R input validation (partially done)
 #TODO: output formats
 #TODO: wizard template
-#TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2) [2]
+#TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2) (sic!)
 #TODO: fix button states on reset; update graphs on levels change
 #TODO: write a couple of unit tests for ISWT and levels rearrangement
-#TODO: fix mismatch glitches
 #TODO: implement some kind of automatic resize mechanism
 #TODO: allow multicolumn table
 #TODO: tweak info message
+#TODO: add R calls stack (console-like)
 
 ####################################
 #            Dependencies          #

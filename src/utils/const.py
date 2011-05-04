@@ -53,6 +53,7 @@ LAST = 'last.png'
 TEST = 'flag.png'
 ABOUT = 'about.png'
 QUIT = 'quit.png'
+RESET = 'delete.png'
 # ~*~ #
 LOAD = 'load.png'
 DECOM = 'cog.png'

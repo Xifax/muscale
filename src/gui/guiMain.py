@@ -29,7 +29,7 @@ from utils.const import __name__,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
     P_PREVIEW_HEIGHT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
-    FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST,\
+    FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips
 from utils.guiTweaks import unfillLayout, createSeparator, createShadow,\
@@ -354,7 +354,9 @@ class MuScaleMainDialog(QMainWindow):
         self.toggleInfo.triggered.connect(self.updateInfoTooltips)
 
         quickTest = QAction(QIcon(RES + ICONS + TEST), 'Full modelling cycle', self)
+        resetAll = QAction(QIcon(RES + ICONS + RESET), 'Reset all', self)
         quickTest.triggered.connect(self.performModellingCycleGUI)
+        resetAll.triggered.connect(self.resetData)
 
         self.toolBar.addAction(self.toggleSizeAction)
         self.toolBar.addAction(self.toggleTools)
@@ -366,6 +368,7 @@ class MuScaleMainDialog(QMainWindow):
         self.toolBar.addAction(nextStepAction)
         self.toolBar.addSeparator()
         self.toolBar.addAction(quickTest)
+        self.toolBar.addAction(resetAll)
 
 #        self.toolBar.addAction(goToLastAction)
 
@@ -548,13 +551,13 @@ class MuScaleMainDialog(QMainWindow):
         self.showWavelist.hide()
         self.showScalogram.hide()
         self.decompInfoLabel.hide()
-        self.calculateButton.setText('Analyze data')
+        self.calculateButton.setText('Perform &wavelet decomposition')
 
         self.toolsFrame.updateLog(['data reset'], warning=True)
         self.showScalogram.setChecked(False)
         self.showWavelist.setChecked(False)
         # clearing R workspace
-        self.R('rm(list = ls(all = TRUE))')
+        self.R('rm(list = ls())')
         self.toolsFrame.updateNamespace()
 
     def updateTable(self):
@@ -649,7 +652,7 @@ class MuScaleMainDialog(QMainWindow):
             self.showWavelist.show()
             self.showScalogram.show()
             self.decompInfoLabel.show()
-            self.calculateButton.setText('Reanalyze data')
+            self.calculateButton.setText('Update &wavelet decomposition')
             self.decompInfoLabel.setText('Using <b>' + self.wavelet.name + '</b> wavelet')
 
             self.R['wcoeff'] = self.wCoefficients
@@ -1007,7 +1010,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 #####################################################
 
     def performModellingCycleGUI(self):
-        #TODO: add to wizard
+        #TODO: add similar option to wizard
         self.toolsFrame.updateLog(['starting modelling cycle test...'], NB=True)
         # loading data
         self.manualDataInput.setText(' '.join([str(value) for value in test_data]))
