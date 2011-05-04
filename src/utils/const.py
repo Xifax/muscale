@@ -37,6 +37,7 @@ P_PREVIEW_HEIGHT = 240
 #---------- paths ---------#
 RES = '../res/'
 ICONS = 'icons/'
+WV = 'wv/'
 
 #--------- icons ----------#
 LOGO = 'chart_line.png'
@@ -128,7 +129,9 @@ Tooltips = {# data input
             'load_manual' : u'Input data series manually',
 
             # decomposition
-            'max_level' : u'Maximum level depends on wavelet family and initial data ()',
+            'max_level' : u'Max level, depending on wavelet and initial data: ()',
+            'swt' : u'Non-decimated (stationary) wavelet transform',
+            'dwt' : u'Decimated wavelet transform'
 
 }
 

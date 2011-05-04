@@ -19,7 +19,7 @@ class InfoFilter(QObject):
             object.dockButtonUp.setVisible(True)
             object.dockButtonDown.setVisible(True)
             object.adjustSize()
-#            object.updateCornersMask()
+            object.updateCornersMask()
         if event.type() == QEvent.HoverLeave:
             object.dockButtonUp.setHidden(True)
             object.dockButtonDown.setHidden(True)
@@ -38,8 +38,6 @@ class InfoFrame(QFrame):
 
         self.dockButtonUp = QPushButton()
         self.dockButtonDown = QPushButton()
-#        self.dockButtonLeft = QPushButton()
-#        self.dockButtonRight = QPushButton()
 
         self.mainLayout.addWidget(self.dockButtonUp)
         self.mainLayout.addWidget(self.titleLabel)
@@ -58,7 +56,6 @@ class InfoFrame(QFrame):
         self.setMaximumWidth(I_WIDTH)
         
     def initComponents(self):
-        #self.mainLayout.setAlignment(Qt.AlignCenter)
         self.titleLabel.setAlignment(Qt.AlignCenter)
         self.infoLabel.setAlignment(Qt.AlignCenter)
         
@@ -87,10 +84,8 @@ class InfoFrame(QFrame):
         content = infoContens(index)
         self.titleLabel.setText('<b>' + content['title'] + '</b>')
         self.infoLabel.setText(content['info'])
-        self.infoLabel.adjustSize()
         self.adjustSize()
-#        self.updateCornersMask()
-        
+
     def setTopPosition(self):
         self.dockButtonDown.setChecked(False)
         self.parent().updateInfoPosition()
@@ -103,7 +98,4 @@ class InfoFrame(QFrame):
         self.setMask(roundCorners(self.rect(), 5))
     
     def showEvent(self, event):
-        pass
-#        self.infoLabel.adjustSize()
-#        self.adjustSize()
-#        self.updateCornersMask()
+        self.adjustSize()

@@ -234,10 +234,13 @@ class ToolsFrame(QWidget):
 #--------- actions ---------#
 
     #------ ---- log -----------#
-    def updateLog(self, entries):
+    def updateLog(self, entries, error=False, warning=False, NB=False):
         timestamp = time.strftime('%H:%M:%S')
         for entry in entries:
             item = QListWidgetItem(13 * ' ' + entry)      # one tab is too much, it seems
+            if error: item.setTextColor(QColor(255, 0, 0, 127))
+            if warning: item.setTextColor(QColor(255, 255, 0, 127))
+            if NB: item.setTextColor(QColor(0, 0, 255, 127))
             label = QLabel("<font style='font-size: 7pt; color: gray'>" + timestamp + "</font>")
             label.setAlignment(Qt.AlignTop)
             self.logList.addItem(item)

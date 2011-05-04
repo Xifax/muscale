@@ -2,11 +2,15 @@
 __author__ = 'Michael Marino, Yadavito'
 
 # internal #
-import math
+import math, re
 
 # external #
 import pywt, numpy
+import matplotlib.pyplot as plt
 from numpy import array, vstack, append, zeros, resize
+
+# own #
+from utils.const import RES, WV
 
 def apply_threshold(output, scaler = 1., input=None):
     """
@@ -151,3 +155,31 @@ def normalize_dwt_dimensions(coeffs):
     for element in coeffs:
         by_rows[i] = resize(element, new_dimension); i += 1
     return by_rows
+
+def _plot_wavelet_families(all=False):
+    '''Plotting waveletes approximations'''
+    lvl = 4 # because!
+    for name in pywt.families():
+        if not all:
+            _plot_wavelet(pywt.wavelist(name)[0], lvl)
+        else:
+            for wv in pywt.wavelist(name):
+                _plot_wavelet(wv, lvl, True)
+
+def _plot_wavelet(wavelet, level, all=False):
+    try:
+        # [phi, psi, x] (not for every wavelet, hence the 'values')
+        values = pywt.Wavelet(wavelet).wavefun(level=level)
+        plt.figure(figsize=(1, 1))
+        plt.axis('off')
+        # plotting x, psi
+        plt.plot(values[-1], values[-2], color = 'w', linewidth = 1.0)  # color = 'w' for black tooltips 
+        # full wavelet name
+        if all: plt.savefig('../' + RES + WV + wavelet + '.png', transparent = True)
+        # family name
+        else: plt.savefig('../' + RES + WV + re.sub('[0-9. ]+', '', wavelet) + '.png', transparent = True)
+    except Exception, e:
+        print e, wavelet
+
+if __name__ == '__main__':
+    _plot_wavelet_families(True)

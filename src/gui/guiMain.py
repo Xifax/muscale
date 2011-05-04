@@ -14,7 +14,7 @@ import platform
 from datetime import datetime
 
 # external #
-from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR, QPointF
+from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR, QPointF, QPoint
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
@@ -31,7 +31,7 @@ from utils.const import __name__,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
-    infoTipsDict, WT, Models, Tabs, Tooltips
+    infoTipsDict, WT, WV, Models, Tabs, Tooltips
 from utils.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
 from utils.tools import prettifyNames
@@ -95,6 +95,7 @@ class MuScaleMainDialog(QMainWindow):
         self.decompLayout = QGridLayout()
 
         self.comboWavelet = QComboBox()
+        self.comboWavelist = QComboBox()
         self.comboDecomposition = QComboBox()
         self.spinLevels = QSpinBox()
         self.calculateButton = QPushButton('A&nalyze data')
@@ -105,14 +106,15 @@ class MuScaleMainDialog(QMainWindow):
         self.scalogramGraph = MplWidget()
 
         self.decompLayout.addWidget(self.comboWavelet, 0, 0)
-        self.decompLayout.addWidget(self.comboDecomposition, 0, 1)
-        self.decompLayout.addWidget(self.spinLevels, 0, 2)
-        self.decompLayout.addWidget(self.calculateButton, 1, 0, 1, 3)
+        self.decompLayout.addWidget(self.comboWavelist, 0, 1)
+        self.decompLayout.addWidget(self.comboDecomposition, 0, 2)
+        self.decompLayout.addWidget(self.spinLevels, 0, 3)
+        self.decompLayout.addWidget(self.calculateButton, 1, 0, 1, 4)
         self.decompLayout.addWidget(self.showWavelist, 2, 0)
-        self.decompLayout.addWidget(self.decompInfoLabel, 2, 1)
-        self.decompLayout.addWidget(self.showScalogram, 2, 2)
-        self.decompLayout.addWidget(self.wavelistGraph, 3, 0, 1, 3)
-        self.decompLayout.addWidget(self.scalogramGraph, 4, 0, 1, 3)
+        self.decompLayout.addWidget(self.decompInfoLabel, 2, 1, 1, 2)
+        self.decompLayout.addWidget(self.showScalogram, 2, 3)
+        self.decompLayout.addWidget(self.wavelistGraph, 3, 0, 1, 4)
+        self.decompLayout.addWidget(self.scalogramGraph, 4, 0, 1, 4)
 
         self.decompGroup.setLayout(self.decompLayout)
 
@@ -380,6 +382,8 @@ class MuScaleMainDialog(QMainWindow):
         self.showWavelist.clicked.connect(self.viewWavelist)
         self.showScalogram.clicked.connect(self.viewScalogram)
         self.comboDecomposition.currentIndexChanged.connect(self.updateMaxDLevel)
+        self.comboWavelet.currentIndexChanged.connect(self.updateWavelist)
+        self.comboWavelist.currentIndexChanged.connect(self.updateWaveletPreview)
 
         # tooltips #
         self.statTools.currentChanged.connect(self.updateInfoTooltips)
@@ -395,6 +399,9 @@ class MuScaleMainDialog(QMainWindow):
 
         # level
         self.spinLevels.setToolTip(Tooltips['max_level'])
+
+        # test
+#        self.loadManualData.setToolTip("<img src='../res/icons/flag.png'>")
 
 #------------------- actions ------------------# #--------------- * * * ---------------#
     def fullScreen(self):
@@ -434,7 +441,7 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateInfoPosition(self):
         if self.infoDialog.dockButtonUp.isChecked():
-            self.infoDialog.move(self.x() + self.width() / 3, self.y() - self.infoDialog.height() - 20)
+            self.infoDialog.move(self.x() + self.width() / 3, self.y() - self.infoDialog.height())
         elif self.infoDialog.dockButtonDown.isChecked():
             self.infoDialog.move(self.x() + self.width() / 3, self.y() + self.height() + 60)
         else:
@@ -473,7 +480,7 @@ class MuScaleMainDialog(QMainWindow):
                     self.showParseResults()
             except Exception:
                 self.messageInfo.showInfo('Could not read specified file!', True)
-                self.toolsFrame.updateLog(['error reading file:', fileName.takeFirst()])
+                self.toolsFrame.updateLog(['error reading file:', fileName.takeFirst()], True)
                 log.error('could not open ' + fileName.takeFirst())
 
     def manualData(self):
@@ -497,6 +504,7 @@ class MuScaleMainDialog(QMainWindow):
             self.separator.show()
 
             self.statTools.setItemEnabled(int(Tabs.Decomposition), True)
+            self.updateWavelist()
             self.updateMaxDLevel()
 
             self.R['data'] = self.currentDataSet[0]
@@ -543,13 +551,17 @@ class MuScaleMainDialog(QMainWindow):
         self.calculateButton.setText('Analyze data')
 
         self.toolsFrame.updateLog(['data reset'])
-#        self.toolsFrame.hide()
+        self.showScalogram.setChecked(False)
+        self.showWavelist.setChecked(False)
+        # clearing R workspace
+        self.R('rm(list = ls(all = TRUE))')
+        self.toolsFrame.updateNamespace()
 
     def updateTable(self):
         if self.showTable.text() == 'Show table':
             self.toolsFrame.updateTable(self.currentDataSet[0])
             self.toolsFrame.show()
-            self.toolsFrame.toolTabs.setCurrentIndex(2)
+            self.toolsFrame.toolTabs.setCurrentIndex(3)
             self.showTable.setText('Hide table')
 
             self.toggleTools.setChecked(True)
@@ -572,7 +584,7 @@ class MuScaleMainDialog(QMainWindow):
         if self.showGraph.text() == 'Show graph':
             self.currentPlot.updateData(self.currentDataSet[0])
             self.toolsFrame.show()
-            self.toolsFrame.toolTabs.setCurrentIndex(1)
+            self.toolsFrame.toolTabs.setCurrentIndex(2)
 
             self.showGraph.setText('Hide graph')
             self.toggleTools.setChecked(True)
@@ -584,19 +596,32 @@ class MuScaleMainDialog(QMainWindow):
 #####################################################
 #-------------- wavelet decomposition --------------#
 #####################################################
+    def updateWavelist(self):
+        self.comboWavelist.clear()
+        self.comboWavelist.addItems(pywt.wavelist(self.comboWavelet.currentText()))
+        #TODO: set tooltip
+
+    def updateWaveletPreview(self):
+        self.comboWavelist.setToolTip("<img src='" + RES + WV + self.comboWavelist.currentText() + "'.png'>")
+
     def updateMaxDLevel(self):
         if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
-            self.spinLevels.setMaximum( pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])) + 1)
+#            self.spinLevels.setMaximum( pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])) + 1)
+            self.spinLevels.setMaximum( pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1)
+            self.comboDecomposition.setToolTip(Tooltips['dwt'])
         elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
-            self.spinLevels.setMaximum( pywt.swt_max_level(len(self.currentDataSet[0])) + 1)    #TODO: check if correction is correct
-        self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' (' + str(self.spinLevels.maximum()) + ')')
+            self.spinLevels.setMaximum( pywt.swt_max_level(len(self.currentDataSet[0])) + 1)
+            self.comboDecomposition.setToolTip(Tooltips['swt'])
+        self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' <b>' + str(self.spinLevels.maximum()) + '</b>')
+        self.spinLevels.setValue(self.spinLevels.maximum()/2 + 1)
 
     def waveletTransform(self):
         # stationary decomposition flag
         self.isSWT = False
 
         try:
-            self.wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
+#            self.wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
+            self.wavelet = pywt.Wavelet(unicode(self.comboWavelist.currentText()))
             w_level = self.spinLevels.value() - 1
             # discrete
             if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
@@ -645,6 +670,7 @@ class MuScaleMainDialog(QMainWindow):
             self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' + self.wavelet.name + ' wavelet'])
         except Exception, e:
             self.messageInfo.showInfo(str(e), True)
+            self.toolsFrame.updateLog([str(e)], True)
             log.error(e)
 
     def viewWavelist(self):
@@ -925,6 +951,7 @@ class MuScaleMainDialog(QMainWindow):
             except Exception, e:
 #                self.messageInfo.showInfo('Not all levels were processed!', True)
                 self.messageInfo.showInfo(str(e), True)
+                self.toolsFrame.updateLog([str(e)], True)
                 log.error(e)
 
 #####################################################
@@ -983,7 +1010,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 
     def performModellingCycleGUI(self):
         #TODO: add to wizard
-        self.toolsFrame.updateLog(['~starting modelling cycle test...'])
+        self.toolsFrame.updateLog(['starting modelling cycle test...'], NB=True)
         # loading data
         self.manualDataInput.setText(' '.join([str(value) for value in test_data]))
         # parse data
@@ -996,7 +1023,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.addAllLevelToModel()
         self.constructModel()
 
-        self.toolsFrame.updateLog(['~modelling cycle test complete'])
+        self.toolsFrame.updateLog(['modelling cycle test complete'], NB=True)
         self.messageInfo.showInfo('Modelling cycle performed successfully')
         
         self.statTools.setCurrentIndex(int(Tabs.Simulation))
