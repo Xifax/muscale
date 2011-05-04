@@ -31,7 +31,7 @@ from utils.const import __name__,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
-    infoTipsDict, WT, WV, Models, Tabs, Tooltips
+    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips
 from utils.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
 from utils.tools import prettifyNames
@@ -400,9 +400,6 @@ class MuScaleMainDialog(QMainWindow):
         # level
         self.spinLevels.setToolTip(Tooltips['max_level'])
 
-        # test
-#        self.loadManualData.setToolTip("<img src='../res/icons/flag.png'>")
-
 #------------------- actions ------------------# #--------------- * * * ---------------#
     def fullScreen(self):
         if self.toggleSizeAction.isChecked():
@@ -472,16 +469,19 @@ class MuScaleMainDialog(QMainWindow):
     def openFile(self):
         self.resetData()
         if self.openFileDialog.exec_():
-            fileName = self.openFileDialog.selectedFiles()   #NB: multiple files selection also possible!
+            fileName = self.openFileDialog.selectedFiles()
             try:
                 if len(fileName) > 0:
-                    self.currentDataSet = DataParser.getTimeSeriesFromTextData(data=open(fileName[0], 'r').read())
-                    self.toolsFrame.updateLog(['loading data from file:', fileName.takeFirst()])
-                    self.showParseResults()
+                    if DataParser.istextfile(fileName[0]):
+                        self.currentDataSet = DataParser.getTimeSeriesFromTextData(data=open(fileName[0], 'r').read())
+                        self.toolsFrame.updateLog(['loading data from file:', fileName[0]])
+                        self.showParseResults()
+                    else:
+                        self.messageInfo.showInfo('Binary file specified!', True)
             except Exception:
-                self.messageInfo.showInfo('Could not read specified file!', True)
-                self.toolsFrame.updateLog(['error reading file:', fileName.takeFirst()], True)
-                log.error('could not open ' + fileName.takeFirst())
+                self.messageInfo.showInfo('Could not read from specified file!', True)
+                self.toolsFrame.updateLog(['error reading file:', fileName[0]], True)
+                log.error('could not open ' + fileName[0])
 
     def manualData(self):
         self.resetData()
@@ -493,7 +493,7 @@ class MuScaleMainDialog(QMainWindow):
             self.messageInfo.showInfo('Would you kindly enter at least something?', True)
 
     def showParseResults(self):
-        if len(self.currentDataSet) == 2:
+        if len(self.currentDataSet) == 2:   # data and status
             self.parseResults.setText(
                 'Success! Loaded<b> ' + str(len(self.currentDataSet[0])) + '</b> values, errors: <b>' + str(
                     self.currentDataSet[1]) + '</b>')
@@ -550,7 +550,7 @@ class MuScaleMainDialog(QMainWindow):
         self.decompInfoLabel.hide()
         self.calculateButton.setText('Analyze data')
 
-        self.toolsFrame.updateLog(['data reset'])
+        self.toolsFrame.updateLog(['data reset'], warning=True)
         self.showScalogram.setChecked(False)
         self.showWavelist.setChecked(False)
         # clearing R workspace
@@ -599,14 +599,13 @@ class MuScaleMainDialog(QMainWindow):
     def updateWavelist(self):
         self.comboWavelist.clear()
         self.comboWavelist.addItems(pywt.wavelist(self.comboWavelet.currentText()))
-        #TODO: set tooltip
+        self.comboWavelet.setToolTip(infoWavelets[unicode(self.comboWavelet.currentText())])
 
     def updateWaveletPreview(self):
         self.comboWavelist.setToolTip("<img src='" + RES + WV + self.comboWavelist.currentText() + "'.png'>")
 
     def updateMaxDLevel(self):
         if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
-#            self.spinLevels.setMaximum( pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])) + 1)
             self.spinLevels.setMaximum( pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1)
             self.comboDecomposition.setToolTip(Tooltips['dwt'])
         elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
@@ -620,7 +619,6 @@ class MuScaleMainDialog(QMainWindow):
         self.isSWT = False
 
         try:
-#            self.wavelet = pywt.Wavelet(pywt.wavelist(self.comboWavelet.currentText())[0])
             self.wavelet = pywt.Wavelet(unicode(self.comboWavelist.currentText()))
             w_level = self.spinLevels.value() - 1
             # discrete

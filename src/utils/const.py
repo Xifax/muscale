@@ -113,6 +113,17 @@ def infoTips(index):
     except KeyError:
         return None
 
+infoWavelets = { 'haar' : u'Haar (step function)',
+                 'db' : u'Daubechies (compactly supported orthonormal)',
+                 'sym' : u'Symlets (nearly symmetrical db)',
+                 'coif' : u'Coiflets (symmetrical)', # <---
+                 'bior' : u'Biorthogonal (linear phase property)',
+                 'rbio' : u'Reverse biorthogonal',
+                 'dmey' : u'Discrete approximation of Meyer wavelet (scaling in frequency domain)',
+                 # mexican hat
+                 # morlet
+            }
+
 #----------- WT ------------#
 WT = make_enum('WT', 'StationaryWT DiscreteWT')
 

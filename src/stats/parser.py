@@ -5,6 +5,9 @@ Created on Mar 9, 2011
 @author: Yadavito
 '''
 
+# internal #
+import string, sys
+
 # own #
 from utils.log import log
 
@@ -12,7 +15,30 @@ from utils.log import log
 from PyQt4.QtCore import QString
 
 class DataParser():
-    
+
+    text_characters = "".join(map(chr, range(32, 127)) + list("\n\r\t\b"))
+    _null_trans = string.maketrans("", "")
+
+    @staticmethod
+    def istext(s):
+        if "\0" in s:
+            return False
+
+        # empty file
+        if not s:
+            return True
+
+        t = s.translate(DataParser._null_trans, DataParser.text_characters)
+
+#        if len(t)/len(s) > 0.30:
+        if float(len(t))/len(s) > 0.30:
+            return False
+        return True
+
+    @staticmethod
+    def istextfile(filename, blocksize = 512):
+        return DataParser.istext(open(filename).read(blocksize))
+
     @staticmethod
     def getTimeSeriesFromTextData(data, template=' '):
         series = []

@@ -23,7 +23,9 @@ Created on Mar 9, 2011
 #   - stats ~ processing backend
 #   - utils ~ constants & useful methods
 #   - res ~ gui objects & initial data
-#   - pyqtgraph ~ additionaly plot moduels
+#       * icons ~ gui icons and logos
+#       * wv ~ wavelet previews (may be regenerated)
+#   - pyqtgraph ~ additional plot modules
 #   - user ~ project utilities, stats, docs and so on
 # -> launch:
 #   - python muscale.py
@@ -43,7 +45,7 @@ Created on Mar 9, 2011
 #TODO: fix mismatch glitches
 #TODO: implement some kind of automatic resize mechanism
 #TODO: allow multicolumn table
-#TODO: wavelet sublevels
+#TODO: tweak info message
 
 ####################################
 #            Dependencies          #
