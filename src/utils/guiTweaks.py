@@ -61,7 +61,8 @@ def walkNonGridLayoutShadow(layout):
         widget = layout.itemAt(position)
         # in case there are layouts in layout
         if widget is not None:
-            if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())
+            if not isinstance(widget.widget(), QFrame):
+                if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())
 
 def walkGridLayoutShadow(layout):
     '''Add shadow effect to every widget in grid layout'''
@@ -69,4 +70,5 @@ def walkGridLayoutShadow(layout):
         for column in range(0, layout.columnCount()):
             widget = layout.itemAtPosition(row, column)
             if widget is not None:
-                if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())
+                if not isinstance(widget.widget(), QFrame):
+                    if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())

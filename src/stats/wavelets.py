@@ -90,8 +90,17 @@ def iswt(coefficients, wavelet):
             # perform a circular shift right
             x2 = numpy.roll(x2, 1)
 
+            # checking x1,x2 shapes
+            if len(x1) != len(x2):
+                new_length = max(len(x1), len(x2))
+                _x1 = copy(x1); _x2 = copy(x2)
+                _x1.resize(new_length, refcheck = False); _x2.resize(new_length, refcheck = False)
+            else:
+                _x1 = x1; _x2 = x2
+
             # average and insert into the correct indices
-            output[indices] = (x1 + x2)/2.
+#            output[indices] = (x1 + x2)/2.
+            output[indices] = (_x1 + _x2)/2.
 
     return output
 
@@ -156,9 +165,9 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     # tupling and listing
     all_of_coeffs = []; element = 0
     while element <= len(by_rows)/2 + 1:
-        all_of_coeffs.append( (by_rows[element],  by_rows[element + 1]) )
+        all_of_coeffs.append( (copy(by_rows[element]),  copy(by_rows[element + 1])) )
         element += 2
-    return copy(all_of_coeffs)
+    return all_of_coeffs
 
 def normalize_dwt_dimensions(coeffs):
     new_dimension = len(coeffs[-1])

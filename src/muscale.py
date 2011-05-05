@@ -35,17 +35,18 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
+#TODO: update GUI
 #TODO: export menu
 #TODO: wizard template
 #TODO: tweak info message
 #TODO: allow multicolumn table
 #TODO: implement parse template
 #TODO: add R calls stack (console-like)
-#TODO: re-implement model configuration
 #TODO: preemptive R input validation (partially done)
-#TODO: ponder what to do with SWT excluded coefficients
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
+#TODO: re-implement model configuration (use-case when some level is not included)
+#TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
 
 ####################################
 #            Dependencies          #
