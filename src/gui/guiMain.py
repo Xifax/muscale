@@ -560,6 +560,8 @@ class MuScaleMainDialog(QMainWindow):
         self.R('rm(list = ls())')
         self.toolsFrame.updateNamespace()
 
+#        self.messageInfo.showInfo("Data's been reset")
+
     def updateTable(self):
         if self.showTable.text() == 'Show table':
             self.toolsFrame.updateTable(self.currentDataSet[0])
@@ -897,7 +899,7 @@ class MuScaleMainDialog(QMainWindow):
             result = processModel(self.multiModel[model], self.wCoefficients[model], self.R)
             self.processedWCoeffs[model] = result
 
-            #TODO: update, but without plotting anew (repetitive plotting cause lag)
+            #TODO: update, but without plotting anew (repetitive plotting causes lag)
             modelsStack.currentWidget().canvas.ax.plot(result)
             modelsStack.currentWidget().canvas.draw()
 
@@ -925,6 +927,7 @@ class MuScaleMainDialog(QMainWindow):
         #TODO: move to 'additional options'
         forecastSteps = QSpinBox()
         forecastSteps.setRange(2, 100)
+        forecastSteps.setValue(20)
         forecastSteps.valueChanged.connect(forecastModel)
 
         modelsListLayout.addWidget(simulateButton)

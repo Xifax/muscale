@@ -7,7 +7,7 @@ import math, re
 # external #
 import pywt, numpy
 import matplotlib.pyplot as plt
-from numpy import array, vstack, append, zeros, resize
+from numpy import array, vstack, append, zeros, resize, copy
 
 # own #
 from utils.const import RES, WV
@@ -130,15 +130,26 @@ def select_levels_from_swt(coeffs):
 
 def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     '''Restores tree structure for further ISWT'''
+    # resulting max dimension
+    new_dimension = max(len(a) for a in selected_coeffs)
+    old_dimension = len(inital_coeffs[0][0])    # first element in first tuple in list
+    if new_dimension < old_dimension:
+        new_dimension = old_dimension
+        
     # rearranging back to how it was
-    by_rows = vstack(inital_coeffs)
+    by_rows = vstack(copy(inital_coeffs))
+    by_rows.resize(len(by_rows), new_dimension, refcheck = False)
+
+    new_coeffs = copy(selected_coeffs)
+    new_coeffs.resize(len(new_coeffs), new_dimension, refcheck = False)
+
     index = len(by_rows) - 1; s_index = 0
     while True:
         if index > 1:
-            by_rows[index] = selected_coeffs[s_index]
+            by_rows[index] = new_coeffs[s_index]
             index -= 2
         elif index >= 0:
-            by_rows[index] = selected_coeffs[s_index]
+            by_rows[index] = new_coeffs[s_index]
             index -= 1
         else: break
         s_index += 1
@@ -147,14 +158,17 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     while element <= len(by_rows)/2 + 1:
         all_of_coeffs.append( (by_rows[element],  by_rows[element + 1]) )
         element += 2
-    return all_of_coeffs
+    return copy(all_of_coeffs)
 
 def normalize_dwt_dimensions(coeffs):
     new_dimension = len(coeffs[-1])
     by_rows = zeros(shape=(len(coeffs), new_dimension)); i = 0
     for element in coeffs:
-        by_rows[i] = resize(element, new_dimension); i += 1
-    return by_rows
+        #TODO: fill with zeroes, not repeated values
+        new_element = copy(element)
+        new_element.resize(new_dimension, refcheck = False)
+        by_rows[i] = new_element; i += 1
+    return copy(by_rows)
 
 def _plot_wavelet_families(all=False):
     '''Plotting waveletes approximations'''
@@ -173,7 +187,7 @@ def _plot_wavelet(wavelet, level, all=False):
         plt.figure(figsize=(1, 1))
         plt.axis('off')
         # plotting x, psi
-        plt.plot(values[-1], values[-2], color = 'w', linewidth = 1.0)  # color = 'w' for black tooltips 
+        plt.plot(values[-1], values[-2], color = 'w', linewidth = 1.0)  # color = 'w'(white) for black tooltips
         # full wavelet name
         if all: plt.savefig('../' + RES + WV + wavelet + '.png', transparent = True)
         # family name

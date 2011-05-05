@@ -35,17 +35,17 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: implement parse template
-#TODO: preemptive R input validation (partially done)
-#TODO: output formats
+#TODO: export menu
 #TODO: wizard template
-#TODO: check wavelet reconstruction procedure (it seems transformed coeffs are sorted incorrectly when l > 2) (sic!)
-#TODO: fix button states on reset; update graphs on levels change
-#TODO: write a couple of unit tests for ISWT and levels rearrangement
-#TODO: implement some kind of automatic resize mechanism
-#TODO: allow multicolumn table
 #TODO: tweak info message
+#TODO: allow multicolumn table
+#TODO: implement parse template
 #TODO: add R calls stack (console-like)
+#TODO: re-implement model configuration
+#TODO: preemptive R input validation (partially done)
+#TODO: ponder what to do with SWT excluded coefficients
+#TODO: implement some kind of automatic resize mechanism
+#TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
 
 ####################################
 #            Dependencies          #

@@ -20,7 +20,9 @@ def hwProcess(data, r, gamma = False):
 def hwPredict(data, r, steps = steps_default):
     hwProcess(data, r)
     r( 'pred <- predict(hw, %s, prediction.interval = TRUE)' % Str4R(steps) )
-    return append(r.hw['fitted'][:,0], r.pred[:,0])
+    diff = abs(len(r.hw['fitted']) - len(data))
+    r( 'fit <- c( array(0, %s), %s )' % ( Str4R(diff), Str4R(r.hw['fitted'][:,0]) ) )
+    return append(r.fit, r.pred[:,0])
 
 # Least Squares Fit
 def lsfProcess(data, r):
