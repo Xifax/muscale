@@ -15,10 +15,10 @@ from pyqtgraph.PlotWidget import *
 from pyqtgraph.graphicsItems import *
 
 # own #
-from utils.const import T_WIDTH, T_HEIGHT
-from utils.tools import checkParentheses
-from utils.const import LABEL_VISIBLE, FLASH_LABEL
-from utils.log import log
+from utility.const import T_WIDTH, T_HEIGHT
+from utility.tools import checkParentheses
+from utility.const import LABEL_VISIBLE, FLASH_LABEL
+from utility.log import log
 
 class StatusFilter(QObject):
     """Status message mouse click filter"""

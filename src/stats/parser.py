@@ -9,7 +9,7 @@ Created on Mar 9, 2011
 import string, sys
 
 # own #
-from utils.log import log
+from utility.log import log
 
 # external #
 from PyQt4.QtCore import QString
@@ -41,6 +41,7 @@ class DataParser():
 
     @staticmethod
     def getTimeSeriesFromTextData(data, template=' '):
+        #TODO: allow input of negative values
         series = []
         parseErrors = 0
 

@@ -7,7 +7,7 @@ Created on Mar 22, 2011
 # internal #
 import sys, urllib, subprocess, os
 # external #
-from utils.const import easy_packages, downloadable_packages, URL_SETUPTOOLS, URL_R
+from utility.const import easy_packages, downloadable_packages, URL_SETUPTOOLS, URL_R
 
 def dlProgress(count, blockSize, totalSize):
     percent = int(count*blockSize*100/totalSize)

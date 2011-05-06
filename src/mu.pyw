@@ -4,7 +4,7 @@ __author__ = 'Yadavito'
 
 # own #
 import muscale
-import utils.const as cn
+import utility.const as cn
 
 # internal #
 import ctypes, platform

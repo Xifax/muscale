@@ -6,7 +6,7 @@ from distutils.core import setup
 from glob import glob
 
 # own #
-from utils.const import *
+from utility.const import *
 
 # compound data go into site-packages
 from distutils.command.install import INSTALL_SCHEMES

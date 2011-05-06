@@ -30,6 +30,9 @@ T_HEIGHT = HEIGHT
 I_WIDTH = 200
 I_HEIGHT = HEIGHT/2
 
+#--------- message --------#
+M_INTERVAL = 45
+
 #------ graphs/plots ------#
 
 P_PREVIEW_HEIGHT = 240
@@ -159,3 +162,6 @@ URL_SETUPTOOLS = 'http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.
 easy_packages = ['pywt', 'flufl.enum', 'userconfig', 'simpledropbox']
 downloadable_packages = {'PyQt4' : URL_PYQT, 'matplotlib' : URL_MATPLOTLIB,
                          'numpy' : URL_NUMPY, 'scipy' : URL_SCIPY}
+
+#----- here be options -----#
+SHADOWS = True  # temporary

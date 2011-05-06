@@ -9,8 +9,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 # own #
-from utils.const import I_WIDTH, I_HEIGHT, infoContens
-from utils.guiTweaks import roundCorners
+from utility.const import I_WIDTH, I_HEIGHT, infoContens
+from utility.guiTweaks import roundCorners
 
 class InfoFilter(QObject):
     """Status message mouse click filter"""

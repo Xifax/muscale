@@ -13,7 +13,7 @@ import os
 import sys
 
 # own #
-from utils.const import __version__, __name__, _company
+from utility.const import __version__, __name__, _company
 
 ##############
 

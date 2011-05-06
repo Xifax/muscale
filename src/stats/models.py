@@ -6,7 +6,7 @@ from stats.pyper import R, Str4R
 from numpy import append, array
 
 # own #
-from utils.const import Models
+from utility.const import Models
 
 # forecast iterations
 steps_default = 20

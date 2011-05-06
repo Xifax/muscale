@@ -21,7 +21,7 @@ Created on Mar 9, 2011
 # -> structure:
 #   - gui ~ qt frontend
 #   - stats ~ processing backend
-#   - utils ~ constants & useful methods
+#   - utility ~ constants & useful methods
 #   - res ~ gui objects & initial data
 #       * icons ~ gui icons and logos
 #       * wv ~ wavelet previews (may be regenerated)
@@ -39,9 +39,11 @@ Created on Mar 9, 2011
 #TODO: export menu
 #TODO: wizard template
 #TODO: tweak info message
+#TODO: last open directory
 #TODO: allow multicolumn table
 #TODO: implement parse template
 #TODO: add R calls stack (console-like)
+#TODO: prevent message from disappearing while hover
 #TODO: preemptive R input validation (partially done)
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
@@ -104,8 +106,8 @@ from PyQt4.QtCore import Qt
 # own packages #
 from gui.guiMain import MuScaleMainDialog
 from gui.guiSplash import showSplash
-from utils.const import RES, ICONS, LOGO, STYLE
-from utils.log import log
+from utility.const import RES, ICONS, LOGO, STYLE
+from utility.log import log
 
 ####################################
 #        QT application loop       #
@@ -130,7 +132,7 @@ def main():
     except Exception, e:
         muScale.messageInfo.showInfo(str(e))
         muScale.toolsFrame.updateLog([str(e)], True)
-        log.debug(e)
+        log.exception(e)
 
 if __name__ == '__main__':
     main()

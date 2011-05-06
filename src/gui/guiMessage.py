@@ -6,9 +6,9 @@ from PyQt4.QtCore import Qt, QRect, QSize, QTimer
 from PyQt4.QtGui import *
 
 # own #
-from utils.tools import RepeatTimer
-from utils.guiTweaks import roundCorners
-from utils.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY
+from utility.tools import RepeatTimer
+from utility.guiTweaks import roundCorners
+from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY, M_INTERVAL
 
 class SystemMessage(QFrame):
     def __init__(self, parent=None):
@@ -60,12 +60,14 @@ class SystemMessage(QFrame):
             self.isShown = True
             QTimer.singleShot(TIP_VISIBLE + STATUS_CHECK_DELAY, self.updateStatus)
 
+            self.adjustSize()
             self.updatePosition()
             self.fadeStatus()
             QTimer.singleShot(TIP_VISIBLE, self.fadeStatus)
 
     def updatePosition(self):
-        self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + self.height())
+#        self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + self.height())
+        self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + M_INTERVAL)
 
     def updateStatus(self):
         self.isShown = False

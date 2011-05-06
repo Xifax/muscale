@@ -59,7 +59,7 @@ def walkNonGridLayoutShadow(layout):
     '''Add shadow effect to every widget in V/H layout'''
     for position in range(0, layout.count()):
         widget = layout.itemAt(position)
-        # in case there are layouts in layout
+        # in case someone put some layouts in your layout
         if widget is not None:
             if not isinstance(widget.widget(), QFrame):
                 if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())

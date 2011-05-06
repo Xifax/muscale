@@ -6,7 +6,7 @@ from PyQt4.QtGui import QApplication, QPixmap, QSplashScreen, QGraphicsDropShado
 from PyQt4.QtCore import Qt
 
 # own #
-from utils.const import RES, ICONS, LOGO, STYLE, SPLASH, __version__, __name__
+from utility.const import RES, ICONS, LOGO, STYLE, SPLASH, __version__, __name__
 
 def showSplash(app):
 

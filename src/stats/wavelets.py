@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from numpy import array, vstack, append, zeros, resize, copy
 
 # own #
-from utils.const import RES, WV
+from utility.const import RES, WV
 
 def apply_threshold(output, scaler = 1., input=None):
     """
@@ -93,13 +93,13 @@ def iswt(coefficients, wavelet):
             # checking x1,x2 shapes
             if len(x1) != len(x2):
                 new_length = max(len(x1), len(x2))
-                _x1 = copy(x1); _x2 = copy(x2)
-                _x1.resize(new_length, refcheck = False); _x2.resize(new_length, refcheck = False)
+                _x1, _x2 = copy(x1), copy(x2)
+                _x1.resize(new_length, refcheck = False)
+                _x2.resize(new_length, refcheck = False)
             else:
-                _x1 = x1; _x2 = x2
+                _x1, _x2 = x1, x2
 
             # average and insert into the correct indices
-#            output[indices] = (x1 + x2)/2.
             output[indices] = (_x1 + _x2)/2.
 
     return output
@@ -140,16 +140,17 @@ def select_levels_from_swt(coeffs):
 def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     '''Restores tree structure for further ISWT'''
     # resulting max dimension
-    new_dimension = max(len(a) for a in selected_coeffs)
-    old_dimension = len(inital_coeffs[0][0])    # first element in first tuple in list
+    new_dimension = max(len(a) for a in selected_coeffs if not isinstance(a, int))
+
+    old_dimension = len(inital_coeffs[0][0])    # first array in first tuple in list
     if new_dimension < old_dimension:
         new_dimension = old_dimension
         
     # rearranging back to how it was
     by_rows = vstack(copy(inital_coeffs))
     by_rows.resize(len(by_rows), new_dimension, refcheck = False)
-
-    new_coeffs = copy(selected_coeffs)
+#    new_coeffs = copy(selected_coeffs)
+    new_coeffs = copy_non_uniform_shape(selected_coeffs)
     new_coeffs.resize(len(new_coeffs), new_dimension, refcheck = False)
 
     index = len(by_rows) - 1; s_index = 0
@@ -169,7 +170,18 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
         element += 2
     return all_of_coeffs
 
+def copy_non_uniform_shape(coeffs):
+    '''Copy array resizing to uniform shape'''
+    dimension = max(len(a) for a in coeffs if not isinstance(a, int))
+    new_coeffs = zeros(shape=(len(coeffs), dimension)); i = 0
+    for element in coeffs:
+        new_element = array(element, copy = True)
+        new_element.resize(dimension, refcheck = False)
+        new_coeffs[i] = new_element; i += 1
+    return copy(new_coeffs)
+
 def normalize_dwt_dimensions(coeffs):
+    '''Resize to uniform shape'''
     new_dimension = len(coeffs[-1])
     by_rows = zeros(shape=(len(coeffs), new_dimension)); i = 0
     for element in coeffs:
@@ -190,6 +202,7 @@ def _plot_wavelet_families(all=False):
                 _plot_wavelet(wv, lvl, True)
 
 def _plot_wavelet(wavelet, level, all=False):
+    '''Plot and save wavelet to specified folder'''
     try:
         # [phi, psi, x] (not for every wavelet, hence the 'values')
         values = pywt.Wavelet(wavelet).wavefun(level=level)

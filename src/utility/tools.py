@@ -6,7 +6,7 @@ from threading import Event, Thread
 import collections
 
 # own #
-from utils.const import LR_PRNTH_MAPPINGS, L_PRNTH, R_PRNTH
+from utility.const import LR_PRNTH_MAPPINGS, L_PRNTH, R_PRNTH
 
 class RepeatTimer(Thread):
     '''Timer with custom number of iterations'''

@@ -10,7 +10,7 @@ Created on Mar 9, 2011
 ####################################
 
 # internal #
-import platform
+import platform, traceback
 from datetime import datetime
 
 # external #
@@ -21,20 +21,21 @@ import pywt
 from numpy import *
 
 # own #
-from utils.log import log
-from utils.const import __name__,\
+from utility.log import log
+from utility.const import __name__,\
     __version__,\
-    WIDTH, HEIGHT,\
+    WIDTH, HEIGHT, M_INTERVAL,\
     RES, ICONS, ICO_SIZE,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
     P_PREVIEW_HEIGHT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
-    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips
-from utils.guiTweaks import unfillLayout, createSeparator, createShadow,\
+    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips,\
+    SHADOWS #temporarily
+from utility.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
-from utils.tools import prettifyNames
+from utility.tools import prettifyNames
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
 from gui.guiInfo import InfoFrame
@@ -144,6 +145,23 @@ class MuScaleMainDialog(QMainWindow):
 
         self.reconsGroup.setLayout(self.reconsLayout)
 
+        # options #
+        self.optionsGroup = QGroupBox('Settings')
+        self.stylesCombo = QComboBox()
+        self.checkShadows = QCheckBox('Enable shadows')
+        self.fixMaxLevel = QCheckBox('Lock max decomposition level')
+        self.autoStep = QCheckBox('Auto next step')
+        self.applySettings = QPushButton('Apply')
+
+        self.optionsLayout = QGridLayout()
+        self.optionsLayout.addWidget(self.stylesCombo, 0, 0)
+        self.optionsLayout.addWidget(self.checkShadows, 0, 1)
+        self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 2)
+        self.optionsLayout.addWidget(self.fixMaxLevel, 2, 0)
+        self.optionsLayout.addWidget(self.autoStep, 2, 1)
+        self.optionsLayout.addWidget(self.applySettings, 3, 0, 1, 2)
+        self.optionsGroup.setLayout(self.optionsLayout)
+
         # menus, toolbars, layouts & composition #
         self.centralWidget = QWidget(self)
 
@@ -159,6 +177,7 @@ class MuScaleMainDialog(QMainWindow):
         self.statusBar = QStatusBar()
 
         self.mainLayout = QVBoxLayout(self.centralWidget)
+        self.mainLayout.addWidget(self.optionsGroup)
         self.mainLayout.addWidget(self.statTools)
 
         self.addToolBar(self.toolBar)
@@ -287,13 +306,14 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemIcon(int(Tabs.Results), QIcon(RES + ICONS + FIN))
 
         # effects #
-        walkNonGridLayoutShadow(self.loadDataLayout)
-        walkGridLayoutShadow(self.decompLayout)
-        walkGridLayoutShadow(self.reconsLayout)
+        if SHADOWS:
+            walkNonGridLayoutShadow(self.loadDataLayout)
+            walkGridLayoutShadow(self.decompLayout)
+            walkGridLayoutShadow(self.reconsLayout)
 
-#        self.toolBar.setGraphicsEffect(self.shadow)
-#        self.toolBar.setMovable(False)
-#        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        # settings #
+        self.stylesCombo.addItems(QStyleFactory.keys())
+        self.optionsGroup.hide()
 
     def initActions(self):
         # menu actions #
@@ -305,7 +325,11 @@ class MuScaleMainDialog(QMainWindow):
         aboutAction.triggered.connect(self.showAbout)
         resetTipsAction = QAction('Reset &tips', self)
         resetTipsAction.triggered.connect(self.resetTips)
+        self.toggleSettings = QAction('Show &settings', self)
+        self.toggleSettings.triggered.connect(self.viewSettings)
+        self.toggleSettings.setCheckable(True)
 
+        self.menuBar.addAction(self.toggleSettings)
         self.menuBar.addAction(resetTipsAction)
         self.menuBar.addAction(aboutAction)
         self.menuBar.addAction(quitAction)
@@ -395,6 +419,9 @@ class MuScaleMainDialog(QMainWindow):
         self.reconTS.clicked.connect(self.updateResultingTS)
         self.plotInitial.clicked.connect(self.updateResultingTSWithInitialData)
 
+        # settings #
+        self.applySettings.clicked.connect(self.saveSettings)
+
     def setCustomTooltips(self):
         # data input #
         self.loadFromFile.setToolTip(Tooltips['load_from_file'])
@@ -437,7 +464,7 @@ class MuScaleMainDialog(QMainWindow):
             self.toolsFrame.resize(QSize(self.toolsFrame.width(), self.height()))
 
     def updateMessagePosition(self):
-        self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + self.messageInfo.height())
+        self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + M_INTERVAL)
 
     def updateInfoPosition(self):
         if self.infoDialog.dockButtonUp.isChecked():
@@ -466,6 +493,23 @@ class MuScaleMainDialog(QMainWindow):
 
 #------------------ functionality ----------------# #--------------- * * * ---------------#
 
+###################################################
+#-------------------- settings -------------------#
+###################################################
+    def viewSettings(self):
+        if self.toggleSettings.isChecked():
+            self.optionsGroup.show()
+            self.toggleSettings.setText('Hide &settings')
+        else:
+            self.optionsGroup.hide()
+            self.toggleSettings.setText('Show &settings')
+
+    def saveSettings(self):
+        QApplication.setStyle(QStyleFactory.create(self.stylesCombo.currentText()))
+#        QApplication.setPalette(QtGui.QApplication.style().standardPalette())
+#        QApplication.setPalette(self.originalPalette)
+        self.update()
+            
 ###################################################
 #------------------ loading data -----------------#
 ###################################################
@@ -515,6 +559,8 @@ class MuScaleMainDialog(QMainWindow):
             self.statusBar.showMessage("Added 'data' variable to R namespace")
 
             self.toolsFrame.updateLog([str(len(self.currentDataSet[0])) + ' values loaded'])
+
+            if self.autoStep: self.statTools.setCurrentIndex(int(Tabs.Decomposition))
         else:
             self.parseResults.setText('Could not parse at all!')
             self.parseResults.show()
@@ -608,16 +654,19 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateWaveletPreview(self):
         self.comboWavelist.setToolTip("<img src='" + RES + WV + self.comboWavelist.currentText() + "'.png'>")
+        self.updateMaxDLevel()
 
     def updateMaxDLevel(self):
         if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
-            self.spinLevels.setMaximum( pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1)
+            current_max = pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1
             self.comboDecomposition.setToolTip(Tooltips['dwt'])
         elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
-            self.spinLevels.setMaximum( pywt.swt_max_level(len(self.currentDataSet[0])) + 1)
+            current_max = pywt.swt_max_level(len(self.currentDataSet[0])) + 1
             self.comboDecomposition.setToolTip(Tooltips['swt'])
-        self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' <b>' + str(self.spinLevels.maximum()) + '</b>')
-        self.spinLevels.setValue(self.spinLevels.maximum()/2 + 1)
+
+        if self.fixMaxLevel.isChecked(): self.spinLevels.setMaximum(current_max)
+        self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' <b>' + str(current_max) + '</b>')
+        self.spinLevels.setValue(current_max/2 + 1)
 
     def waveletTransform(self):
         # stationary decomposition flag
@@ -671,10 +720,12 @@ class MuScaleMainDialog(QMainWindow):
             if self.isSWT: self.toolsFrame.updateLog(['performed SWT'])
             else: self.toolsFrame.updateLog(['performed DWT'])
             self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' + self.wavelet.name + ' wavelet'])
+
+            if self.autoStep: self.statTools.setCurrentIndex(int(Tabs.Model))
         except Exception, e:
-            self.messageInfo.showInfo(str(e), True)
-            self.toolsFrame.updateLog([str(e)], True)
-            log.error(e)
+            self.messageInfo.showInfo(traceback.format_exc(e), True)
+            self.toolsFrame.updateLog([traceback.format_exc(e)], True)
+            log.exception(e)
 
     def viewWavelist(self):
         if self.showWavelist.isChecked():
@@ -710,15 +761,13 @@ class MuScaleMainDialog(QMainWindow):
 
     def autoModel(self):
         #TODO: Implement automatic configuration
-        combo = self.modelLayout.itemAt(self.modelLayout.count() - 5).widget()
-        combo.setCurrentIndex(1)
+        for index in range(0, len(self.wCoefficients)):
+            combo = self.modelLayout.itemAtPosition(index * 4 + 3, 0).widget()
+            combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
 
     def showComponentPreview(self):
-    #        self.wavelistGraph.canvas.ax.clear()
-    #        self.wavelistGraph.canvas.ax.plot()
         if self.gem is not None:
             if not self.toggleSizeAction.isChecked():
-            #                self.restoreGeometry(self.gem)
                 self.resize(self.width(), self.gem.height())
             self.gem = None
 
@@ -734,7 +783,6 @@ class MuScaleMainDialog(QMainWindow):
 
                             preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.show()
-                            #                            self.gem = self.saveGeometry()
                             if not self.toggleSizeAction.isChecked():
                                 self.gem = self.size()
                                 self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
@@ -750,11 +798,9 @@ class MuScaleMainDialog(QMainWindow):
         previewAll = QPushButton()
         autoAll = QPushButton()
         addAll.setText('Add all')
-        #        addAll.setCheckable(True)
         previewAll.setText('Preview all')
         previewAll.setCheckable(True)
         autoAll.setText('Auto model')
-        #        autoAll.setCheckable(True)
 
         addAll.clicked.connect(self.addAllLevelToModel)
         previewAll.clicked.connect(self.previewAll)
@@ -804,8 +850,9 @@ class MuScaleMainDialog(QMainWindow):
         self.modelLayout.addWidget(resetModel, i, 0, 1, 3); i += 1
         self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 3)
 
-        walkNonGridLayoutShadow(buttonsLayout)
-        walkGridLayoutShadow(self.modelLayout)
+        if SHADOWS:
+            walkNonGridLayoutShadow(buttonsLayout)
+            walkGridLayoutShadow(self.modelLayout)
 
     def addModel(self):
         for row in range(0, self.modelLayout.rowCount()):
@@ -841,6 +888,8 @@ class MuScaleMainDialog(QMainWindow):
             self.readyModelsStack()
             self.statTools.setItemEnabled(int(Tabs.Results), True)
             self.toolsFrame.updateLog(['multiscale model complete'])
+
+            if self.autoStep: self.statTools.setCurrentIndex(int(Tabs.Simulation))
 
 ###################################################
 #-------------- model simulation -----------------#
@@ -935,7 +984,8 @@ class MuScaleMainDialog(QMainWindow):
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
 
-        walkNonGridLayoutShadow(modelsListLayout)
+        if SHADOWS:
+            walkNonGridLayoutShadow(modelsListLayout)
 
     def updateResultingTS(self):
         if self.processedWCoeffs is None:
@@ -953,10 +1003,9 @@ class MuScaleMainDialog(QMainWindow):
                 self.resultingGraph.show()
                 self.resultingGraph.canvas.draw()
             except Exception, e:
-#                self.messageInfo.showInfo('Not all levels were processed!', True)
-                self.messageInfo.showInfo(str(e), True)
-                self.toolsFrame.updateLog([str(e)], True)
-                log.error(e)
+                self.messageInfo.showInfo(traceback.format_exc(e), True)
+                self.toolsFrame.updateLog([traceback.format_exc(e)], True)
+                log.exception(e)
 
 #####################################################
 #-------------- resulting forecast -----------------#
