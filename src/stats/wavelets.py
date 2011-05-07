@@ -2,17 +2,19 @@
 __author__ = 'Michael Marino, Yadavito'
 
 # internal #
-import math, re
+import math
+import re
 
 # external #
-import pywt, numpy
+import pywt
+import numpy
 import matplotlib.pyplot as plt
-from numpy import array, vstack, append, zeros, resize, copy
+from numpy import array, vstack, zeros, copy
 
 # own #
 from utility.const import RES, WV
 
-def apply_threshold(output, scaler = 1., input=None):
+def apply_threshold(output, scaler=1., input=None):
     """
         output
           approx and detail coefficients, arranged in level value
@@ -33,7 +35,7 @@ def apply_threshold(output, scaler = 1., input=None):
         else: thresh = scaler*input[j]
         cD = pywt.thresholding.hard(cD, thresh)
         output[j] = (cA, cD)
-def measure_threshold(output, scaler = 1.):
+def measure_threshold(output, scaler=1.):
     """
         output
           approx and detail coefficients, arranged in level value
@@ -121,7 +123,7 @@ def select_levels_from_swt(coeffs):
     # rearrange coeffs tuples into matrix
     by_rows = vstack(coeffs)
     # pre-allocating rearranged matrix
-    rearranged = zeros( shape = ( len(by_rows)/2 + 1, len(by_rows[0]) ) )
+    rearranged = zeros(shape = (len(by_rows)/2 + 1, len(by_rows[0])))
     # inserting row by row (more effective than iterative appending)
     index = len(by_rows) - 1; r_index = 0
     while True:
@@ -149,7 +151,6 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     # rearranging back to how it was
     by_rows = vstack(copy(inital_coeffs))
     by_rows.resize(len(by_rows), new_dimension, refcheck = False)
-#    new_coeffs = copy(selected_coeffs)
     new_coeffs = copy_non_uniform_shape(selected_coeffs)
     new_coeffs.resize(len(new_coeffs), new_dimension, refcheck = False)
 
@@ -166,7 +167,7 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     # tupling and listing
     all_of_coeffs = []; element = 0
     while element <= len(by_rows)/2 + 1:
-        all_of_coeffs.append( (copy(by_rows[element]),  copy(by_rows[element + 1])) )
+        all_of_coeffs.append((copy(by_rows[element]),  copy(by_rows[element + 1])))
         element += 2
     return all_of_coeffs
 
@@ -185,7 +186,6 @@ def normalize_dwt_dimensions(coeffs):
     new_dimension = len(coeffs[-1])
     by_rows = zeros(shape=(len(coeffs), new_dimension)); i = 0
     for element in coeffs:
-        #TODO: fill with zeroes, not repeated values
         new_element = copy(element)
         new_element.resize(new_dimension, refcheck = False)
         by_rows[i] = new_element; i += 1
@@ -209,11 +209,11 @@ def _plot_wavelet(wavelet, level, all=False):
         plt.figure(figsize=(1, 1))
         plt.axis('off')
         # plotting x, psi
-        plt.plot(values[-1], values[-2], color = 'w', linewidth = 1.0)  # color = 'w'(white) for black tooltips
+        plt.plot(values[-1], values[-2], color='w', linewidth=1.0)  # color = 'w'(white) for black tooltips
         # full wavelet name
-        if all: plt.savefig('../' + RES + WV + wavelet + '.png', transparent = True)
+        if all: plt.savefig('../' + RES + WV + wavelet + '.png', transparent=True)
         # family name
-        else: plt.savefig('../' + RES + WV + re.sub('[0-9. ]+', '', wavelet) + '.png', transparent = True)
+        else: plt.savefig('../' + RES + WV + re.sub('[0-9. ]+', '', wavelet) + '.png', transparent=True)
     except Exception, e:
         print e, wavelet
 

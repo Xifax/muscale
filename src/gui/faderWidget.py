@@ -7,7 +7,7 @@ Created on Mar 25, 2011
 
 import sys
 from PyQt4.QtCore import QTimeLine
-from PyQt4.QtGui import *
+from PyQt4.QtGui import QWidget, QPixmap, QPainter, QStackedWidget
 
 class FaderWidget(QWidget):
 

@@ -6,7 +6,6 @@ __author__ = 'Yadavito'
 # external #
 from stats.pyper import R, Str4R
 import pywt
-#from numpy import *
 import matplotlib.pyplot as plt
 
 # own #
@@ -54,7 +53,7 @@ def modelling_cycle():
 
     plt.show()
 
-    fig_stat_sum = plt.figure(); n_coeff = 1; rows = 0
+    fig_stat_sum = plt.figure(); n_coeff = 1
     fig_stat_sum.canvas.manager.set_window_title('SWT sum by levels [ ' + str(decomposition_level) + ' level(s) ]')
     for coeff in wCoefficients_Stationary:
         sum = coeff[0] + coeff[1]

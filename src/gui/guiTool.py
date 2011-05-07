@@ -8,11 +8,11 @@ Created on Mar 17, 2011
 import time
 
 # external #
-from PyQt4.QtCore import *
+from PyQt4.QtCore import Qt, QObject,QEvent, QTimer
 from PyQt4.QtGui import *
 
-from pyqtgraph.PlotWidget import *
-from pyqtgraph.graphicsItems import *
+from pyqtgraph.PlotWidget import PlotWidget
+#from pyqtgraph.graphicsItems import *
 
 # own #
 from utility.const import T_WIDTH, T_HEIGHT
@@ -84,10 +84,8 @@ class ToolsFrame(QWidget):
 
         # graphs tab #
         self.plotWidget = PlotWidget()
-        #self.plotWidget.setMaximumSize(self.toolTabs.width(), self.toolTabs.height())
 
-        #NB: to fix such behavior, one may try to plot empty list/array at initialization
-        geometry = self.saveGeometry()      # somehow, PlotWidget assumes very large size automatically
+        geometry = self.saveGeometry()
         self.toolTabs.addTab(self.plotWidget, 'Graph')
         self.restoreGeometry(geometry)
 
@@ -116,8 +114,6 @@ class ToolsFrame(QWidget):
 
         self.mainLayout.addWidget(self.hoverArea)
         self.mainLayout.addLayout(self.hoverLayout)
-#        self.mainLayout.addWidget(self.upScale)
-#        self.mainLayout.addWidget(self.fixSize)
         self.mainLayout.addWidget(self.toolTabs)
 
         self.setLayout(self.mainLayout)
@@ -175,7 +171,6 @@ class ToolsFrame(QWidget):
 
         self.rConsole.setReadOnly(True)
         self.namesList.setHidden(True)
-        #self.namesList.setMaximumHeight(self.rConsole.height()/3)
 
         # table #
         self.tableWidget.setColumnCount(1)
@@ -191,22 +186,22 @@ class ToolsFrame(QWidget):
         self.logList.setWordWrap(True)
 
         self.logList.setStyleSheet(
-            'QListView { alternate-background-color: whitesmoke; }'\
-            'QListView::item {'\
-                'border: 1px solid #d9d9d9;'\
-                'border-top-color: transparent;'\
-                'border-bottom-color: transparent;'\
-                    '}'\
-            'QListView::item:selected {'\
-                'border: 1px solid dimgray; border-radius: 4px; '\
-            '}'\
-            'QListView::item:selected:active {'\
-                 'background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);'\
-            '}'\
-            'QListView::item:hover {'\
-                 'background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);'\
-                 'border: 1px solid #bfcde4;'\
-            '}')
+            '''QListView { alternate-background-color: whitesmoke; }
+            QListView::item {
+                border: 1px solid #d9d9d9;
+                border-top-color: transparent;
+                border-bottom-color: transparent;
+                    }
+            QListView::item:selected {
+                border: 1px solid dimgray; border-radius: 4px;
+            }
+            QListView::item:selected:active {
+                 background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);
+            }
+            QListView::item:hover {
+                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
+                 border: 1px solid #bfcde4;
+            }''')
 
     def initActions(self):
         # R
@@ -255,7 +250,7 @@ class ToolsFrame(QWidget):
             match = self.logList.findItems(self.logSearh.text(), Qt.MatchContains)
             for item in match: self.logList.setItemSelected(item, True)
 
-            if len(match) > 0: self.logList.scrollToItem(match[0])
+            if not match: self.logList.scrollToItem(match[0])
 #            self.logList.setText('<b>' + str(len(match)) + '</b> items found')
         else:
             pass
@@ -323,7 +318,7 @@ class ToolsFrame(QWidget):
                         item = QListWidgetItem(e.strip('"')); item.setTextAlignment(Qt.AlignCenter)
                         self.namesList.addItem(item)
 
-    def appendItemInline(self, event):
+    def appendItemInline(self):
         self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
 
     #---------- Table -----------#

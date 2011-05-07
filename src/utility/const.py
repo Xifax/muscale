@@ -28,7 +28,6 @@ T_HEIGHT = HEIGHT
 
 #------ info dialog -------#
 I_WIDTH = 200
-I_HEIGHT = HEIGHT/2
 
 #--------- message --------#
 M_INTERVAL = 45
@@ -88,25 +87,25 @@ LABEL_VISIBLE = 3000
 def infoContens(index):
     try:
         return { 
-                    0  : { 'title' : u'Исходные данные', 'info' : u'Ввод одномерного временного ряда из файла или вручную: \
+                    0  : { 'title': u'Исходные данные', 'info': u'Ввод одномерного временного ряда из файла или вручную: \
 в дальнейшем желательно реализовать шаблон считывания и возможность одновременной работы с несколькими временными рядами.'},
-                    1  : { 'title' : u'Декомпозиция', 'info' : u'Стационарное/дискретное вейвлет-разложение на определённое число составляющих: \
+                    1  : { 'title': u'Декомпозиция', 'info': u'Стационарное/дискретное вейвлет-разложение на определённое число составляющих: \
 дискретное разложение предполагает существенную редукцию исходных данных; стационарное обеспечивает временную инвариантность получаемых компонент.'},
-                    2  : { 'title' : u'Формирование модели', 'info' : u'Выбор прогностических моделей в зависимости от уровня представления. \
+                    2  : { 'title': u'Формирование модели', 'info': u'Выбор прогностических моделей в зависимости от уровня представления. \
 Предполагается использование гармонической регрессии для компонент с ярко выраженной периодичностью, модели Хольта-Винтерса — для выявления общего тренда.'},
-                    3  : { 'title' : u'Настройка и симуляция', 'info' : u'Задание параметров результирующей модели и формирование прогноза для каждой из компонент \
+                    3  : { 'title': u'Настройка и симуляция', 'info' : u'Задание параметров результирующей модели и формирование прогноза для каждой из компонент \
 с последующим обратным вейвлет-преобразованием и формированием конечного прогноза.'},
-                    4  : { 'title' : u'Конечная модель и прогноз', 'info' : u'Композиция результирующего временного ряда на основе преобразованных уровней \
+                    4  : { 'title': u'Конечная модель и прогноз', 'info': u'Композиция результирующего временного ряда на основе преобразованных уровней \
 вейвлет-разложения.'}
                 }[index]
     except KeyError:
-        return {'title' : '...', 'info' : '...'}
+        return {'title': '...', 'info': '...'}
 
-infoTipsDict = { 0 : { 'tip' : u'To begin time series modelling, you should first load some data', 'seen' : False },
-                 1 : { 'tip' : u'Perform time series decomposition using wavelet transformation', 'seen' : False },
-                 2 : { 'tip' : u'Choose model depending on level configuration', 'seen' : False },
-                 3 : { 'tip' : u'Simulate forecast on multiple levels', 'seen' : False },
-                 4 : { 'tip' : u'Reconstruct time series based on processed multiscale levels', 'seen' : False },
+infoTipsDict = { 0 : { 'tip': u'To begin time series modelling, you should first load some data', 'seen': False },
+                 1 : { 'tip': u'Perform time series decomposition using wavelet transformation', 'seen': False },
+                 2 : { 'tip': u'Choose model depending on level configuration', 'seen': False },
+                 3 : { 'tip': u'Simulate forecast on multiple levels', 'seen': False },
+                 4 : { 'tip': u'Reconstruct time series based on processed multiscale levels', 'seen': False },
                 }
 
 def infoTips(index):
@@ -117,13 +116,13 @@ def infoTips(index):
     except KeyError:
         return None
 
-infoWavelets = { 'haar' : u'Haar (step function)',
-                 'db' : u'Daubechies (compactly supported orthonormal)',
-                 'sym' : u'Symlets (nearly symmetrical db)',
-                 'coif' : u'Coiflets (symmetrical)', # <---
-                 'bior' : u'Biorthogonal (linear phase property)',
-                 'rbio' : u'Reverse biorthogonal',
-                 'dmey' : u'Discrete approximation of Meyer wavelet (scaling in frequency domain)',
+infoWavelets = { 'haar': u'Haar (step function)',
+                 'db': u'Daubechies (compactly supported orthonormal)',
+                 'sym': u'Symlets (nearly symmetrical db)',
+                 'coif': u'Coiflets (symmetrical)', # <---
+                 'bior': u'Biorthogonal (linear phase property)',
+                 'rbio': u'Reverse biorthogonal',
+                 'dmey': u'Discrete approximation of Meyer wavelet (scaling in frequency domain)',
                  # mexican hat
                  # morlet
             }
@@ -140,14 +139,14 @@ Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results'); Tabs.Data = 
 
 #------ gui tooltips -------#
 Tooltips = {# data input
-            'load_from_file' : u'Load data series from text file',
-            'load_manual' : u'Input data series manually',
+            'load_from_file': u'Load data series from text file',
+            'load_manual': u'Input data series manually',
 
             # decomposition
-            'max_level' : u'Max level, depending on wavelet and initial data: ()',
-            'swt' : u'Non-decimated (stationary) wavelet transform',
-            'dwt' : u'Decimated wavelet transform'
-
+            'max_level': u'Max level, depending on wavelet and initial data: ()',
+            'swt': u'Non-decimated (stationary) wavelet transform',
+            'dwt': u'Decimated wavelet transform'
+            #TODO: complete tooltips
 }
 
 #------ install url --------#

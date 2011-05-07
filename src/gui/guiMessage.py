@@ -3,11 +3,10 @@ __author__ = 'Yadavito'
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer
-from PyQt4.QtGui import *
+from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout
 
 # own #
 from utility.tools import RepeatTimer
-from utility.guiTweaks import roundCorners
 from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY, M_INTERVAL
 
 class SystemMessage(QFrame):
@@ -26,9 +25,7 @@ class SystemMessage(QFrame):
         self.isShown = False
 
     def initComposition(self):
-#        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
         self.setWindowFlags(Qt.ToolTip)
-#        self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
         self.updateStyle()
 
     def initComponents(self):
@@ -66,7 +63,6 @@ class SystemMessage(QFrame):
             QTimer.singleShot(TIP_VISIBLE, self.fadeStatus)
 
     def updatePosition(self):
-#        self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + self.height())
         self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + M_INTERVAL)
 
     def updateStatus(self):

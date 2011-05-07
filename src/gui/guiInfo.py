@@ -5,11 +5,11 @@ Created on Mar 23, 2011
 @author: Yadavito
 '''
 # external #
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4.QtCore import QObject, QEvent, Qt
+from PyQt4.QtGui import QFrame, QVBoxLayout, QLabel, QPushButton
 
 # own #
-from utility.const import I_WIDTH, I_HEIGHT, infoContens
+from utility.const import I_WIDTH, infoContens
 from utility.guiTweaks import roundCorners
 
 class InfoFilter(QObject):

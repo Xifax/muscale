@@ -101,7 +101,6 @@ import sys
 
 # external packages
 from PyQt4.QtGui import QApplication, QIcon
-from PyQt4.QtCore import Qt
 
 # own packages #
 from gui.guiMain import MuScaleMainDialog

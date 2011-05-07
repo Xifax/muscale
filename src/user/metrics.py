@@ -15,13 +15,15 @@ def walkIgnore(root, ignore):
             if f not in ignore ]
         yield path, subdirs, files
 
-def Walk(root='.', recurse=True, pattern='*', ignore=[]):
+def Walk(root='.', recurse=True, pattern='*', ignore=None):
     """
         Generator for walking a directory tree.
         Starts at specified root folder, returning files
         that match our pattern. Optionally will also
         recurse through sub-folders.
     """
+    if ignore is None:
+        ignore = []
     for path, subdirs, files in walkIgnore(root, ignore):
         for name in files:
             if fnmatch.fnmatch(name, pattern):
@@ -29,7 +31,7 @@ def Walk(root='.', recurse=True, pattern='*', ignore=[]):
         if not recurse:
             break
 
-def LOC(root='', ignore=[], recurse=True):
+def LOC(root='', ignore=None, recurse=True):
     """
         Counts lines of code in two ways:
             maximal size (source LOC) with blank lines and comments
@@ -38,6 +40,8 @@ def LOC(root='', ignore=[], recurse=True):
         Sums all Python files in the specified folder.
         By default recurses through subfolders.
     """
+    if ignore is None:
+        ignore = []
     count_mini, count_maxi = 0, 0
     for fspec in Walk(root, recurse, '*.py', ignore):
         skip = False

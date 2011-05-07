@@ -10,7 +10,8 @@ Created on Mar 9, 2011
 ####################################
 
 # internal #
-import platform, traceback
+import platform
+import traceback
 from datetime import datetime
 
 # external #
@@ -18,7 +19,7 @@ from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR, QPointF, QP
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
-from numpy import *
+#from numpy import *
 
 # own #
 from utility.log import log
@@ -151,15 +152,15 @@ class MuScaleMainDialog(QMainWindow):
         self.checkShadows = QCheckBox('Enable shadows')
         self.fixMaxLevel = QCheckBox('Lock max decomposition level')
         self.autoStep = QCheckBox('Auto next step')
-        self.applySettings = QPushButton('Apply')
+        self.applySettings = QToolButton()
 
         self.optionsLayout = QGridLayout()
         self.optionsLayout.addWidget(self.stylesCombo, 0, 0)
         self.optionsLayout.addWidget(self.checkShadows, 0, 1)
-        self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 2)
+        self.optionsLayout.addWidget(self.applySettings, 0, 2)
+        self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 3)
         self.optionsLayout.addWidget(self.fixMaxLevel, 2, 0)
         self.optionsLayout.addWidget(self.autoStep, 2, 1)
-        self.optionsLayout.addWidget(self.applySettings, 3, 0, 1, 2)
         self.optionsGroup.setLayout(self.optionsLayout)
 
         # menus, toolbars, layouts & composition #
@@ -257,7 +258,6 @@ class MuScaleMainDialog(QMainWindow):
 
         # wavelets #
         self.comboWavelet.addItems(pywt.families())
-#        self.comboDecomposition.addItems(['Stationary WT', 'Discrete WT'])
         self.comboDecomposition.addItems(WT._enums.values())
         self.spinLevels.setValue(2)
         self.spinLevels.setRange(2, 10)
@@ -271,9 +271,6 @@ class MuScaleMainDialog(QMainWindow):
         self.decompInfoLabel.setAlignment(Qt.AlignCenter)
 
         self.decompLayout.setAlignment(Qt.AlignCenter)
-
-        # model #
-        #self.modelLayout.setAlignment(Qt.AlignCenter)
 
         # dialogs #
         self.openFileDialog.setFileMode(QFileDialog.ExistingFile)
@@ -313,19 +310,19 @@ class MuScaleMainDialog(QMainWindow):
 
         # settings #
         self.stylesCombo.addItems(QStyleFactory.keys())
+#        self.optionsLayout.setAlignment(Qt.AlignCenter)
+        self.applySettings.setText('Apply')
         self.optionsGroup.hide()
 
     def initActions(self):
         # menu actions #
         quitAction = QAction('&Quit', self)
-        #        quitAction.setIcon(QIcon(RES + ICONS + QUIT))
         quitAction.triggered.connect(self.quitApplication)
         aboutAction = QAction('&About', self)
-        #        aboutAction.setIcon(QIcon(RES + ICONS + ABOUT))
         aboutAction.triggered.connect(self.showAbout)
         resetTipsAction = QAction('Reset &tips', self)
         resetTipsAction.triggered.connect(self.resetTips)
-        self.toggleSettings = QAction('Show &settings', self)
+        self.toggleSettings = QAction('Show &options', self)
         self.toggleSettings.triggered.connect(self.viewSettings)
         self.toggleSettings.setCheckable(True)
 
@@ -354,16 +351,16 @@ class MuScaleMainDialog(QMainWindow):
         self.addAction(previousStepAction)
         self.addAction(goToFirstAction)
         self.addAction(goToLastAction)
-        #        self.addAction(aboutAction)
-        #        self.addAction(quitAction)
 
         # toolbar #
         self.toggleSizeAction = QAction('Full screen', self)
+        self.toggleSizeAction.setShortcut(QKeySequence('F11'))
         self.toggleSizeAction.triggered.connect(self.fullScreen)
         self.toggleSizeAction.setCheckable(True)
         self.toggleSizeAction.setIcon(QIcon(RES + ICONS + FULL_SCREEN))
 
         self.toggleTools = QAction('Show tools', self)
+        self.toggleTools.setShortcut(QKeySequence('F10'))
         self.toggleTools.triggered.connect(self.showTools)
         self.toggleTools.setCheckable(True)
         self.toggleTools.setIcon(QIcon(RES + ICONS + TOOLS))
@@ -499,15 +496,13 @@ class MuScaleMainDialog(QMainWindow):
     def viewSettings(self):
         if self.toggleSettings.isChecked():
             self.optionsGroup.show()
-            self.toggleSettings.setText('Hide &settings')
+            self.toggleSettings.setText('Hide &options')
         else:
             self.optionsGroup.hide()
-            self.toggleSettings.setText('Show &settings')
+            self.toggleSettings.setText('Show &options')
 
     def saveSettings(self):
         QApplication.setStyle(QStyleFactory.create(self.stylesCombo.currentText()))
-#        QApplication.setPalette(QtGui.QApplication.style().standardPalette())
-#        QApplication.setPalette(self.originalPalette)
         self.update()
             
 ###################################################
@@ -518,7 +513,7 @@ class MuScaleMainDialog(QMainWindow):
         if self.openFileDialog.exec_():
             fileName = self.openFileDialog.selectedFiles()
             try:
-                if len(fileName) > 0:
+                if fileName.count() > 0:
                     if DataParser.istextfile(fileName[0]):
                         self.currentDataSet = DataParser.getTimeSeriesFromTextData(data=open(fileName[0], 'r').read())
                         self.toolsFrame.updateLog(['loading data from file:', fileName[0]])
@@ -560,7 +555,7 @@ class MuScaleMainDialog(QMainWindow):
 
             self.toolsFrame.updateLog([str(len(self.currentDataSet[0])) + ' values loaded'])
 
-            if self.autoStep: self.statTools.setCurrentIndex(int(Tabs.Decomposition))
+            if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Decomposition))
         else:
             self.parseResults.setText('Could not parse at all!')
             self.parseResults.show()
@@ -657,6 +652,7 @@ class MuScaleMainDialog(QMainWindow):
         self.updateMaxDLevel()
 
     def updateMaxDLevel(self):
+        current_max = 10
         if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
             current_max = pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1
             self.comboDecomposition.setToolTip(Tooltips['dwt'])
@@ -721,7 +717,7 @@ class MuScaleMainDialog(QMainWindow):
             else: self.toolsFrame.updateLog(['performed DWT'])
             self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' + self.wavelet.name + ' wavelet'])
 
-            if self.autoStep: self.statTools.setCurrentIndex(int(Tabs.Model))
+            if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Model))
         except Exception, e:
             self.messageInfo.showInfo(traceback.format_exc(e), True)
             self.toolsFrame.updateLog([traceback.format_exc(e)], True)
@@ -889,7 +885,7 @@ class MuScaleMainDialog(QMainWindow):
             self.statTools.setItemEnabled(int(Tabs.Results), True)
             self.toolsFrame.updateLog(['multiscale model complete'])
 
-            if self.autoStep: self.statTools.setCurrentIndex(int(Tabs.Simulation))
+            if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Simulation))
 
 ###################################################
 #-------------- model simulation -----------------#

@@ -2,31 +2,22 @@
 __author__ = 'Yadavito'
 
 # external #
-from PyQt4.QtGui import QApplication, QPixmap, QSplashScreen, QGraphicsDropShadowEffect
+from PyQt4.QtGui import QPixmap, QSplashScreen
 from PyQt4.QtCore import Qt
 
 # own #
-from utility.const import RES, ICONS, LOGO, STYLE, SPLASH, __version__, __name__
+from utility.const import RES, ICONS, SPLASH, __version__, __name__
 
 def showSplash(app):
 
     # splash pixmap
     logo = QPixmap(RES + ICONS + SPLASH)
     splash = QSplashScreen(logo, Qt.WindowStaysOnTopHint)
-#    splash.setWindowFlags(Qt.WindowStaysOnTopHint)
-
-    # shadow effect
-    #TODO: make shadow effect work!
-
-#    shadow = QGraphicsDropShadowEffect()
-    #shadow.setOffset(QPointF(3,3))
-    #shadow.setBlurRadius(8)
-#    splash.setGraphicsEffect(shadow)
+    splash.setWindowFlags(Qt.WindowStaysOnTopHint)
 
     # alpha mask
     splash.show()
     splash.setMask(logo.mask())
-#    splash.setGraphicsEffect(shadow)
 
     # status message
     labelAlignment = Qt.Alignment(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute)

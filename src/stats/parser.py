@@ -6,7 +6,7 @@ Created on Mar 9, 2011
 '''
 
 # internal #
-import string, sys
+import string
 
 # own #
 from utility.log import log
@@ -30,7 +30,6 @@ class DataParser():
 
         t = s.translate(DataParser._null_trans, DataParser.text_characters)
 
-#        if len(t)/len(s) > 0.30:
         if float(len(t))/len(s) > 0.30:
             return False
         return True
@@ -63,8 +62,8 @@ class DataParser():
                 elif isinstance(element, str):
                  try:
                     series.append(float(element.strip()))
-                 except:
+                 except Exception, e:
                     parseErrors += 1
-                    log.debug('skipped value')
+                    log.exception(e)
                     
-        return (series, parseErrors)
+        return series, parseErrors

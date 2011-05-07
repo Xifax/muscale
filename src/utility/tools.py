@@ -10,12 +10,16 @@ from utility.const import LR_PRNTH_MAPPINGS, L_PRNTH, R_PRNTH
 
 class RepeatTimer(Thread):
     '''Timer with custom number of iterations'''
-    def __init__(self, interval, function, iterations=0, args=[], kwargs={}):
+    def __init__(self, interval, function, iterations=0, args=None, kwargs=None):
         Thread.__init__(self)
         self.interval = interval
         self.function = function
         self.iterations = iterations
+        if args is None:
+            args = []
         self.args = args
+        if kwargs is None:
+            kwargs = {}
         self.kwargs = kwargs
         self.finished = Event()
 

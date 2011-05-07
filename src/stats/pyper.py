@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-         PypeR (PYthon-piPE-R)
+		 PypeR (PYthon-piPE-R)
 
 This package provides a light-weight interface to use R in Python by pipe.  It
 can be used on multiple platforms since it is written in pure python. 
@@ -17,7 +17,7 @@ Usage:
 	class is used to manage an R process. Different instances can use different
 	R installations. On POSIX systems (including the Cygwin environment on
 	Windows), it is even possible to use an R installed on a remote computer. 
-	
+
 	Basicly, there are four ways to use an instance of the R class.
 
 	1. Use the methods of the instance
@@ -47,7 +47,7 @@ Usage:
 		instance will try to get/set/remove it in R. This way is similar to 3,
 		but with more limitations, e.g., the R variable name cannot contain any
 		DOT (.) 
-	
+
 	Considering that any code block in R is an expression, the "get" method (or
 	the form of retrieving values from a dictionary) can be used to run a
 	number of R commands with the final result returned. 
@@ -55,7 +55,7 @@ Usage:
 	Note that PypeR do NOT validate/convert a variable name when pass it to R.
 	If a variable name with a leading underscore ("_"), although it legal in
 	python, is passed to R, an RError will be raised.
-	
+
 
 DEBUG model:
 	Since the child process (R) can be easily killed by any ocassional error in
@@ -484,13 +484,15 @@ class R: # (object):
 			os.unlink(fn)
 		return rlt
 
-	def __call__(self, CMDS=[], use_try=None):
+	def __call__(self, CMDS=None, use_try=None):
 		'''
 		Run a (list of) R command(s), and return the output message from the STDOUT of R.
 
 		CMDS: an R command string or a list of R commands
 		'''
 		rlt = []
+		if CMDS is None:
+			CMDS = []
 		if isinstance(CMDS, basestring): # a single command
 			rlt.append(self.__runOnce(CMDS, use_try=use_try))
 		else: # should be a list of commands
@@ -627,5 +629,5 @@ def runR(CMDS, Robj='R', max_len=1000, use_numpy=True, use_dict=None, host='loca
 	rlt = Robj.run(CMDS=CMDS)
 	if len(rlt) == 1: rlt = rlt[0]
 	return rlt
-	
+
 

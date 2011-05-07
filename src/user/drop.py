@@ -5,7 +5,6 @@ __author__ = 'Yadavito'
 import os
 from datetime import datetime
 from getpass import getpass
-#import pytz
 
 # external #
 from simpledropbox import SimpleDropbox, SdFile
@@ -40,7 +39,7 @@ def update():
             datetime.fromtimestamp( os.path.getmtime(local_path + file_name) ),
         )
     else:
-        if len(files) == 0: print '\nNo files to update from!'
+        if not files: print '\nNo files to update from!'
         for file in files:
             if os.path.basename(file_name) == os.path.basename(file.path):
                 # downloading
@@ -55,53 +54,6 @@ def update():
                     datetime.fromtimestamp( os.path.getmtime(local_path + file_name)),
                 )
     raw_input('\nAny key to proceed.')
-
-#    est = pytz.timezone(tz)
-
-#   if len(files) == 0:
-#       pass
-#   else:
-#       for file in files:
-#           if file_name.split('/')[-1:] == file.path.split('\\')[-1:]:
-#               sdf = sdb.stat(file)
-#               local_mod = toUTCc( datetime.fromtimestamp( os.path.getmtime(local_path + file_name) ), est )
-#
-#               if sdf.modified > local_mod:
-#                   print '(remote) %s (%d): %s\t>>>\t\t(local) %s (%d): %s' % (
-#                   # remote
-#                   os.path.basename(sdf.path),
-#                   sdf.size,
-#                   sdf.modified.astimezone(est).strftime('%Y-%m-%d %H:%M:%S'),
-#                   # local
-#                   os.path.basename(file_name),
-#                   os.path.getsize(local_path + file_name),
-#                   datetime.fromtimestamp( os.path.getmtime(local_path + file_name) )
-#                   )
-#
-#                   # downloading
-#                   inf, data = sdb.get(file)
-#                   output = open(local_path + file_name, 'wb')
-#                   output.write(data)
-#                   output.close()
-#               else:
-#                   print '(remote) %s (%d): %s\t<<<\t\t(local) %s (%d): %s' % (
-#                   # remote
-#                   os.path.basename(sdf.path),
-#                   sdf.size,
-#                   sdf.modified.astimezone(est).strftime('%Y-%m-%d %H:%M:%S'),
-#                   # local
-#                   os.path.basename(file_name),
-#                   os.path.getsize(local_path + file_name),
-#                   datetime.fromtimestamp( os.path.getmtime(local_path + file_name) )
-#                   )
-#
-#                   # uploading
-#                   output = open(local_path + file_name, 'rb')
-#                   sdb.put(remote_path + file_name, output)      #NB: use of ./ results in 404 error
-#                   output.close()
-
-#def toUTCc(date, tz):
-#    return tz.normalize(tz.localize(date)).astimezone(pytz.utc)
 
 if __name__ == '__main__':
     try:
