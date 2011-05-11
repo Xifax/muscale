@@ -5,6 +5,9 @@ Created on Mar 10, 2011
 @author: Yadavito
 '''
 
+# own #
+from utility.const import RES, ICONS, TOOLBAR_ICONS
+
 # external #
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QObject, QEvent
@@ -59,6 +62,7 @@ class MplWidget(QtGui.QWidget):
         if toolbar:
             # add navigation toolbar to layout
             self.toolbar = NavigationToolbar(self.canvas, self)
+            self.toolbar.layout()
 #            self.toolbar.setStyleSheet('QWidget { border-style: outset;  border-width: 2px; border-color: beige; }')
 #            self.toolbar.setStyleSheet('QWidget {  border: 1px solid black; border-radius: 4px; }')
             self.layout.addWidget(self.toolbar)
@@ -78,25 +82,49 @@ class MplWidget(QtGui.QWidget):
             self.setContextMenuPolicy(Qt.ActionsContextMenu)
             self.initActions()
 
+    #-------------- initialization ---------------#
     def initComponents(self):
         self.toolbar.hide()
+        self.newIcons()
 
     def initActions(self):
         #TODO: add 'plot to Tools'
 #        self.addAction(QtGui.QAction('Hide', self, triggered=self.hide))
         pass
 
+    def newIcons(self):
+        for position in range(0, self.toolbar.layout().count()):
+            widget = self.toolbar.layout().itemAt(position).widget()
+            if isinstance(widget, QtGui.QToolButton):
+                self.toolbar.layout().itemAt(position).widget().setIcon(QtGui.QIcon(RES + ICONS + TOOLBAR_ICONS[position]))
+
+    def resetGraphicEffect(self):
+        if self.graphicsEffect() is not None:
+            self.graphicsEffect().setEnabled(False)
+
+    #------------- plotting methods ---------------#
+
+    ## Hides axes in widget.
+    #  @param axes Widget axes form canvas.
     @staticmethod
     def hideAxes(axes):
         axes.get_xaxis().set_visible(False)
         axes.get_yaxis().set_visible(False)
 
+    ## Clears widget canvas, removing all data and clearing figure.
+    #  @param repaint_axes Add standard plot after clearing figure.
     def clearCanvas(self, repaint_axes=True):
         self.canvas.ax.clear()
         self.canvas.fig.clear()
         if repaint_axes: self.canvas.ax = self.canvas.fig.add_subplot(111)
 
+    ## Plots scalogram for wavelet decomposition.
+    #  @param data Wavelet coefficients in matrix.
+    #  @param top Axis position.
+    #  @param colorbar Shows colorbar for data levels.
+    #  @param power Scales resulting graph by power of 2.
     def scalogram(self, data, top=True, colorbar=True, power=False):
+#        self.resetGraphicEffect()
         self.clearCanvas()
 
         x = np.arange(len(data[0]))
@@ -115,7 +143,10 @@ class MplWidget(QtGui.QWidget):
         
         self.canvas.draw()
 
+    ## Plots list of arrays with shared x/y axes.
+    #  @param data Arrays to plot (list or matrix).
     def multiline(self, data):
+#        self.resetGraphicEffect()
         # abscissa
         axprops = dict(yticks=[])
         # ordinate

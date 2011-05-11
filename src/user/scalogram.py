@@ -4,6 +4,7 @@ __author__ = 'Yadavito'
 
 # external #
 #import matplotlib.pyplot as plt
+#import matplotlib.mlab as mlab
 #import numpy as np
 #import pywt
 #
@@ -100,3 +101,10 @@ __author__ = 'Yadavito'
 #if __name__ == '__main__':
 #    main()
 ##    wv()
+#data = np.array([5,6,8,8,11,6,4,4,2,6,7,9,4,8,10,8,4,14,5,5,2,2,7,3,7,5,5,7,9,5,3,6,5,5,7])
+#
+#plt.specgram(data, NFFT=256, Fs=2, Fc=0, detrend=mlab.detrend_none,
+#         window=mlab.window_hanning, noverlap=128,
+#         cmap=None, xextent=None, pad_to=None, sides='default',
+#         scale_by_freq=None)
+#plt.show()

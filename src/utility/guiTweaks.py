@@ -5,6 +5,10 @@ Created on Mar 18, 2011
 @author: Yadavito
 '''
 
+# own #
+from gui.graphWidget import MplWidget
+
+# external #
 from PyQt4.QtCore import QRect, QSize, QPointF
 from PyQt4.QtGui import QRegion, QFrame, QGraphicsDropShadowEffect
 

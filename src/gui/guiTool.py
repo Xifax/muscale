@@ -10,7 +10,6 @@ import time
 # external #
 from PyQt4.QtCore import Qt, QObject,QEvent, QTimer
 from PyQt4.QtGui import *
-
 from pyqtgraph.PlotWidget import PlotWidget
 #from pyqtgraph.graphicsItems import *
 

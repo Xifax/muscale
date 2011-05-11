@@ -35,6 +35,7 @@ def apply_threshold(output, scaler=1., input=None):
         else: thresh = scaler*input[j]
         cD = pywt.thresholding.hard(cD, thresh)
         output[j] = (cA, cD)
+
 def measure_threshold(output, scaler=1.):
     """
         output
@@ -53,6 +54,10 @@ def measure_threshold(output, scaler=1.):
         measure.append(thresh)
     return measure 
 
+## Inverse Stationary Wavelet Transform.
+#  @param coefficients Wavelet coefficients in tuples arrangement.
+#  @param wavelet Wavelet used in initial SWT.
+#  @return Reconstructed data.
 def iswt(coefficients, wavelet):
     """
       Input parameters:
@@ -106,6 +111,9 @@ def iswt(coefficients, wavelet):
 
     return output
 
+## Rearranges coefficients resulting from SWT for optimal use.
+#  @param coeffs SWT coefficients as list of (Aa, Ab), ... tuples.
+#  @return Selected coefficients in matrix.
 def select_levels_from_swt(coeffs):
     '''Selects appropriate levels from resulting WT coeff tree
         For SWT in pyWavelets:
@@ -139,6 +147,10 @@ def select_levels_from_swt(coeffs):
 
     return rearranged
 
+## Reconstructs coefficients list based on initial and updated data.
+#  @param inital_coeffs Data right after SWT.
+#  @param selected_coeffs Updated data in matrix.
+#  @retun All coefficients in list of tuples.
 def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     '''Restores tree structure for further ISWT'''
     # resulting max dimension
@@ -171,6 +183,9 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
         element += 2
     return all_of_coeffs
 
+## Copies list of arrays reshaping it to maximum possible dimension.
+#  @param coeffs Values in list of arrays.
+#  @return Copy of initial values in matrix.
 def copy_non_uniform_shape(coeffs):
     '''Copy array resizing to uniform shape'''
     dimension = max(len(a) for a in coeffs if not isinstance(a, int))
@@ -181,6 +196,9 @@ def copy_non_uniform_shape(coeffs):
         new_coeffs[i] = new_element; i += 1
     return copy(new_coeffs)
 
+## Rearranges list of DWT coefficients into matrix.
+#  @param coeffs DWT coefficients in list of arrays.
+#  @return Matrix of DWT coefficients (reshaped with zeroes fill).
 def normalize_dwt_dimensions(coeffs):
     '''Resize to uniform shape'''
     new_dimension = len(coeffs[-1])
@@ -191,6 +209,8 @@ def normalize_dwt_dimensions(coeffs):
         by_rows[i] = new_element; i += 1
     return copy(by_rows)
 
+## Saves wavelet approximations to /res/wv folder.
+#  @param all Plot every possible wavelet.
 def _plot_wavelet_families(all=False):
     '''Plotting waveletes approximations'''
     lvl = 4 # because!
@@ -201,7 +221,11 @@ def _plot_wavelet_families(all=False):
             for wv in pywt.wavelist(name):
                 _plot_wavelet(wv, lvl, True)
 
-def _plot_wavelet(wavelet, level, all=False):
+## Plots and saves one wavelet approximation.
+#  @param wavelet Wavelet to plot.
+#  @param level Approximation level.
+#  @param all Use of full wavelet name (instead of just family).
+def _plot_wavelet(wavelet, level=4, all=False):
     '''Plot and save wavelet to specified folder'''
     try:
         # [phi, psi, x] (not for every wavelet, hence the 'values')

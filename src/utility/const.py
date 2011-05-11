@@ -63,6 +63,12 @@ LAYERS = 'layers.png'
 ANALYSIS = 'forecast.png'
 FIN = 'fin.png'
 
+# toolbar icons #
+TOOLBAR_ICONS = ['home.png', 'back.png', 'forward.png', '',
+                 'pan.png', 'zoom.png', '',
+                 'sub.png', 'edit.png', 'save.png']
+#TOOLBAR_ICONS_DICT = zip(enumerate(TOOLBAR_ICONS), TOOLBAR_ICONS)
+
 ICO_SIZE = 32
 #---------- styles ---------#
 STYLE = 'plastique'
