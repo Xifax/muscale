@@ -50,3 +50,6 @@ def checkParentheses(string):
 
 '''Name 'parser' for enum model objects'''
 prettifyNames = lambda list: [item.replace('_', ' ') for item in list]
+
+'''Dictionary reverse search'''
+reverseSearch = lambda dic, value : [k for k, lst in dic.iteritems() if value in lst]

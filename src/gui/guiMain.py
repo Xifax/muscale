@@ -32,11 +32,11 @@ from utility.const import __name__,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
-    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips,\
-    SHADOWS #temporarily
+    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips
 from utility.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
 from utility.tools import prettifyNames
+from utility.config import Config
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
 from gui.guiInfo import InfoFrame
@@ -56,6 +56,9 @@ class MuScaleMainDialog(QMainWindow):
         super(MuScaleMainDialog, self).__init__(parent)
 
         ### components ###
+
+        # options #
+        self.config = Config()
 
         # timer #
         start = datetime.now()
@@ -104,9 +107,8 @@ class MuScaleMainDialog(QMainWindow):
         self.showWavelist = QPushButton('Show wavelist')
         self.showScalogram = QPushButton('Show scalogram')
         self.decompInfoLabel = QLabel(u'')
-        #TODO: add option (toolbar control)
-        self.wavelistGraph = MplWidget()
-        self.scalogramGraph = MplWidget()
+        self.wavelistGraph = MplWidget(toolbar=self.config.getParams(toolbar=True)['toolbar'].toBool())
+        self.scalogramGraph = MplWidget(toolbar=self.config.getParams(toolbar=True)['toolbar'].toBool())
 
         self.decompLayout.addWidget(self.comboWavelet, 0, 0)
         self.decompLayout.addWidget(self.comboWavelist, 0, 1)
@@ -150,8 +152,8 @@ class MuScaleMainDialog(QMainWindow):
         # options #
         self.optionsGroup = QGroupBox('Settings')
         self.stylesCombo = QComboBox()
-        self.checkShadows = QCheckBox('Enable shadows')
-        self.fixMaxLevel = QCheckBox('Lock max decomposition level')
+        self.toggleShadows = QCheckBox('Enable shadows')
+        self.lockMaxLevel = QCheckBox('Lock max decomposition level')
         self.autoStep = QCheckBox('Auto next step')
         self.enableToolbar = QCheckBox('Show graph controls on hover')
         self.plotMultiline = QCheckBox('Plot wavelist as multiline graph')
@@ -161,10 +163,10 @@ class MuScaleMainDialog(QMainWindow):
 
         self.optionsLayout = QGridLayout()
         self.optionsLayout.addWidget(self.stylesCombo, 0, 0)
-        self.optionsLayout.addWidget(self.checkShadows, 0, 1)
+        self.optionsLayout.addWidget(self.toggleShadows, 0, 1)
         self.optionsLayout.addWidget(self.applySettings, 0, 2)
         self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 3)
-        self.optionsLayout.addWidget(self.fixMaxLevel, 2, 0)
+        self.optionsLayout.addWidget(self.lockMaxLevel, 2, 0)
         self.optionsLayout.addWidget(self.autoStep, 2, 1)
         self.optionsLayout.addWidget(self.enableToolbar, 2, 2)
         self.optionsLayout.addWidget(self.autoBaseSWT, 3, 0)
@@ -212,6 +214,8 @@ class MuScaleMainDialog(QMainWindow):
         self.initComposition()
         self.initComponents()
         self.initActions()
+        self.loadConfig()
+        self.customEffects()
 
         # computational modules #
         self.trayIcon.show()
@@ -310,12 +314,6 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemIcon(int(Tabs.Model), QIcon(RES + ICONS + LAYERS))
         self.statTools.setItemIcon(int(Tabs.Simulation), QIcon(RES + ICONS + ANALYSIS))
         self.statTools.setItemIcon(int(Tabs.Results), QIcon(RES + ICONS + FIN))
-
-        # effects #
-        if SHADOWS:
-            walkNonGridLayoutShadow(self.loadDataLayout)
-            walkGridLayoutShadow(self.decompLayout)
-            walkGridLayoutShadow(self.reconsLayout)
 
         # settings #
         self.stylesCombo.addItems(QStyleFactory.keys())
@@ -435,6 +433,37 @@ class MuScaleMainDialog(QMainWindow):
 
         # level
         self.spinLevels.setToolTip(Tooltips['max_level'])
+
+    def loadConfig(self):
+        step, shadows, style, r, basic, lock, toolbar, multiline = self.config.loadConfig()
+        self.toggleShadows.setChecked(shadows.toBool())
+        self.stylesCombo.setCurrentIndex(style.toInt()[0])
+        self.lockMaxLevel.setChecked(lock.toBool())
+        self.autoStep.setChecked(step.toBool())
+        self.plotMultiline.setChecked(multiline.toBool())
+        self.enableToolbar.setChecked(toolbar.toBool())
+        self.autoUpdateTools.setChecked(r.toBool())
+        self.autoBaseSWT.setChecked(basic.toBool())
+
+        self.saveSettings()
+
+    def saveConfig(self):
+        self.config.updateConfig(
+            step=self.autoStep.isChecked(),
+            shadows=self.toggleShadows.isChecked(),
+            basic=self.autoBaseSWT.isChecked(),
+            lock=self.lockMaxLevel.isChecked(),
+            multiline=self.plotMultiline.isChecked(),
+            r=self.autoUpdateTools.isChecked(),
+            style=self.stylesCombo.currentIndex(),
+            toolbar=self.enableToolbar.isChecked(),
+        )
+
+    def customEffects(self):
+        if self.toggleShadows.isChecked():
+            walkNonGridLayoutShadow(self.loadDataLayout)
+            walkGridLayoutShadow(self.decompLayout)
+            walkGridLayoutShadow(self.reconsLayout)
 
 #------------------- actions ------------------# #--------------- * * * ---------------#
     def fullScreen(self):
@@ -669,7 +698,7 @@ class MuScaleMainDialog(QMainWindow):
             current_max = pywt.swt_max_level(len(self.currentDataSet[0])) + 1
             self.comboDecomposition.setToolTip(Tooltips['swt'])
 
-        if self.fixMaxLevel.isChecked(): self.spinLevels.setMaximum(current_max)
+        if self.lockMaxLevel.isChecked(): self.spinLevels.setMaximum(current_max)
         self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' <b>' + str(current_max) + '</b>')
         self.spinLevels.setValue(current_max/2 + 1)
 
@@ -857,7 +886,7 @@ class MuScaleMainDialog(QMainWindow):
         self.modelLayout.addWidget(resetModel, i, 0, 1, 3); i += 1
         self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 3)
 
-        if SHADOWS:
+        if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(buttonsLayout)
             walkGridLayoutShadow(self.modelLayout)
 
@@ -991,7 +1020,7 @@ class MuScaleMainDialog(QMainWindow):
         self.implementLayout.addLayout(modelsListLayout, 0, 0)
         self.implementLayout.addWidget(modelsStack, 1, 0)
 
-        if SHADOWS:
+        if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(modelsListLayout)
 
     def updateResultingTS(self):
@@ -1063,6 +1092,9 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
                           'Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
                           '\nQtCore:\t' + PYQT_VERSION_STR +
                           '\nPlatform:\t' + platform.system())
+
+    def closeEvent(self, event):
+        self.saveConfig()
 
 #####################################################
 #---------------------- tests ----------------------#

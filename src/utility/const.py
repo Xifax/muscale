@@ -67,15 +67,13 @@ FIN = 'fin.png'
 TOOLBAR_ICONS = ['home.png', 'back.png', 'forward.png', '',
                  'pan.png', 'zoom.png', '',
                  'sub.png', 'edit.png', 'save.png']
-#TOOLBAR_ICONS_DICT = zip(enumerate(TOOLBAR_ICONS), TOOLBAR_ICONS)
-
 ICO_SIZE = 32
 #---------- styles ---------#
 STYLE = 'plastique'
 SPLASH = 'mu_logo.png'
 
 #---------- parser ---------#
-LR_PRNTH_MAPPINGS = { "(":")", "[":"]", "{":"}" }
+LR_PRNTH_MAPPINGS = { "(":")", "[":"]", "{":"}"}
 
 L_PRNTH = set(LR_PRNTH_MAPPINGS.iterkeys())
 R_PRNTH = set(LR_PRNTH_MAPPINGS.itervalues())
@@ -93,25 +91,25 @@ LABEL_VISIBLE = 3000
 def infoContens(index):
     try:
         return { 
-                    0  : { 'title': u'Исходные данные', 'info': u'Ввод одномерного временного ряда из файла или вручную: \
+                    0: {'title': u'Исходные данные', 'info': u'Ввод одномерного временного ряда из файла или вручную: \
 в дальнейшем желательно реализовать шаблон считывания и возможность одновременной работы с несколькими временными рядами.'},
-                    1  : { 'title': u'Декомпозиция', 'info': u'Стационарное/дискретное вейвлет-разложение на определённое число составляющих: \
+                    1: {'title': u'Декомпозиция', 'info': u'Стационарное/дискретное вейвлет-разложение на определённое число составляющих: \
 дискретное разложение предполагает существенную редукцию исходных данных; стационарное обеспечивает временную инвариантность получаемых компонент.'},
-                    2  : { 'title': u'Формирование модели', 'info': u'Выбор прогностических моделей в зависимости от уровня представления. \
+                    2: {'title': u'Формирование модели', 'info': u'Выбор прогностических моделей в зависимости от уровня представления. \
 Предполагается использование гармонической регрессии для компонент с ярко выраженной периодичностью, модели Хольта-Винтерса — для выявления общего тренда.'},
-                    3  : { 'title': u'Настройка и симуляция', 'info' : u'Задание параметров результирующей модели и формирование прогноза для каждой из компонент \
+                    3: {'title': u'Настройка и симуляция', 'info' : u'Задание параметров результирующей модели и формирование прогноза для каждой из компонент \
 с последующим обратным вейвлет-преобразованием и формированием конечного прогноза.'},
-                    4  : { 'title': u'Конечная модель и прогноз', 'info': u'Композиция результирующего временного ряда на основе преобразованных уровней \
+                    4: {'title': u'Конечная модель и прогноз', 'info': u'Композиция результирующего временного ряда на основе преобразованных уровней \
 вейвлет-разложения.'}
                 }[index]
     except KeyError:
         return {'title': '...', 'info': '...'}
 
-infoTipsDict = { 0 : { 'tip': u'To begin time series modelling, you should first load some data', 'seen': False },
-                 1 : { 'tip': u'Perform time series decomposition using wavelet transformation', 'seen': False },
-                 2 : { 'tip': u'Choose model depending on level configuration', 'seen': False },
-                 3 : { 'tip': u'Simulate forecast on multiple levels', 'seen': False },
-                 4 : { 'tip': u'Reconstruct time series based on processed multiscale levels', 'seen': False },
+infoTipsDict = { 0: {'tip': u'To begin time series modelling, you should first load some data', 'seen': False},
+                 1: {'tip': u'Perform time series decomposition using wavelet transformation', 'seen': False},
+                 2: {'tip': u'Choose model depending on level configuration', 'seen': False},
+                 3: {'tip': u'Simulate forecast on multiple levels', 'seen': False },
+                 4: {'tip': u'Reconstruct time series based on processed multiscale levels', 'seen': False},
                 }
 
 def infoTips(index):
@@ -122,7 +120,7 @@ def infoTips(index):
     except KeyError:
         return None
 
-infoWavelets = { 'haar': u'Haar (step function)',
+infoWavelets = {'haar': u'Haar (step function)',
                  'db': u'Daubechies (compactly supported orthonormal)',
                  'sym': u'Symlets (nearly symmetrical db)',
                  'coif': u'Coiflets (symmetrical)', # <---
@@ -169,4 +167,23 @@ downloadable_packages = {'PyQt4' : URL_PYQT, 'matplotlib' : URL_MATPLOTLIB,
                          'numpy' : URL_NUMPY, 'scipy' : URL_SCIPY}
 
 #----- here be options -----#
-SHADOWS = True  # temporary
+# sections
+s_gui = 'gui/'
+s_graph = 'graph/'
+s_model = 'model/'
+
+# values
+auto_step = 'step'
+shadows = 'shadows'
+show_toolbar = 'toolbar'
+plot_multiline = 'multiline'
+basic_swt = 'basic'
+lock_max = 'lock'
+data_r = 'r'
+style = 'style'
+
+# dictionary
+CONFIG_DICT = {s_gui: [auto_step, shadows, style],
+               s_graph: [show_toolbar, plot_multiline],
+               s_model: [data_r, basic_swt, lock_max],
+            }
