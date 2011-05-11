@@ -152,6 +152,8 @@ class MuScaleMainDialog(QMainWindow):
         self.checkShadows = QCheckBox('Enable shadows')
         self.fixMaxLevel = QCheckBox('Lock max decomposition level')
         self.autoStep = QCheckBox('Auto next step')
+        self.enableToolbar = QCheckBox('Show graph controls on hover')
+        self.autoBaseSWT = QCheckBox("Automatically process 'basic' SWT levels")
         self.applySettings = QToolButton()
 
         self.optionsLayout = QGridLayout()
@@ -161,6 +163,8 @@ class MuScaleMainDialog(QMainWindow):
         self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 3)
         self.optionsLayout.addWidget(self.fixMaxLevel, 2, 0)
         self.optionsLayout.addWidget(self.autoStep, 2, 1)
+        self.optionsLayout.addWidget(self.enableToolbar, 2, 2)
+        self.optionsLayout.addWidget(self.autoBaseSWT, 3, 0)
         self.optionsGroup.setLayout(self.optionsLayout)
 
         # menus, toolbars, layouts & composition #

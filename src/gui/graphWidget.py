@@ -7,9 +7,26 @@ Created on Mar 10, 2011
 
 # external #
 from PyQt4 import QtGui
+from PyQt4.QtCore import Qt, QObject, QEvent
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 import numpy as np
+
+class Filter(QObject):
+    """Status message mouse click filter"""
+    def eventFilter(self, object, event):
+
+        if event.type() == QEvent.HoverEnter:
+            object.toolbar.show()
+
+        if event.type() == QEvent.HoverLeave:
+            object.toolbar.hide()
+
+        if event.type() == QEvent.MouseButtonPress:
+            pass
+
+        return False
 
 class MplCanvas(FigureCanvas):
     """Class to represent the FigureCanvas widget"""
@@ -28,17 +45,33 @@ class MplCanvas(FigureCanvas):
         
 class MplWidget(QtGui.QWidget):
     """Widget defined in Qt Designer"""
-    def __init__(self, parent = None):
+    def __init__(self, toolbar=True, parent=None):
         # initialization of Qt MainWindow widget
         QtGui.QWidget.__init__(self, parent)
         # set the canvas to the Matplotlib widget
         self.canvas = MplCanvas()
         # create a vertical box layout
-        self.vbl = QtGui.QVBoxLayout()
-        # add mpl widget to vertical box
-        self.vbl.addWidget(self.canvas)
+        self.layout = QtGui.QVBoxLayout()
+        # add mpl widget to layout
+        self.layout.addWidget(self.canvas)
+
+        if toolbar:
+            # add navigation toolbar to layout
+            self.toolbar = NavigationToolbar(self.canvas, self)
+            self.layout.addWidget(self.toolbar)
+            # enable hover event handling
+            self.setAttribute(Qt.WA_Hover)
+            # create and install event filter
+            self.filter = Filter(self)
+            self.installEventFilter(self.filter)
+            # hide toolbar
+            self.initComponents()
+
         # set the layout to th vertical box
-        self.setLayout(self.vbl)
+        self.setLayout(self.layout)
+
+    def initComponents(self):
+        self.toolbar.hide()
 
     @staticmethod
     def hideAxes(axes):
