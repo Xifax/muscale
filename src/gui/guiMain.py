@@ -104,6 +104,7 @@ class MuScaleMainDialog(QMainWindow):
         self.showWavelist = QPushButton('Show wavelist')
         self.showScalogram = QPushButton('Show scalogram')
         self.decompInfoLabel = QLabel(u'')
+        #TODO: add option (toolbar control)
         self.wavelistGraph = MplWidget()
         self.scalogramGraph = MplWidget()
 
@@ -153,7 +154,9 @@ class MuScaleMainDialog(QMainWindow):
         self.fixMaxLevel = QCheckBox('Lock max decomposition level')
         self.autoStep = QCheckBox('Auto next step')
         self.enableToolbar = QCheckBox('Show graph controls on hover')
+        self.plotMultiline = QCheckBox('Plot wavelist as multiline graph')
         self.autoBaseSWT = QCheckBox("Automatically process 'basic' SWT levels")
+        self.autoUpdateTools = QCheckBox('Add all temporary data to R workspace')
         self.applySettings = QToolButton()
 
         self.optionsLayout = QGridLayout()
@@ -165,6 +168,8 @@ class MuScaleMainDialog(QMainWindow):
         self.optionsLayout.addWidget(self.autoStep, 2, 1)
         self.optionsLayout.addWidget(self.enableToolbar, 2, 2)
         self.optionsLayout.addWidget(self.autoBaseSWT, 3, 0)
+        self.optionsLayout.addWidget(self.autoUpdateTools, 3, 1)
+        self.optionsLayout.addWidget(self.plotMultiline, 3, 2)
         self.optionsGroup.setLayout(self.optionsLayout)
 
         # menus, toolbars, layouts & composition #
@@ -315,7 +320,7 @@ class MuScaleMainDialog(QMainWindow):
         # settings #
         self.stylesCombo.addItems(QStyleFactory.keys())
 #        self.optionsLayout.setAlignment(Qt.AlignCenter)
-        self.applySettings.setText('Apply')
+        self.applySettings.setText('Apply visual style')
         self.optionsGroup.hide()
 
     def initActions(self):
@@ -687,11 +692,13 @@ class MuScaleMainDialog(QMainWindow):
 
             # resulting wavelist
             self.wavelistGraph.clearCanvas(repaint_axes=False)
-            rows = len(self.wCoefficients);  i = 0
-            for coeff in self.wCoefficients:
-                 ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1); i += 1
-                 ax.plot(coeff)
-                 MplWidget.hideAxes(ax)
+            if not self.plotMultiline.isChecked():
+                rows = len(self.wCoefficients);  i = 0
+                for coeff in self.wCoefficients:
+                     ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1); i += 1
+                     ax.plot(coeff)
+                     MplWidget.hideAxes(ax)
+            else: self.wavelistGraph.multiline(self.wCoefficients)
                 
             self.wavelistGraph.show()
             self.showWavelist.setChecked(True)

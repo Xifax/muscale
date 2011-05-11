@@ -11,6 +11,7 @@ from PyQt4.QtCore import Qt, QObject, QEvent
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
+from matplotlib.pyplot import setp
 import numpy as np
 
 class Filter(QObject):
@@ -45,7 +46,7 @@ class MplCanvas(FigureCanvas):
         
 class MplWidget(QtGui.QWidget):
     """Widget defined in Qt Designer"""
-    def __init__(self, toolbar=True, parent=None):
+    def __init__(self, toolbar=True, menu=True, parent=None):
         # initialization of Qt MainWindow widget
         QtGui.QWidget.__init__(self, parent)
         # set the canvas to the Matplotlib widget
@@ -58,6 +59,8 @@ class MplWidget(QtGui.QWidget):
         if toolbar:
             # add navigation toolbar to layout
             self.toolbar = NavigationToolbar(self.canvas, self)
+#            self.toolbar.setStyleSheet('QWidget { border-style: outset;  border-width: 2px; border-color: beige; }')
+#            self.toolbar.setStyleSheet('QWidget {  border: 1px solid black; border-radius: 4px; }')
             self.layout.addWidget(self.toolbar)
             # enable hover event handling
             self.setAttribute(Qt.WA_Hover)
@@ -70,8 +73,18 @@ class MplWidget(QtGui.QWidget):
         # set the layout to th vertical box
         self.setLayout(self.layout)
 
+        if menu:
+            # setup context menu
+            self.setContextMenuPolicy(Qt.ActionsContextMenu)
+            self.initActions()
+
     def initComponents(self):
         self.toolbar.hide()
+
+    def initActions(self):
+        #TODO: add 'plot to Tools'
+#        self.addAction(QtGui.QAction('Hide', self, triggered=self.hide))
+        pass
 
     @staticmethod
     def hideAxes(axes):
@@ -101,3 +114,46 @@ class MplWidget(QtGui.QWidget):
 #        self.canvas.ax.set_ylabel('scales')
         
         self.canvas.draw()
+
+    def multiline(self, data):
+        # abscissa
+        axprops = dict(yticks=[])
+        # ordinate
+        yprops = dict(rotation=0,
+              horizontalalignment='right',
+              verticalalignment='center',
+              x=-0.01)
+
+        # level/figure ratio
+        ratio = 1./len(data)
+
+        # positioning (fractions of total figure)
+        left = 0.1
+        bottom = 1.0
+        width = 0.85
+        space = 0.035
+        height = ratio - space
+
+        # legend
+        label = 'Lvl %d'
+        i = 0
+
+        bottom -= height
+        ax = self.canvas.fig.add_axes([left, bottom - space, width, height], **axprops)
+
+        ax.plot(data[i])
+        setp(ax.get_xticklabels(), visible=False)
+        ax.set_ylabel(label % i , **yprops)
+        i += 1
+
+        axprops['sharex'] = ax
+        axprops['sharey'] = ax
+
+        while i < len(data):
+            bottom -= height
+            ax = self.canvas.fig.add_axes([left, bottom, width, height], **axprops)
+            ax.plot(data[i])
+            ax.set_ylabel(label % i , **yprops)
+            i += 1
+            if i != len(data):
+                setp(ax.get_xticklabels(), visible=False)
