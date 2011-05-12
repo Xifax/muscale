@@ -9,7 +9,7 @@ from flufl.enum import make_enum
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -181,9 +181,12 @@ basic_swt = 'basic'
 lock_max = 'lock'
 data_r = 'r'
 style = 'style'
+tray = 'tray'
+trace = 'trace'
+folder = 'folder'
 
 # dictionary
-CONFIG_DICT = {s_gui: [auto_step, shadows, style],
+CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder],
                s_graph: [show_toolbar, plot_multiline],
                s_model: [data_r, basic_swt, lock_max],
             }

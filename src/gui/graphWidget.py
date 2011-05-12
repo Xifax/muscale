@@ -63,6 +63,7 @@ class MplWidget(QtGui.QWidget):
             # add navigation toolbar to layout
             self.toolbar = NavigationToolbar(self.canvas, self)
             self.toolbar.layout()
+            #TODO: add button to show/hide legend
 #            self.toolbar.setStyleSheet('QWidget { border-style: outset;  border-width: 2px; border-color: beige; }')
 #            self.toolbar.setStyleSheet('QWidget {  border: 1px solid black; border-radius: 4px; }')
             self.layout.addWidget(self.toolbar)
@@ -89,6 +90,8 @@ class MplWidget(QtGui.QWidget):
 
     def initActions(self):
         #TODO: add 'plot to Tools'
+        #TODO: add copy data
+        #TODO: add something else!
 #        self.addAction(QtGui.QAction('Hide', self, triggered=self.hide))
         pass
 

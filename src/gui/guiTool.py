@@ -345,12 +345,12 @@ class ToolsFrame(QWidget):
 
     def showEvent(self, event):
         if not self.shownHoverInfo:
-            self.hoverArea.setText(u'mouse over here')
+            self.hoverArea.setText(u'mouseover here to show dialog controls')
             self.hoverArea.setMaximumHeight(16)
-            self.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
+            self.hoverArea.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
             def flashLabel():
                 self.hoverArea.setText(u'')
-                self.setStyleSheet('QLabel { border: none; }')
+                self.hoverArea.setStyleSheet('QLabel { border: none; }')
                 self.hoverArea.setMaximumHeight(2)
             QTimer.singleShot(FLASH_LABEL, flashLabel)
             self.shownHoverInfo = True

@@ -159,6 +159,9 @@ class MuScaleMainDialog(QMainWindow):
         self.plotMultiline = QCheckBox('Plot wavelist as multiline graph')
         self.autoBaseSWT = QCheckBox("Automatically process 'basic' SWT levels")
         self.autoUpdateTools = QCheckBox('Add all temporary data to R workspace')
+        self.showStacktrace = QCheckBox('Show exception stacktrace')
+        self.saveLastFolder = QCheckBox('Remember last opened folder')
+        self.hidetoTray = QCheckBox('Hide to tray on close')
         self.applySettings = QToolButton()
 
         self.optionsLayout = QGridLayout()
@@ -172,6 +175,9 @@ class MuScaleMainDialog(QMainWindow):
         self.optionsLayout.addWidget(self.autoBaseSWT, 3, 0)
         self.optionsLayout.addWidget(self.autoUpdateTools, 3, 1)
         self.optionsLayout.addWidget(self.plotMultiline, 3, 2)
+        self.optionsLayout.addWidget(self.showStacktrace, 4, 0)
+        self.optionsLayout.addWidget(self.saveLastFolder, 4, 1)
+        self.optionsLayout.addWidget(self.hidetoTray, 4, 2)
         self.optionsGroup.setLayout(self.optionsLayout)
 
         # menus, toolbars, layouts & composition #
@@ -232,7 +238,7 @@ class MuScaleMainDialog(QMainWindow):
         ### start ###
         self.statusBar.showMessage('Ready!')
 
-        ### test ###
+        ### post-start ###
         loadingTime = datetime.now() - start
         self.trayIcon.showMessage('Ready!', 'Launched in ' + str(loadingTime), QSystemTrayIcon.Information,
                                   TRAY_VISIBLE_DELAY)
@@ -243,6 +249,10 @@ class MuScaleMainDialog(QMainWindow):
         QTimer.singleShot(LOAD_PAUSE, startingTip)
 
         self.toolsFrame.updateLog(['muScale ' + __version__ + ' launched', 'loading time: ' + str(loadingTime)])
+
+        ### disable unimplemented features ###
+        self.autoBaseSWT.setDisabled(True)
+        self.hidetoTray.setDisabled(True)
 
 #------------------- initialization ------------------# #--------------- * * * ---------------#
     def initComposition(self):
@@ -435,7 +445,9 @@ class MuScaleMainDialog(QMainWindow):
         self.spinLevels.setToolTip(Tooltips['max_level'])
 
     def loadConfig(self):
-        step, shadows, style, r, basic, lock, toolbar, multiline = self.config.loadConfig()
+        self.lastFolder = RES
+        # the same order as in utility.const.CONFIG_DICT
+        step, shadows, style, tray, trace, folder, r, basic, lock, toolbar, multiline = self.config.loadConfig()
         self.toggleShadows.setChecked(shadows.toBool())
         self.stylesCombo.setCurrentIndex(style.toInt()[0])
         self.lockMaxLevel.setChecked(lock.toBool())
@@ -444,7 +456,14 @@ class MuScaleMainDialog(QMainWindow):
         self.enableToolbar.setChecked(toolbar.toBool())
         self.autoUpdateTools.setChecked(r.toBool())
         self.autoBaseSWT.setChecked(basic.toBool())
-
+        self.showStacktrace.setChecked(trace.toBool())
+        self.hidetoTray.setChecked(tray.toBool())
+        try:
+            self.saveLastFolder.setChecked(folder.toList()[0].toBool())
+            self.lastFolder = folder.toList()[1].toString()
+        except Exception:
+            pass
+        # update style settings
         self.saveSettings()
 
     def saveConfig(self):
@@ -457,6 +476,9 @@ class MuScaleMainDialog(QMainWindow):
             r=self.autoUpdateTools.isChecked(),
             style=self.stylesCombo.currentIndex(),
             toolbar=self.enableToolbar.isChecked(),
+            trace=self.showStacktrace.isChecked(),
+            tray=self.hidetoTray.isChecked(),
+            folder=[self.saveLastFolder.isChecked(), self.lastFolder]
         )
 
     def customEffects(self):
@@ -548,8 +570,12 @@ class MuScaleMainDialog(QMainWindow):
 ###################################################
     def openFile(self):
         self.resetData()
+        if self.saveLastFolder.isChecked():
+            self.openFileDialog.setDirectory(self.lastFolder)
         if self.openFileDialog.exec_():
             fileName = self.openFileDialog.selectedFiles()
+            if self.saveLastFolder.isChecked():
+                self.lastFolder = self.openFileDialog.directory().path()
             try:
                 if fileName.count() > 0:
                     if DataParser.istextfile(fileName[0]):
@@ -759,8 +785,12 @@ class MuScaleMainDialog(QMainWindow):
 
             if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Model))
         except Exception, e:
-            self.messageInfo.showInfo(traceback.format_exc(e), True)
-            self.toolsFrame.updateLog([traceback.format_exc(e)], True)
+            if self.showStacktrace.isChecked():
+                message = traceback.format_exc(e)
+            else:
+                message = str(e)
+            self.messageInfo.showInfo(message, True)
+            self.toolsFrame.updateLog([message], True)
             log.exception(e)
 
     def viewWavelist(self):
@@ -1039,8 +1069,12 @@ class MuScaleMainDialog(QMainWindow):
                 self.resultingGraph.show()
                 self.resultingGraph.canvas.draw()
             except Exception, e:
-                self.messageInfo.showInfo(traceback.format_exc(e), True)
-                self.toolsFrame.updateLog([traceback.format_exc(e)], True)
+                if self.showStacktrace.isChecked():
+                    message = traceback.format_exc(e)
+                else:
+                    message = str(e)
+                self.messageInfo.showInfo(message, True)
+                self.toolsFrame.updateLog([message], True)
                 log.exception(e)
 
 #####################################################

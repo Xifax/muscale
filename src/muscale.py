@@ -37,6 +37,7 @@ Created on Mar 9, 2011
 
 #TODO: update GUI
 #TODO: export menu
+#TODO: graph legend
 #TODO: wizard template
 #TODO: tweak info message
 #TODO: last open directory
