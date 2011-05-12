@@ -2,12 +2,29 @@
 __author__ = 'Yadavito'
 
 # external #
-from PyQt4.QtCore import Qt, QRect, QSize, QTimer
+from PyQt4.QtCore import Qt, QRect, QSize, QTimer, QObject, QEvent
 from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout
 
 # own #
 from utility.tools import RepeatTimer
 from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY, M_INTERVAL
+
+class MessageFilter(QObject):
+    """Status message mouse click filter"""
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.HoverEnter:
+            object.countdownTimer.stop()
+#            object.info.setStyleSheet('QLabel { border: none; color: lightsteelblue; }')
+            object.setWindowOpacity(0.8)
+        if event.type() == QEvent.HoverLeave:
+            object.countdownTimer.start(TIP_VISIBLE + STATUS_CHECK_DELAY)
+#            object.info.setStyleSheet('QLabel { border: none; color: white; }')
+            object.setWindowOpacity(1.0)
+        if event.type() == QEvent.MouseButtonPress:
+            object.countdownTimer.stop()
+            object.hide()
+
+        return False
 
 class SystemMessage(QFrame):
     def __init__(self, parent=None):
@@ -18,6 +35,12 @@ class SystemMessage(QFrame):
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.info)
         self.setLayout(self.layout)
+
+        self.countdownTimer = QTimer()
+
+        self.setAttribute(Qt.WA_Hover, True)
+        self.filter = MessageFilter()
+        self.installEventFilter(self.filter)
 
         self.initComponents()
         self.initComposition()
@@ -31,6 +54,9 @@ class SystemMessage(QFrame):
     def initComponents(self):
         self.info.setAlignment(Qt.AlignCenter)
         self.info.setWordWrap(True)
+
+        self.countdownTimer.setSingleShot(True)
+        self.countdownTimer.timeout.connect(self.fadeStatus)
 
     def updateStyle(self, error=False):
         if not error: self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
@@ -56,11 +82,13 @@ class SystemMessage(QFrame):
 
             self.isShown = True
             QTimer.singleShot(TIP_VISIBLE + STATUS_CHECK_DELAY, self.updateStatus)
+#            self.countdownTimer.start(TIP_VISIBLE + STATUS_CHECK_DELAY)
 
             self.adjustSize()
             self.updatePosition()
             self.fadeStatus()
-            QTimer.singleShot(TIP_VISIBLE, self.fadeStatus)
+#            QTimer.singleShot(TIP_VISIBLE, self.fadeStatus)
+            self.countdownTimer.start(TIP_VISIBLE)
 
     def updatePosition(self):
         self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + M_INTERVAL)
