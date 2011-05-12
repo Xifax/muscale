@@ -126,8 +126,9 @@ class ToolsFrame(QWidget):
         self.initComponents()
         self.initActions()
 
-        # test #
+        # post init #
         self.rInput.setFocus()
+        self.inStack = { 'stack': [], 'index': -1 }
 
     def initComposition(self):
         self.setWindowTitle('Tools')
@@ -249,7 +250,7 @@ class ToolsFrame(QWidget):
             match = self.logList.findItems(self.logSearh.text(), Qt.MatchContains)
             for item in match: self.logList.setItemSelected(item, True)
 
-            if not match: self.logList.scrollToItem(match[0])
+            if match: self.logList.scrollToItem(match[0])
 #            self.logList.setText('<b>' + str(len(match)) + '</b> items found')
         else:
             pass
@@ -264,12 +265,20 @@ class ToolsFrame(QWidget):
             self.logSearh.hide()
 
     #----------- R -------------#
+    def updateStack(self, request):
+        if request not in self.inStack['stack']:
+            self.inStack['stack'].append(request)
+            self.inStack['index'] += 1
+
     def rCommand(self, internalIn=None):
         try:
             if internalIn is None:
                 request = self.checkRequest(self.rInput.text())
-                if request is not None: result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
-                else: result = None
+                if request is not None:
+                    result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
+                    self.updateStack(request)
+                else:
+                    result = None
             else:
                 result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
             if result != self.R.newline and result is not None:
@@ -360,3 +369,17 @@ class ToolsFrame(QWidget):
         self.parentWidget().toggleTools.setChecked(False)
         self.parentWidget().showGraph.setText('Show graph')
         self.parentWidget().showTable.setText('Show table')
+
+    def keyPressEvent(self, QKeyEvent):
+        if self.rInput.hasFocus():
+            if QKeyEvent.key() == Qt.Key_Up:
+                if self.inStack['stack']:
+                    if self.inStack['index'] < len(self.inStack['stack']) - 1:
+                        self.inStack['index'] += 1
+                    self.rInput.setText(self.inStack['stack'][self.inStack['index']])
+            if QKeyEvent.key() == Qt.Key_Down:
+                if self.inStack['stack']:
+                    if self.inStack['index'] > -1:
+                        self.inStack['index'] -= 1
+                    self.rInput.setText(self.inStack['stack'][self.inStack['index']])
+

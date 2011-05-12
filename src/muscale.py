@@ -41,8 +41,7 @@ Created on Mar 9, 2011
 #TODO: allow multicolumn table
 #TODO: implement parse template
 #TODO: check parsed data length (> n)
-#TODO: add R calls stack (console-like)
-#TODO: initialize R with custom (non-SYSTEM PATH) path
+#TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
 #TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
