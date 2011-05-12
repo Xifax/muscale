@@ -31,6 +31,7 @@ I_WIDTH = 200
 
 #--------- message --------#
 M_INTERVAL = 45
+BOTTOM_SPACE = 100
 
 #------ graphs/plots ------#
 
@@ -190,3 +191,7 @@ CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder],
                s_graph: [show_toolbar, plot_multiline],
                s_model: [data_r, basic_swt, lock_max],
             }
+
+#------ data -------#
+DATA_LOW_LIMIT = 10 # values count
+DATA_HIGH_LIMIT = 1000

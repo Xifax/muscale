@@ -35,20 +35,16 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: update GUI
 #TODO: export menu
 #TODO: graph legend
 #TODO: wizard template
-#TODO: tweak info message
-#TODO: last open directory
 #TODO: allow multicolumn table
 #TODO: implement parse template
+#TODO: check parsed data length (> n)
 #TODO: add R calls stack (console-like)
-#TODO: prevent message from disappearing while hover
-#TODO: preemptive R input validation (partially done)
+#TODO: initialize R with custom (non-SYSTEM PATH) path
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
-#TODO: re-implement model configuration (use-case when some level is not included)
 #TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
 
 ####################################

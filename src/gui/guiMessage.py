@@ -3,11 +3,11 @@ __author__ = 'Yadavito'
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer, QObject, QEvent
-from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout
+from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout, QApplication
 
 # own #
 from utility.tools import RepeatTimer
-from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY, M_INTERVAL
+from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY, M_INTERVAL, BOTTOM_SPACE
 
 class MessageFilter(QObject):
     """Status message mouse click filter"""
@@ -82,16 +82,18 @@ class SystemMessage(QFrame):
 
             self.isShown = True
             QTimer.singleShot(TIP_VISIBLE + STATUS_CHECK_DELAY, self.updateStatus)
-#            self.countdownTimer.start(TIP_VISIBLE + STATUS_CHECK_DELAY)
 
             self.adjustSize()
             self.updatePosition()
             self.fadeStatus()
-#            QTimer.singleShot(TIP_VISIBLE, self.fadeStatus)
             self.countdownTimer.start(TIP_VISIBLE)
 
     def updatePosition(self):
-        self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + M_INTERVAL)
+        desktop = QApplication.desktop()
+        if self.parent().y() + self.parent().height() + M_INTERVAL > desktop.height() - BOTTOM_SPACE:
+            self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() - BOTTOM_SPACE)
+        else:
+            self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + M_INTERVAL)
 
     def updateStatus(self):
         self.isShown = False

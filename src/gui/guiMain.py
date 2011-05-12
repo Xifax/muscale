@@ -28,11 +28,11 @@ from utility.const import __name__,\
     WIDTH, HEIGHT, M_INTERVAL,\
     RES, ICONS, ICO_SIZE,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
-    P_PREVIEW_HEIGHT,\
+    P_PREVIEW_HEIGHT, DATA_LOW_LIMIT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
-    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips
+    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE
 from utility.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
 from utility.tools import prettifyNames
@@ -521,7 +521,11 @@ class MuScaleMainDialog(QMainWindow):
             self.toolsFrame.resize(QSize(self.toolsFrame.width(), self.height()))
 
     def updateMessagePosition(self):
-        self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + M_INTERVAL)
+        desktop = QApplication.desktop()
+        if self.y() + self.height() + M_INTERVAL > desktop.height() - BOTTOM_SPACE:
+            pass
+        else:
+            self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + M_INTERVAL)
 
     def updateInfoPosition(self):
         if not self.infoDialog.detach.isChecked():
@@ -601,29 +605,37 @@ class MuScaleMainDialog(QMainWindow):
 
     def showParseResults(self):
         if len(self.currentDataSet) == 2:   # data and status
-            self.parseResults.setText(
-                'Success! Loaded<b> ' + str(len(self.currentDataSet[0])) + '</b> values, errors: <b>' + str(
-                    self.currentDataSet[1]) + '</b>')
-            self.parseResults.show()
-            self.showGraph.show()
-            self.showTable.show()
-            self.clearAll.show()
-            self.separator.show()
+            if len(self.currentDataSet[0]) > DATA_LOW_LIMIT:
+                self.parseResults.setText(
+                    'Success! Loaded<b> ' + str(len(self.currentDataSet[0])) + '</b> values, errors: <b>' + str(
+                        self.currentDataSet[1]) + '</b>')
+                self.parseResults.show()
+                self.showGraph.show()
+                self.showTable.show()
+                self.clearAll.show()
+                self.separator.show()
 
-            self.statTools.setItemEnabled(int(Tabs.Decomposition), True)
-            self.updateWavelist()
-            self.updateMaxDLevel()
+                self.statTools.setItemEnabled(int(Tabs.Decomposition), True)
+                self.updateWavelist()
+                self.updateMaxDLevel()
 
-            self.R['data'] = self.currentDataSet[0]
-            self.toolsFrame.updateNamespace()
-            self.statusBar.showMessage("Added 'data' variable to R namespace")
+                self.R['data'] = self.currentDataSet[0]
+                self.toolsFrame.updateNamespace()
+                self.statusBar.showMessage("Added 'data' variable to R namespace")
 
-            self.toolsFrame.updateLog([str(len(self.currentDataSet[0])) + ' values loaded'])
+                self.toolsFrame.updateLog([str(len(self.currentDataSet[0])) + ' values loaded'])
 
-            if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Decomposition))
+                if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Decomposition))
+            else:
+                self.messageInfo.showInfo('Not enough values to form data series.', True)
+                self.toolsFrame.updateLog(['not enough values'], warning=True)
+#                self.parseResults.setText('Not enough values to form data series.')
+#                self.parseResults.show()
         else:
-            self.parseResults.setText('Could not parse at all!')
-            self.parseResults.show()
+            self.messageInfo.showInfo('Could not parse at all!', True)
+            self.toolsFrame.updateLog(['could not parse'], warning=True)
+#            self.parseResults.setText('Could not parse at all!')
+#            self.parseResults.show()
 
     def resetTips(self):
         for tip in infoTipsDict: infoTipsDict[tip]['seen'] = False
