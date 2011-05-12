@@ -5,8 +5,9 @@ Created on Mar 23, 2011
 @author: Yadavito
 '''
 # external #
-from PyQt4.QtCore import QObject, QEvent, Qt
-from PyQt4.QtGui import QFrame, QVBoxLayout, QLabel, QPushButton
+from PyQt4.QtCore import QObject, QEvent, Qt, QPoint
+from PyQt4.QtGui import QFrame, QVBoxLayout,\
+                        QLabel, QPushButton, QAction
 
 # own #
 from utility.const import I_WIDTH, infoContens
@@ -75,10 +76,17 @@ class InfoFrame(QFrame):
         self.filter = InfoFilter()
         self.setAttribute(Qt.WA_Hover, True)
         self.installEventFilter(self.filter)
+
+        self.offset = QPoint()
         
     def initActions(self):
         self.dockButtonUp.clicked.connect(self.setTopPosition)
         self.dockButtonDown.clicked.connect(self.setBottomPosition)
+
+        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.detach = QAction('Detatch', self)
+        self.detach.setCheckable(True)
+        self.addAction(self.detach)
         
     def updateContents(self, index):
         content = infoContens(index)
@@ -88,14 +96,35 @@ class InfoFrame(QFrame):
 
     def setTopPosition(self):
         self.dockButtonDown.setChecked(False)
-        self.parent().updateInfoPosition()
-    
+        self.jumpPositionUnchecked()
+
     def setBottomPosition(self):
         self.dockButtonUp.setChecked(False)
-        self.parent().updateInfoPosition()
+        self.jumpPositionUnchecked()
+
+    def jumpPositionUnchecked(self):
+        if self.detach.isChecked():
+            self.detach.setChecked(False)
+            self.parent().updateInfoPosition()
+            self.detach.setChecked(True)
+        else:
+            self.parent().updateInfoPosition()
         
     def updateCornersMask(self):
         self.setMask(roundCorners(self.rect(), 5))
-    
+
+    #------------ events -------------#
     def showEvent(self, event):
         self.adjustSize()
+
+    def mousePressEvent(self, event):
+        event.accept()
+        self.offset = event.globalPos() - self.pos()
+
+    def mouseMoveEvent(self, event):
+        event.accept()
+        self.move(event.globalPos() - self.offset)
+
+    def mouseReleaseEvent(self, event):
+        event.accept()
+        self.offset = QPoint()

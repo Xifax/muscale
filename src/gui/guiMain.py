@@ -524,12 +524,13 @@ class MuScaleMainDialog(QMainWindow):
         self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + M_INTERVAL)
 
     def updateInfoPosition(self):
-        if self.infoDialog.dockButtonUp.isChecked():
-            self.infoDialog.move(self.x() + self.width() / 3, self.y() - self.infoDialog.height())
-        elif self.infoDialog.dockButtonDown.isChecked():
-            self.infoDialog.move(self.x() + self.width() / 3, self.y() + self.height() + 60)
-        else:
-            self.infoDialog.move(self.x() - self.infoDialog.width() - 20, self.y() + self.height() / 3)
+        if not self.infoDialog.detach.isChecked():
+            if self.infoDialog.dockButtonUp.isChecked():
+                self.infoDialog.move(self.x() + self.width() / 3, self.y() - self.infoDialog.height())
+            elif self.infoDialog.dockButtonDown.isChecked():
+                self.infoDialog.move(self.x() + self.width() / 3, self.y() + self.height() + 60)
+            else:
+                self.infoDialog.move(self.x() - self.infoDialog.width() - 20, self.y() + self.height() / 3)
 
     def goToFirstStep(self):
         self.statTools.setCurrentIndex(0)
