@@ -9,7 +9,7 @@ from flufl.enum import make_enum
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -41,6 +41,7 @@ P_PREVIEW_HEIGHT = 240
 RES = '../res/'
 ICONS = 'icons/'
 WV = 'wv/'
+TEMP = 'tmp/'
 
 #--------- icons ----------#
 LOGO = 'chart_line.png'
@@ -195,3 +196,6 @@ CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder],
 #------ data -------#
 DATA_LOW_LIMIT = 10 # values count
 DATA_HIGH_LIMIT = 1000
+
+#------ preview generation ------#
+LINE_WITH = 0.9

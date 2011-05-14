@@ -2,6 +2,7 @@
 __author__ = 'Geoffrey Foster, Yadavito'
 
 # internal #
+import os
 from threading import Event, Thread
 import collections
 
@@ -47,6 +48,15 @@ def checkParentheses(string):
             except IndexError:
                 return False
     return not parenstack
+
+def clearFolderContents(path):
+    for the_file in os.listdir(path):
+        file_path = os.path.join(path, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        except Exception, e:
+            pass
 
 '''Name 'parser' for enum model objects'''
 prettifyNames = lambda list: [item.replace('_', ' ') for item in list]

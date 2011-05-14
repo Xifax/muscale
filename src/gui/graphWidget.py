@@ -5,12 +5,18 @@ Created on Mar 10, 2011
 @author: Yadavito
 '''
 
+# internal #
+import os
+
 # own #
-from utility.const import RES, ICONS, TOOLBAR_ICONS
+from utility.const import RES, ICONS, TOOLBAR_ICONS, TEMP, LINE_WITH
+from utility.tools import clearFolderContents
 
 # external #
 from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, QObject, QEvent
+from PyQt4.QtCore import Qt, QObject, QEvent, QSize
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
@@ -99,7 +105,9 @@ class MplWidget(QtGui.QWidget):
         for position in range(0, self.toolbar.layout().count()):
             widget = self.toolbar.layout().itemAt(position).widget()
             if isinstance(widget, QtGui.QToolButton):
-                self.toolbar.layout().itemAt(position).widget().setIcon(QtGui.QIcon(RES + ICONS + TOOLBAR_ICONS[position]))
+                icon = QtGui.QIcon(RES + ICONS + TOOLBAR_ICONS[position])
+                self.toolbar.layout().itemAt(position).widget().setIcon(icon)
+                self.toolbar.layout().itemAt(position).widget().setIconSize(QSize(16, 16))
 
     def resetGraphicEffect(self):
         if self.graphicsEffect() is not None:
@@ -120,6 +128,23 @@ class MplWidget(QtGui.QWidget):
         self.canvas.ax.clear()
         self.canvas.fig.clear()
         if repaint_axes: self.canvas.ax = self.canvas.fig.add_subplot(111)
+
+    ## Update existing data or plot anew.
+    #  @param data List or array to plot/update.
+    #  @param line Which line to update (if many).
+    def updatePlot(self, data, line=0):
+#        if not self.canvas.ax.get_lines():
+        if not self.canvas.ax.has_data():
+            self.lines = self.canvas.ax.plot(data)
+        else:
+            line_to_update = self.lines[line]
+            if len(data) != len(line_to_update._x):
+                # x, y ~ data in y
+                line_to_update.set_data(np.arange(len(data)), data)
+            else:
+                # in case data length stays the same
+                line_to_update.set_data(line_to_update._x, data)
+            self.canvas.draw()
 
     ## Plots scalogram for wavelet decomposition.
     #  @param data Wavelet coefficients in matrix.
@@ -191,3 +216,27 @@ class MplWidget(QtGui.QWidget):
             i += 1
             if i != len(data):
                 setp(ax.get_xticklabels(), visible=False)
+
+    #------------------ utils ------------------#
+    ## Generates previews for specified data.
+    #  @param data List of arrays.
+    @staticmethod
+    def generatePreviews(data):
+        # if data is of array type, it's preferable to use .any()
+        if len(data) > 0:
+            # temp folder
+            tmp = RES + TEMP
+            # prepare folder
+            if not os.path.exists(tmp):
+                os.makedirs(tmp)
+            # clear temp folder contents
+            clearFolderContents(tmp)
+
+            level = 0
+            for array in data:
+                matplotlib.pyplot.figure(figsize=(6, 3))
+                matplotlib.pyplot.axis('off')
+                matplotlib.pyplot.plot(array, color='w', linewidth=LINE_WITH)
+                matplotlib.pyplot.savefig(RES + TEMP + str(level) + '.png', transparent=True)
+                level += 1
+

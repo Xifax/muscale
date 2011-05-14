@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from numpy import array, vstack, zeros, copy
 
 # own #
-from utility.const import RES, WV
+from utility.const import RES, WV, LINE_WITH
 
 def apply_threshold(output, scaler=1., input=None):
     """
@@ -233,7 +233,7 @@ def _plot_wavelet(wavelet, level=4, all=False):
         plt.figure(figsize=(1, 1))
         plt.axis('off')
         # plotting x, psi
-        plt.plot(values[-1], values[-2], color='w', linewidth=1.0)  # color = 'w'(white) for black tooltips
+        plt.plot(values[-1], values[-2], color='w', linewidth=LINE_WITH)  # color = 'w'(white) for black tooltips
         # full wavelet name
         if all: plt.savefig('../' + RES + WV + wavelet + '.png', transparent=True)
         # family name

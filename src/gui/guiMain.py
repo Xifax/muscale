@@ -26,7 +26,7 @@ from utility.log import log
 from utility.const import __name__,\
     __version__,\
     WIDTH, HEIGHT, M_INTERVAL,\
-    RES, ICONS, ICO_SIZE,\
+    RES, ICONS, TEMP, ICO_SIZE,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
     P_PREVIEW_HEIGHT, DATA_LOW_LIMIT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
@@ -35,7 +35,7 @@ from utility.const import __name__,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE
 from utility.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
-from utility.tools import prettifyNames
+from utility.tools import prettifyNames, clearFolderContents
 from utility.config import Config
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
@@ -822,18 +822,20 @@ class MuScaleMainDialog(QMainWindow):
 #----------------- model structure ----------------#
 ####################################################
     def addAllLevelToModel(self):
+        # Check all 'add' buttons (3rd in grid)
         for row in range(0, self.modelLayout.rowCount()):
-            if self.modelLayout.itemAtPosition(row, 1) is not None:
-                widget = self.modelLayout.itemAtPosition(row, 1).widget()
+            if self.modelLayout.itemAtPosition(row, 2) is not None:
+                widget = self.modelLayout.itemAtPosition(row, 2).widget()
                 if hasattr(widget, 'isCheckable'):
                     if widget.isCheckable():
                         if not widget.isChecked():
                             widget.click()
 
     def previewAll(self):
+        # Check all 'preview' buttons (4th in grid)
         for row in range(0, self.modelLayout.rowCount()):
-            if self.modelLayout.itemAtPosition(row, 2) is not None:
-                widget = self.modelLayout.itemAtPosition(row, 2).widget()
+            if self.modelLayout.itemAtPosition(row, 3) is not None:
+                widget = self.modelLayout.itemAtPosition(row, 3).widget()
                 if hasattr(widget, 'isCheckable'):
                     if widget.isCheckable():
                         widget.click()
@@ -851,14 +853,19 @@ class MuScaleMainDialog(QMainWindow):
             self.gem = None
 
         for row in range(0, self.modelLayout.rowCount()):
-            if self.modelLayout.itemAtPosition(row, 2) is not None:
-                widget = self.modelLayout.itemAtPosition(row, 2).widget()
+            # 4th row in grid layout ~ 'preview' button
+            if self.modelLayout.itemAtPosition(row, 3) is not None:
+                widget = self.modelLayout.itemAtPosition(row, 3).widget()
                 if hasattr(widget, 'isCheckable'):
                     if widget.isCheckable():
                         if widget.isChecked():
-                            preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
+                            # MPL widget
+                            preview = self.modelLayout.itemAtPosition(row + 1, 0).widget()
+                            # Current level
                             level = self.modelLayout.itemAtPosition(row, 0).widget()
-                            preview.canvas.ax.plot(self.wCoefficients[level.text().right(1).toInt()[0]])
+                            # Level number enclosed in <b>N</b>
+                            index = level.text().right(5)[0].toInt()[0]
+                            preview.updatePlot(self.wCoefficients[index])
 
                             preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.show()
@@ -866,10 +873,12 @@ class MuScaleMainDialog(QMainWindow):
                                 self.gem = self.size()
                                 self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
-                            preview = self.modelLayout.itemAtPosition(row + 2, 0).widget()
+                            preview = self.modelLayout.itemAtPosition(row + 1, 0).widget()
                             preview.hide()
 
     def constructModelTemplate(self):
+        MplWidget.generatePreviews(self.wCoefficients)
+
         unfillLayout(self.modelLayout)
         nLevels = len(self.wCoefficients)
 
@@ -890,12 +899,14 @@ class MuScaleMainDialog(QMainWindow):
         buttonsLayout.addWidget(autoAll)
         buttonsLayout.addWidget(previewAll)
 
-        self.modelLayout.addLayout(buttonsLayout, 0, 0, 1, 3)
-        self.modelLayout.addWidget(createSeparator(), 1, 0, 1, 3)
+        self.modelLayout.addLayout(buttonsLayout, 0, 0, 1, 4)
+        self.modelLayout.addWidget(createSeparator(), 1, 0, 1, 4)
 
         i = 2
         for level in range(0, nLevels):
-            labelModel = QLabel('Level ' + str(level))
+            labelModel = QLabel('Level <b>' + str(level) + '</b>')
+            labelModel.setAlignment(Qt.AlignCenter)
+            labelModel.setToolTip("<img src='" + RES + TEMP + str(level) + "'.png'>")
 
             addModel = QToolButton()
             addModel.setText('+')
@@ -914,20 +925,28 @@ class MuScaleMainDialog(QMainWindow):
             componentPreview = MplWidget()
             componentPreview.hide()
 
+            # level label
             self.modelLayout.addWidget(labelModel, i, 0)
-            self.modelLayout.addWidget(addModel, i, 1)
-            self.modelLayout.addWidget(togglePreview, i, 2);            i += 1
-            self.modelLayout.addWidget(comboModel, i, 0, 1, 3);            i += 1
-            self.modelLayout.addWidget(componentPreview, i, 0, 1, 3);            i += 1
-            self.modelLayout.addWidget(createSeparator(), i, 0, 1, 3);            i += 1
+            # model list
+            self.modelLayout.addWidget(comboModel, i, 1)
+            # add button
+            self.modelLayout.addWidget(addModel, i, 2)
+            # preview button
+            self.modelLayout.addWidget(togglePreview, i, 3); i += 1
+            # graph widget
+            self.modelLayout.addWidget(componentPreview, i, 0, 1, 4); i += 1
+#            self.modelLayout.addWidget(createSeparator(), i, 0, 1, 4);            i += 1
 
         resetModel = QPushButton('Reset model setup')
         resetModel.clicked.connect(self.resetModel)
         constructModel = QPushButton('Construct multiscale model')
         constructModel.clicked.connect(self.constructModel)
 
-        self.modelLayout.addWidget(resetModel, i, 0, 1, 3); i += 1
-        self.modelLayout.addWidget(constructModel, i + 1, 0, 1, 3)
+        self.modelLayout.addWidget(createSeparator(), i, 0, 1, 4); i += 1
+        self.modelLayout.addWidget(constructModel, i, 0, 1, 2)
+        self.modelLayout.addWidget(resetModel, i, 2, 1, 2)
+
+        self.modelLayout.setAlignment(Qt.AlignCenter)
 
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(buttonsLayout)
@@ -935,17 +954,19 @@ class MuScaleMainDialog(QMainWindow):
 
     def addModel(self):
         for row in range(0, self.modelLayout.rowCount()):
-            if self.modelLayout.itemAtPosition(row, 1) is not None:
-                widget = self.modelLayout.itemAtPosition(row, 1).widget()
+            # 3rd row in grid layout ~ 'add' button
+            if self.modelLayout.itemAtPosition(row, 2) is not None:
+                widget = self.modelLayout.itemAtPosition(row, 2).widget()
                 if hasattr(widget, 'isCheckable'):
                     if widget.isCheckable():
                         if widget.isChecked():
                             widget.setText('OK')
-                            combo = self.modelLayout.itemAtPosition(row + 1, 0).widget()
+                            # Model list
+                            combo = self.modelLayout.itemAtPosition(row, 1).widget()
                             combo.setDisabled(True)
                         else:
                             widget.setText('+')
-                            combo = self.modelLayout.itemAtPosition(row + 1, 0).widget()
+                            combo = self.modelLayout.itemAtPosition(row, 1).widget()
                             combo.setEnabled(True)
 
     def resetModel(self):
@@ -1142,6 +1163,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 
     def closeEvent(self, event):
         self.saveConfig()
+        clearFolderContents(RES + TEMP)
 
 #####################################################
 #---------------------- tests ----------------------#

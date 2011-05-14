@@ -40,10 +40,12 @@ Created on Mar 9, 2011
 #TODO: wizard template
 #TODO: allow multicolumn table
 #TODO: implement parse template
+#TODO: implement data criterion
 #TODO: check parsed data length (> n)
-#TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]
+#TODO: implement 'update' method for GraphWidget
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
+#TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]
 #TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
 
 ####################################
@@ -59,7 +61,6 @@ Created on Mar 9, 2011
 # SciPy 0.9.0                            http://goo.gl/l4Edo
 
 # possible plot lib alternatives:
-# Chaco 3.4.1                            http://goo.gl/8SbDY    (**)
 # PyQtGraph                              http://goo.gl/hQjvW    (***)
 # PyCairo 1.8.1                          http://goo.gl/ScUvx
 # CairoPlot 1.1                          http://goo.gl/VjTUO
@@ -73,9 +74,7 @@ Created on Mar 9, 2011
 ####################################
 
 #NB: (*) needs fix for python 2.6.6  DO NOT INSTALL using easy_install    (http://goo.gl/3js4H)
-#NB: (**) requires CygWin/MinGW compiler (and infamous vcvarsall.bat) and SWIG for building Traits and Enable + Cython packages  (#)   (http://goo.gl/U07x) (http://goo.gl/FCoZS)
 #NB: (***) documentation is lacking
-#NB: (#) python setup.py install build –compiler=mingw32 (Traits -> Cython -> Enable)
 
 #---------------R packages---------------#
 #Guidelines                               http://goo.gl/dVizL
