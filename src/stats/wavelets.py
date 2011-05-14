@@ -154,7 +154,13 @@ def select_levels_from_swt(coeffs):
 def update_selected_levels_swt(inital_coeffs, selected_coeffs):
     '''Restores tree structure for further ISWT'''
     # resulting max dimension
-    new_dimension = max(len(a) for a in selected_coeffs if not isinstance(a, int))
+    try:
+        new_dimension = max(len(a) for a in selected_coeffs if not isinstance(a, int))
+    except Exception:
+        if len(selected_coeffs) > 0:
+            new_dimension = len(selected_coeffs)
+        else:
+            new_dimension = len(inital_coeffs[0][0])
 
     old_dimension = len(inital_coeffs[0][0])    # first array in first tuple in list
     if new_dimension < old_dimension:
@@ -188,7 +194,10 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
 #  @return Copy of initial values in matrix.
 def copy_non_uniform_shape(coeffs):
     '''Copy array resizing to uniform shape'''
-    dimension = max(len(a) for a in coeffs if not isinstance(a, int))
+    try:
+        dimension = max(len(a) for a in coeffs if not isinstance(a, int))
+    except Exception:
+        dimension = len(coeffs)
     new_coeffs = zeros(shape=(len(coeffs), dimension)); i = 0
     for element in coeffs:
         new_element = array(element, copy = True)

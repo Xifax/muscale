@@ -62,7 +62,7 @@ class SystemMessage(QFrame):
         if not error: self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
         else: self.setStyleSheet('QFrame { background-color: red; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
 
-    def showInfo(self, message, error=False):
+    def showInfo(self, message, error=False, adjust=True):
         if not self.isShown:
             self.info.setText('')
             self.updateStyle(error)
@@ -70,12 +70,12 @@ class SystemMessage(QFrame):
                 tip = infoTips(message)
                 if tip is not None:
                     self.info.setText(tip)
-                    self.updateAndShow()
+                    self.updateAndShow(adjust)
             else:
                 self.info.setText(message)
-                self.updateAndShow()
+                self.updateAndShow(adjust)
 
-    def updateAndShow(self):
+    def updateAndShow(self, adjust):
         if self.info.text() != '':
             self.show()
             self.setWindowOpacity(0)
@@ -83,7 +83,8 @@ class SystemMessage(QFrame):
             self.isShown = True
             QTimer.singleShot(TIP_VISIBLE + STATUS_CHECK_DELAY, self.updateStatus)
 
-            self.adjustSize()
+            if adjust:
+                self.adjustSize()
             self.updatePosition()
             self.fadeStatus()
             self.countdownTimer.start(TIP_VISIBLE)

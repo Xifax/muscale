@@ -42,7 +42,6 @@ Created on Mar 9, 2011
 #TODO: implement parse template
 #TODO: implement data criterion
 #TODO: check parsed data length (> n)
-#TODO: implement 'update' method for GraphWidget
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
 #TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]

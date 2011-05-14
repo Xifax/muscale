@@ -129,6 +129,7 @@ class ToolsFrame(QWidget):
         # post init #
         self.rInput.setFocus()
         self.inStack = { 'stack': [], 'index': -1 }
+        self.toggleLogControls()
 
     def initComposition(self):
         self.setWindowTitle('Tools')
@@ -173,8 +174,8 @@ class ToolsFrame(QWidget):
         self.namesList.setHidden(True)
 
         # table #
-        self.tableWidget.setColumnCount(1)
-        self.tableWidget.setHorizontalHeaderLabels(['Value'])
+        self.tableWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.tableWidget.setAlternatingRowColors(True)
 
         # graph #
         self.plotWidget.plot()
@@ -225,6 +226,9 @@ class ToolsFrame(QWidget):
         self.logList.addAction(QAction('Toggle controls', self, triggered=self.toggleLogControls))
 #        self.logList.addAction(QAction('Export to file', self, triggered=self.toggleLogControls))
 #        self.logList.addAction(QAction('Copy to clipboard', self, triggered=self.toggleLogControls))
+
+        # table
+        self.tableWidget.addAction(QAction('Clear all', self, triggered=self.clearTable))
 
 #--------- actions ---------#
 
@@ -330,20 +334,29 @@ class ToolsFrame(QWidget):
         self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
 
     #---------- Table -----------#
-    def updateTable(self, dataSet):
-
+    def clearTable(self):
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
 
-        iterList = []
-        iterList = iterList + dataSet; iterList.reverse()
+    def updateTable(self, dataSet, header=None):
+        new_column = self.tableWidget.columnCount()
+        self.tableWidget.setColumnCount(new_column + 1)
+        if header is None:
+            header = 'Value' + str(new_column)
+        else:
+            pass
+        
+        self.tableWidget.setHorizontalHeaderItem(new_column, QTableWidgetItem(header))
 
-        i = 0
-        for element in iterList:
-            self.tableWidget.insertRow(i)
-            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(element)))
+        if self.tableWidget.rowCount() < len(dataSet):
+            for row in range(self.tableWidget.rowCount(), len(dataSet)):
+                self.tableWidget.insertRow(row)
 
-        del iterList
+        i = -1
+        for element in dataSet:
+            self.tableWidget.setItem(i, new_column, QTableWidgetItem(str(element))); i += 1
+
+        self.tableWidget.update()
 
     #------ dialog behavior ------#
     def changeScale(self):

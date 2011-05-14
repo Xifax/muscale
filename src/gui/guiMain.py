@@ -57,7 +57,7 @@ class MuScaleMainDialog(QMainWindow):
 
         ### components ###
 
-        # options #
+        # settings #
         self.config = Config()
 
         # timer #
@@ -162,6 +162,8 @@ class MuScaleMainDialog(QMainWindow):
         self.showStacktrace = QCheckBox('Show exception stacktrace')
         self.saveLastFolder = QCheckBox('Remember last opened folder')
         self.hidetoTray = QCheckBox('Hide to tray on close')
+        self.autoUpdateTable = QCheckBox('Update table with resulting data')
+        self.autoConstructModel = QCheckBox('Construct model in one click')
         self.applySettings = QToolButton()
 
         self.optionsLayout = QGridLayout()
@@ -178,6 +180,8 @@ class MuScaleMainDialog(QMainWindow):
         self.optionsLayout.addWidget(self.showStacktrace, 4, 0)
         self.optionsLayout.addWidget(self.saveLastFolder, 4, 1)
         self.optionsLayout.addWidget(self.hidetoTray, 4, 2)
+        self.optionsLayout.addWidget(self.autoUpdateTable, 5, 0)
+        self.optionsLayout.addWidget(self.autoConstructModel, 5, 1)
         self.optionsGroup.setLayout(self.optionsLayout)
 
         # menus, toolbars, layouts & composition #
@@ -625,17 +629,17 @@ class MuScaleMainDialog(QMainWindow):
 
                 self.toolsFrame.updateLog([str(len(self.currentDataSet[0])) + ' values loaded'])
 
-                if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Decomposition))
+                if self.autoUpdateTable.isChecked():
+                    self.toolsFrame.updateTable(self.currentDataSet[0], 'Series')
+
+                if self.autoStep.isChecked():
+                    self.statTools.setCurrentIndex(int(Tabs.Decomposition))
             else:
                 self.messageInfo.showInfo('Not enough values to form data series.', True)
                 self.toolsFrame.updateLog(['not enough values'], warning=True)
-#                self.parseResults.setText('Not enough values to form data series.')
-#                self.parseResults.show()
         else:
             self.messageInfo.showInfo('Could not parse at all!', True)
             self.toolsFrame.updateLog(['could not parse'], warning=True)
-#            self.parseResults.setText('Could not parse at all!')
-#            self.parseResults.show()
 
     def resetTips(self):
         for tip in infoTipsDict: infoTipsDict[tip]['seen'] = False
@@ -758,6 +762,11 @@ class MuScaleMainDialog(QMainWindow):
                 self.wCoefficients = select_levels_from_swt(self.wInitialCoefficients)
                 self.isSWT = True
 
+            if self.autoUpdateTable.isChecked():
+                lvl = 0
+                for level in self.wCoefficients:
+                    self.toolsFrame.updateTable(level, 'Level' + str(lvl)); lvl += 1
+
             # resulting wavelist
             self.wavelistGraph.clearCanvas(repaint_axes=False)
             if not self.plotMultiline.isChecked():
@@ -843,7 +852,7 @@ class MuScaleMainDialog(QMainWindow):
     def autoModel(self):
         #TODO: Implement automatic configuration
         for index in range(0, len(self.wCoefficients)):
-            combo = self.modelLayout.itemAtPosition(index * 4 + 3, 0).widget()
+            combo = self.modelLayout.itemAtPosition(index * 2 + 2, 1).widget()
             combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
 
     def showComponentPreview(self):
@@ -885,7 +894,7 @@ class MuScaleMainDialog(QMainWindow):
         addAll = QPushButton()
         previewAll = QPushButton()
         autoAll = QPushButton()
-        addAll.setText('Add all')
+        addAll.setText('Add a&ll')
         previewAll.setText('Preview all')
         previewAll.setCheckable(True)
         autoAll.setText('Auto model')
@@ -939,7 +948,7 @@ class MuScaleMainDialog(QMainWindow):
 
         resetModel = QPushButton('Reset model setup')
         resetModel.clicked.connect(self.resetModel)
-        constructModel = QPushButton('Construct multiscale model')
+        constructModel = QPushButton('&Construct multiscale model')
         constructModel.clicked.connect(self.constructModel)
 
         self.modelLayout.addWidget(createSeparator(), i, 0, 1, 4); i += 1
@@ -975,12 +984,16 @@ class MuScaleMainDialog(QMainWindow):
 
     def constructModel(self):
         self.multiModel.clear()
+        if self.autoConstructModel.isChecked():
+            self.addAllLevelToModel()
         for level in range(0, len(self.wCoefficients)):
-            widget = self.modelLayout.itemAtPosition(level * 4 + 2, 1).widget()
+            # 'add' button, starting from 2nd row, skipping graph widget
+            widget = self.modelLayout.itemAtPosition(level * 2 + 2, 2).widget()
             if isinstance(widget, QWidget):
                 if widget.isChecked():
                     self.multiModel[level] = Models(
-                        self.modelLayout.itemAtPosition(level * 4 + 3, 0).widget().currentIndex() + 1)
+                        # selected model
+                        self.modelLayout.itemAtPosition(level * 2 + 2, 1).widget().currentIndex() + 1)
         if self.multiModel == {}:
             self.messageInfo.showInfo('You haven not specified any methods at all!', True)
         else:
@@ -988,6 +1001,13 @@ class MuScaleMainDialog(QMainWindow):
             self.readyModelsStack()
             self.statTools.setItemEnabled(int(Tabs.Results), True)
             self.toolsFrame.updateLog(['multiscale model complete'])
+
+#            info = u''
+#            for index, model in self.multiModel.iteritems():
+#                info += '<b>' + str(index) + '</b>\t' + prettifyNames([model._enumname])[0] + ';\t'
+#            print info
+#            self.messageInfo.showInfo('Multiscale model complete: ' + info, adjust=False)
+            self.messageInfo.showInfo('Multiscale model complete')
 
             if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Simulation))
 
@@ -1013,7 +1033,7 @@ class MuScaleMainDialog(QMainWindow):
             modelsList.addItem(str(model) + '. ' + self.multiModel[model].enumname.replace('_', ' '))
 
             simulationPlot = MplWidget()
-            simulationPlot.canvas.ax.plot(self.wCoefficients[model])
+            simulationPlot.updatePlot(self.wCoefficients[model], label='Time series')
 
             modelsStack.addWidget(simulationPlot)
 
@@ -1042,29 +1062,24 @@ class MuScaleMainDialog(QMainWindow):
 
         modelsListLayout.setAlignment(Qt.AlignCenter)
 
-        #TODO: move into class namespace and refactor
         def constructModel():
             model = modelsList.currentIndex()
             result = processModel(self.multiModel[model], self.wCoefficients[model], self.R)
             self.processedWCoeffs[model] = result
 
-            #TODO: update, but without plotting anew (repetitive plotting causes lag)
-            modelsStack.currentWidget().canvas.ax.plot(result)
-            modelsStack.currentWidget().canvas.draw()
+            modelsStack.currentWidget().updatePlot(result, label='Model fit')
 
         def forecastModel():
             model = modelsList.currentIndex()
             result = calculateForecast(self.multiModel[model], self.wCoefficients[model], self.R, forecastSteps.value())
             self.processedWCoeffs[model] = result
 
-            modelsStack.currentWidget().canvas.ax.plot(result)
-            modelsStack.currentWidget().canvas.draw()
+            modelsStack.currentWidget().updatePlot(result, label='Forecast')
 
         def resetModel():
             model = modelsList.currentIndex()
             modelsStack.currentWidget().canvas.ax.clear()
-            modelsStack.currentWidget().canvas.ax.plot(self.wCoefficients[model])
-            modelsStack.currentWidget().canvas.draw()
+            modelsStack.currentWidget().updatePlot(self.wCoefficients[model])
 
         simulateButton = QPushButton('Simulate')
         actionsMenu = QMenu()
@@ -1073,7 +1088,6 @@ class MuScaleMainDialog(QMainWindow):
         actionsMenu.addAction(QAction('Reset', self, triggered=resetModel))
         simulateButton.setMenu(actionsMenu)
 
-        #TODO: move to 'additional options'
         forecastSteps = QSpinBox()
         forecastSteps.setRange(2, 100)
         forecastSteps.setValue(20)
@@ -1115,9 +1129,10 @@ class MuScaleMainDialog(QMainWindow):
 #-------------- resulting forecast -----------------#
 #####################################################
     def updateResultingTSWithInitialData(self):
-        self.resultingGraph.canvas.ax.plot(self.currentDataSet[0])
+        self.resultingGraph.updatePlot(self.currentDataSet[0], label='Time series')
+#        self.resultingGraph.canvas.ax.plot(self.currentDataSet[0])
         self.resultingGraph.show()
-        self.resultingGraph.canvas.draw()
+#        self.resultingGraph.canvas.draw()
 
 #####################################################
 #------------- utilities and modules ---------------#

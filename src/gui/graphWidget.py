@@ -83,6 +83,8 @@ class MplWidget(QtGui.QWidget):
 
         # set the layout to th vertical box
         self.setLayout(self.layout)
+        # active lines list
+        self.lines = []
 
         if menu:
             # setup context menu
@@ -107,7 +109,9 @@ class MplWidget(QtGui.QWidget):
             if isinstance(widget, QtGui.QToolButton):
                 icon = QtGui.QIcon(RES + ICONS + TOOLBAR_ICONS[position])
                 self.toolbar.layout().itemAt(position).widget().setIcon(icon)
-                self.toolbar.layout().itemAt(position).widget().setIconSize(QSize(16, 16))
+                self.toolbar.layout().itemAt(position).widget().resize(QSize(8, 8))
+                self.update()
+#                self.toolbar.layout().itemAt(position).widget().setIconSize(QSize(16, 16))
 
     def resetGraphicEffect(self):
         if self.graphicsEffect() is not None:
@@ -131,12 +135,21 @@ class MplWidget(QtGui.QWidget):
 
     ## Update existing data or plot anew.
     #  @param data List or array to plot/update.
-    #  @param line Which line to update (if many).
-    def updatePlot(self, data, line=0):
-#        if not self.canvas.ax.get_lines():
+    #  @param line Which line (by index) to update (if any).
+    #  @param label Data label (new or existing).
+    def updatePlot(self, data, line=0, label=None):
         if not self.canvas.ax.has_data():
-            self.lines = self.canvas.ax.plot(data)
+            if label is not None: self.lines = self.canvas.ax.plot(data, label=label)
+            else: self.lines = self.canvas.ax.plot(data)
         else:
+            if not self.lines:
+                self.lines = self.canvas.ax.get_lines()
+            if label is not None:
+                if label not in [l._label for l in self.lines]:
+                    self.lines.extend(self.canvas.ax.plot(data, label=label))
+                    line = len(self.lines) - 1
+                else:
+                    line = [l._label for l in self.lines].index(label)
             line_to_update = self.lines[line]
             if len(data) != len(line_to_update._x):
                 # x, y ~ data in y

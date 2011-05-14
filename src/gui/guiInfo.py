@@ -87,6 +87,7 @@ class InfoFrame(QFrame):
         self.detach = QAction('Detatch', self)
         self.detach.setCheckable(True)
         self.addAction(self.detach)
+        self.addAction(QAction('Hide', self, triggered=self.hide))
         
     def updateContents(self, index):
         content = infoContens(index)
