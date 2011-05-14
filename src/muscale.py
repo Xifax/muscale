@@ -14,7 +14,7 @@ Created on Mar 9, 2011
 #===============================================================================
 # --- muScale ---
 # -> main project file <-
-# -> contains: 
+# -> contains:
 #   - central GUI dialog
 #   - TO DO list
 #   - dependencies & packages
@@ -26,7 +26,7 @@ Created on Mar 9, 2011
 #       * icons ~ gui icons and logos
 #       * wv ~ wavelet previews (may be regenerated)
 #   - pyqtgraph ~ additional plot modules
-#   - user ~ project utilities, stats, docs and so on
+#   - usr ~ project utilities, stats, docs and so on
 # -> launch:
 #   - python muscale.py
 #===============================================================================

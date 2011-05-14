@@ -5,14 +5,18 @@ Created on Mar 22, 2011
 @author: Yadavito
 '''
 # internal #
-import sys, urllib, subprocess, os
+import sys
+import urllib
+import subprocess
+import os
+
 # external #
 from utility.const import easy_packages, downloadable_packages, URL_SETUPTOOLS, URL_R
 
 def dlProgress(count, blockSize, totalSize):
-    percent = int(count*blockSize*100/totalSize)
-    sys.stdout.write("Download progress: %d%%   \r" % percent)
-  
+    percent = int(count * blockSize * 100 / totalSize)
+    sys.stdout.write('Download progress: %d%%   \r' % percent)
+
 def downloadWithProgressbar(url):
     file_name = url.split('/')[-1]
     print 'Downloading ' + file_name
@@ -29,7 +33,8 @@ except ImportError:
     print 'Please, install easy_install!'
     if raw_input('Download setuptools now? [y/n]: ') == ('y' or 'Y'):
         download_and_install(URL_SETUPTOOLS)
-    else: sys.exit(0)
+    else:
+        sys.exit(0)
 
 def install_with_easyinstall(package):
     try:
@@ -56,7 +61,10 @@ def install_downloadable(package):
             problematic.append(package)
 
 if __name__ == '__main__':
-    installed = []; in_system = []; problematic = []
+    installed = []
+    in_system = []
+    problematic = []
+
     for package in easy_packages:
         install_with_easyinstall(package)
     for package in downloadable_packages:

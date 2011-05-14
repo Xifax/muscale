@@ -128,7 +128,7 @@ class ToolsFrame(QWidget):
 
         # post init #
         self.rInput.setFocus()
-        self.inStack = { 'stack': [], 'index': -1 }
+        self.inStack = {'stack': [], 'index': -1}
         self.toggleLogControls()
 
     def initComposition(self):
@@ -204,6 +204,20 @@ class ToolsFrame(QWidget):
                  border: 1px solid #bfcde4;
             }''')
 
+        # table #
+        self.tableWidget.setStyleSheet('''QTableView::item:selected:active {
+                 background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);
+            }
+            QTableView::item {
+                border: 1px solid #d9d9d9;
+                border-top-color: transparent;
+                border-bottom-color: transparent;
+            }
+            QTableView::item:hover {
+                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
+                 border: 1px solid #bfcde4;
+            }''')
+
     def initActions(self):
         # R
         self.rInput.returnPressed.connect(self.rCommand)
@@ -229,6 +243,9 @@ class ToolsFrame(QWidget):
 
         # table
         self.tableWidget.addAction(QAction('Clear all', self, triggered=self.clearTable))
+        #TODO: copy selected
+        #TODO: export all
+        #TODO: remove selected column
 
 #--------- actions ---------#
 
@@ -237,9 +254,12 @@ class ToolsFrame(QWidget):
         timestamp = time.strftime('%H:%M:%S')
         for entry in entries:
             item = QListWidgetItem(13 * ' ' + entry)      # one tab is too much, it seems
-            if error: item.setTextColor(QColor(255, 0, 0, 127))
-            if warning: item.setTextColor(QColor(255, 127, 80, 127))
-            if NB: item.setTextColor(QColor(0, 0, 255, 127))
+            if error:
+                item.setTextColor(QColor(255, 0, 0, 127))
+            if warning:
+                item.setTextColor(QColor(255, 127, 80, 127))
+            if NB:
+                item.setTextColor(QColor(0, 0, 255, 127))
             label = QLabel("<font style='font-size: 7pt; color: gray'>" + timestamp + "</font>")
             label.setAlignment(Qt.AlignTop)
             self.logList.addItem(item)
@@ -316,7 +336,7 @@ class ToolsFrame(QWidget):
 
     def viewNamespace(self):
         if self.namespaceButton.isChecked():
-            self.namesList.setMaximumHeight(self.rConsole.height()/3)
+            self.namesList.setMaximumHeight(self.rConsole.height() / 3)
             self.namesList.setVisible(True)
         else:
             self.namesList.setHidden(True)
@@ -327,7 +347,8 @@ class ToolsFrame(QWidget):
             if object != self.R.newline:
                 for e in object.split(' '):
                     if e != '[1]' and e != '':
-                        item = QListWidgetItem(e.strip('"')); item.setTextAlignment(Qt.AlignCenter)
+                        item = QListWidgetItem(e.strip('"'))
+                        item.setTextAlignment(Qt.AlignCenter)
                         self.namesList.addItem(item)
 
     def appendItemInline(self):
@@ -337,6 +358,7 @@ class ToolsFrame(QWidget):
     def clearTable(self):
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
+        self.tableWidget.setColumnCount(0)
 
     def updateTable(self, dataSet, header=None):
         new_column = self.tableWidget.columnCount()
@@ -345,7 +367,7 @@ class ToolsFrame(QWidget):
             header = 'Value' + str(new_column)
         else:
             pass
-        
+
         self.tableWidget.setHorizontalHeaderItem(new_column, QTableWidgetItem(header))
 
         if self.tableWidget.rowCount() < len(dataSet):
@@ -370,6 +392,7 @@ class ToolsFrame(QWidget):
             self.hoverArea.setText(u'mouseover here to show dialog controls')
             self.hoverArea.setMaximumHeight(16)
             self.hoverArea.setStyleSheet('QLabel { border: 1px solid gray; border-radius: 4px; }')
+
             def flashLabel():
                 self.hoverArea.setText(u'')
                 self.hoverArea.setStyleSheet('QLabel { border: none; }')
@@ -395,4 +418,3 @@ class ToolsFrame(QWidget):
                     if self.inStack['index'] > -1:
                         self.inStack['index'] -= 1
                     self.rInput.setText(self.inStack['stack'][self.inStack['index']])
-

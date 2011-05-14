@@ -12,7 +12,7 @@ from PyQt4.QtGui import QWidget, QPixmap, QPainter, QStackedWidget
 class FaderWidget(QWidget):
 
     def __init__(self, old_widget, new_widget):
-    
+
         QWidget.__init__(self, new_widget)
         
         self.old_pixmap = QPixmap(new_widget.size())
@@ -43,9 +43,10 @@ class FaderWidget(QWidget):
 
 class StackedWidget(QStackedWidget):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         QStackedWidget.__init__(self, parent)
     
     def setCurrentIndex(self, index):
-        self.fader_widget = FaderWidget(self.currentWidget(), self.widget(index))
+        self.fader_widget = FaderWidget(self.currentWidget(),
+                                        self.widget(index))
         QStackedWidget.setCurrentIndex(self, index)

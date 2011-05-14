@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # own #
 from stats.wavelets import iswt
-from user.test import test_data
+from usr.test import test_data
 
 def modelling_cycle():
 

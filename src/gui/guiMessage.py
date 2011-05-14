@@ -7,7 +7,8 @@ from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout, QApplication
 
 # own #
 from utility.tools import RepeatTimer
-from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY, M_INTERVAL, BOTTOM_SPACE
+from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY,\
+                        M_INTERVAL, BOTTOM_SPACE
 
 class MessageFilter(QObject):
     """Status message mouse click filter"""
@@ -59,8 +60,16 @@ class SystemMessage(QFrame):
         self.countdownTimer.timeout.connect(self.fadeStatus)
 
     def updateStyle(self, error=False):
-        if not error: self.setStyleSheet('QFrame { background-color: black; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
-        else: self.setStyleSheet('QFrame { background-color: red; border: 1px solid white; border-radius: 4px; } QLabel { border: none; color: white; }')
+        if not error:
+            self.setStyleSheet('''QFrame { background-color: black;
+            border: 1px solid white;
+            border-radius: 4px; }
+            QLabel { border: none; color: white; }''')
+        else:
+            self.setStyleSheet('''QFrame { background-color: red;
+                            border: 1px solid white;
+                            border-radius: 4px; }
+                            QLabel { border: none; color: white; }''')
 
     def showInfo(self, message, error=False, adjust=True):
         if not self.isShown:
@@ -92,7 +101,7 @@ class SystemMessage(QFrame):
     def updatePosition(self):
         desktop = QApplication.desktop()
         if self.parent().y() + self.parent().height() + M_INTERVAL > desktop.height() - BOTTOM_SPACE:
-            self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() - BOTTOM_SPACE)
+            self.move(self.parent().x() + (self.parent().width() - self.width()) / 2, self.parent().y() + self.parent().height() - BOTTOM_SPACE)
         else:
             self.move(self.parent().x() + (self.parent().width() - self.width())/2, self.parent().y() + self.parent().height() + M_INTERVAL)
 

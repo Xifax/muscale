@@ -63,7 +63,7 @@ other_resources = []
 
 muScale = Target(
     # what to build
-    script = "run.py",
+    script = 'run.py',
     icon_resources = icon_resources,
     bitmap_resources = bitmap_resources,
     other_resources = other_resources,

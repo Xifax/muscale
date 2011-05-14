@@ -52,7 +52,7 @@ class MplCanvas(FigureCanvas):
         QtGui.QSizePolicy.Expanding)
         # notify the system of updated policy
         FigureCanvas.updateGeometry(self)
-        
+
 class MplWidget(QtGui.QWidget):
     """Widget defined in Qt Designer"""
     def __init__(self, toolbar=True, menu=True, parent=None):
@@ -131,7 +131,8 @@ class MplWidget(QtGui.QWidget):
     def clearCanvas(self, repaint_axes=True):
         self.canvas.ax.clear()
         self.canvas.fig.clear()
-        if repaint_axes: self.canvas.ax = self.canvas.fig.add_subplot(111)
+        if repaint_axes:
+            self.canvas.ax = self.canvas.fig.add_subplot(111)
 
     ## Update existing data or plot anew.
     #  @param data List or array to plot/update.
@@ -139,8 +140,10 @@ class MplWidget(QtGui.QWidget):
     #  @param label Data label (new or existing).
     def updatePlot(self, data, line=0, label=None):
         if not self.canvas.ax.has_data():
-            if label is not None: self.lines = self.canvas.ax.plot(data, label=label)
-            else: self.lines = self.canvas.ax.plot(data)
+            if label is not None:
+                self.lines = self.canvas.ax.plot(data, label=label)
+            else:
+                self.lines = self.canvas.ax.plot(data)
         else:
             if not self.lines:
                 self.lines = self.canvas.ax.get_lines()
@@ -171,17 +174,22 @@ class MplWidget(QtGui.QWidget):
         x = np.arange(len(data[0]))
         y = np.arange(len(data))
 
-        if power: contour = self.canvas.ax.contourf(x,y,np.abs(data)**2)
-        else: contour = self.canvas.ax.contourf(x,y,np.abs(data))
+        if power:
+            contour = self.canvas.ax.contourf(x, y, np.abs(data) ** 2)
+        else:
+            contour = self.canvas.ax.contourf(x, y, np.abs(data))
 
-        if colorbar: self.canvas.fig.colorbar(contour, ax=self.canvas.ax, orientation='vertical', format='%2.1f')
+        if colorbar:
+            self.canvas.fig.colorbar(contour, ax=self.canvas.ax, orientation='vertical', format='%2.1f')
 
-        if top: self.canvas.ax.set_ylim((y[-1], y[0]))
-        else: self.canvas.ax.set_ylim((y[0], y[-1]))
+        if top:
+            self.canvas.ax.set_ylim((y[-1], y[0]))
+        else:
+            self.canvas.ax.set_ylim((y[0], y[-1]))
 
         self.canvas.ax.set_xlim((x[0], x[-1]))
 #        self.canvas.ax.set_ylabel('scales')
-        
+
         self.canvas.draw()
 
     ## Plots list of arrays with shared x/y axes.
@@ -197,7 +205,7 @@ class MplWidget(QtGui.QWidget):
               x=-0.01)
 
         # level/figure ratio
-        ratio = 1./len(data)
+        ratio = 1. / len(data)
 
         # positioning (fractions of total figure)
         left = 0.1
@@ -215,7 +223,7 @@ class MplWidget(QtGui.QWidget):
 
         ax.plot(data[i])
         setp(ax.get_xticklabels(), visible=False)
-        ax.set_ylabel(label % i , **yprops)
+        ax.set_ylabel(label % i, **yprops)
         i += 1
 
         axprops['sharex'] = ax
@@ -225,7 +233,7 @@ class MplWidget(QtGui.QWidget):
             bottom -= height
             ax = self.canvas.fig.add_axes([left, bottom, width, height], **axprops)
             ax.plot(data[i])
-            ax.set_ylabel(label % i , **yprops)
+            ax.set_ylabel(label % i, **yprops)
             i += 1
             if i != len(data):
                 setp(ax.get_xticklabels(), visible=False)
@@ -252,4 +260,3 @@ class MplWidget(QtGui.QWidget):
                 matplotlib.pyplot.plot(array, color='w', linewidth=LINE_WITH)
                 matplotlib.pyplot.savefig(RES + TEMP + str(level) + '.png', transparent=True)
                 level += 1
-

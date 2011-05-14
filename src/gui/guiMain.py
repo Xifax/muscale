@@ -15,7 +15,8 @@ import traceback
 from datetime import datetime
 
 # external #
-from PyQt4.QtCore import Qt, QRect, QSize, QTimer, PYQT_VERSION_STR, QPointF, QPoint
+from PyQt4.QtCore import Qt, QRect, QSize, QTimer,\
+                PYQT_VERSION_STR, QPointF, QPoint
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
@@ -45,7 +46,7 @@ from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from stats.models import processModel, calculateForecast
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, normalize_dwt_dimensions, iswt
-from user.test import test_data
+from usr.test import test_data
 
 ####################################
 #            GUI classes           #
@@ -143,7 +144,7 @@ class MuScaleMainDialog(QMainWindow):
         self.plotInitial = QPushButton('Plot initial data')
         self.resultingGraph = MplWidget()
 
-        self.reconsLayout.addWidget(self.reconTS,0, 0)
+        self.reconsLayout.addWidget(self.reconTS, 0, 0)
         self.reconsLayout.addWidget(self.plotInitial, 0, 1)
         self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 2)
 
@@ -248,7 +249,8 @@ class MuScaleMainDialog(QMainWindow):
                                   TRAY_VISIBLE_DELAY)
         QTimer.singleShot(TRAY_ICON_DELAY, self.trayIcon.hide)
 
-        def startingTip():  self.messageInfo.showInfo(self.statTools.currentIndex())
+        def startingTip():
+            self.messageInfo.showInfo(self.statTools.currentIndex())
 
         QTimer.singleShot(LOAD_PAUSE, startingTip)
 
@@ -529,7 +531,7 @@ class MuScaleMainDialog(QMainWindow):
         if self.y() + self.height() + M_INTERVAL > desktop.height() - BOTTOM_SPACE:
             pass
         else:
-            self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width())/2, self.y() + self.height() + M_INTERVAL)
+            self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width()) / 2, self.y() + self.height() + M_INTERVAL)
 
     def updateInfoPosition(self):
         if not self.infoDialog.detach.isChecked():
@@ -573,7 +575,7 @@ class MuScaleMainDialog(QMainWindow):
     def saveSettings(self):
         QApplication.setStyle(QStyleFactory.create(self.stylesCombo.currentText()))
         self.update()
-            
+
 ###################################################
 #------------------ loading data -----------------#
 ###################################################

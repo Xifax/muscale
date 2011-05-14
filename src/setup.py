@@ -25,4 +25,3 @@ setup(name=__name__,
           ('muscale-res/icons', glob('../res/icons/.*')),
           ],
       )
-

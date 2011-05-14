@@ -164,7 +164,7 @@ URL_SCIPY = 'http://sourceforge.net/projects/scipy/files/scipy/0.9.0/scipy-0.9.0
 URL_SETUPTOOLS = 'http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe'
 
 #---- required packages ----#
-easy_packages = ['pywt', 'flufl.enum', 'userconfig', 'simpledropbox']
+easy_packages = ['pywt', 'flufl.enum', 'userconfig', 'simpledropbox', 'pep8']
 downloadable_packages = {'PyQt4' : URL_PYQT, 'matplotlib' : URL_MATPLOTLIB,
                          'numpy' : URL_NUMPY, 'scipy' : URL_SCIPY}
 

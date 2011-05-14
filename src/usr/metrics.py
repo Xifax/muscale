@@ -5,7 +5,7 @@ __author__ = 'Robin Parmar, Yadavito'
 import os
 import fnmatch
 
-def walkIgnore(root, ignore):
+def walk_ignore(root, ignore):
     for path, subdirs, files in os.walk(root):
         subdirs[:] = [
             d for d in subdirs
@@ -15,7 +15,7 @@ def walkIgnore(root, ignore):
             if f not in ignore ]
         yield path, subdirs, files
 
-def Walk(root='.', recurse=True, pattern='*', ignore=None):
+def walk_path(root='.', recurse=True, pattern='*', ignore=None):
     """
         Generator for walking a directory tree.
         Starts at specified root folder, returning files
@@ -24,14 +24,14 @@ def Walk(root='.', recurse=True, pattern='*', ignore=None):
     """
     if ignore is None:
         ignore = []
-    for path, subdirs, files in walkIgnore(root, ignore):
+    for path, subdirs, files in walk_ignore(root, ignore):
         for name in files:
             if fnmatch.fnmatch(name, pattern):
                 yield os.path.join(path, name)
         if not recurse:
             break
 
-def LOC(root='', ignore=None, recurse=True):
+def lines_of_code(root='', ignore=None, recurse=True):
     """
         Counts lines of code in two ways:
             maximal size (source LOC) with blank lines and comments
@@ -43,9 +43,9 @@ def LOC(root='', ignore=None, recurse=True):
     if ignore is None:
         ignore = []
     count_mini, count_maxi = 0, 0
-    for fspec in Walk(root, recurse, '*.py', ignore):
+    for the_file in walk_path(root, recurse, '*.py', ignore):
         skip = False
-        for line in open(fspec).readlines():
+        for line in open(the_file).readlines():
             count_maxi += 1
 
             line = line.strip()
@@ -64,8 +64,8 @@ def LOC(root='', ignore=None, recurse=True):
     return count_mini, count_maxi
 
 def show_results():
-    ignore_list = ['pyqtgraph', 'user']
-    loc_result = LOC('../', ignore_list)
+    ignore_list = ['pyqtgraph', 'usr']
+    loc_result = lines_of_code('../', ignore_list)
     
     print 'Excluded modules: ' + ', '.join(ignore_list)
     print 'LOC (with blanks and comments): ', loc_result[1]

@@ -31,7 +31,7 @@ class InfoFilter(QObject):
 class InfoFrame(QFrame):
     def __init__(self, parent=None):
         super(InfoFrame, self).__init__(parent)
-        
+
         self.mainLayout = QVBoxLayout()
         
         self.titleLabel = QLabel(u'')
@@ -52,7 +52,10 @@ class InfoFrame(QFrame):
         
     def initComposition(self):
         self.setWindowFlags(Qt.ToolTip)
-        self.setStyleSheet('QFrame { background-color: khaki; border: 1px solid black; border-radius: 4px; } QLabel { border: none; }')
+        self.setStyleSheet('''QFrame { background-color: khaki;
+                            border: 1px solid black;
+                            border-radius: 4px; }
+                            QLabel { border: none; }''')
         
         self.setMaximumWidth(I_WIDTH)
         
