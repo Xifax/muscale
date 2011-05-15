@@ -59,11 +59,26 @@ class MuScaleMainDialog(QMainWindow):
 
         ### components ###
 
-        # settings #
-        self.config = Config()
-
         # timer #
         start = datetime.now()
+
+        # settings #
+        self.config = Config()
+        self.toolbarEnable = self.config.getParams(toolbar=True)['toolbar'].toBool()
+
+        # computational modules #
+        self.trayIcon = QSystemTrayIcon(self)
+        self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
+        self.trayIcon.show()
+        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
+        self.R = R()
+
+        # external gui modules #
+        self.wizard = None
+        self.toolsFrame = ToolsFrame(self.R, self)
+#        self.currentPlot = self.toolsFrame.plotWidget.plot()
+        self.infoDialog = InfoFrame(self)
+        self.messageInfo = SystemMessage(self)
 
         # geometry #
         self.gem = None
@@ -109,8 +124,10 @@ class MuScaleMainDialog(QMainWindow):
         self.showWavelist = QPushButton('Show wavelist')
         self.showScalogram = QPushButton('Show scalogram')
         self.decompInfoLabel = QLabel(u'')
-        self.wavelistGraph = MplWidget(toolbar=self.config.getParams(toolbar=True)['toolbar'].toBool())
-        self.scalogramGraph = MplWidget(toolbar=self.config.getParams(toolbar=True)['toolbar'].toBool())
+        self.wavelistGraph = MplWidget(self.toolsFrame,
+                                       toolbar=self.toolbarEnable)
+        self.scalogramGraph = MplWidget(self.toolsFrame,
+                                        toolbar=self.toolbarEnable)
 
         self.decompLayout.addWidget(self.comboWavelet, 0, 0)
         self.decompLayout.addWidget(self.comboWavelist, 0, 1)
@@ -143,7 +160,8 @@ class MuScaleMainDialog(QMainWindow):
 
         self.reconTS = QPushButton('Update from WT coeff''s')
         self.plotInitial = QPushButton('Plot initial data')
-        self.resultingGraph = MplWidget()
+        self.resultingGraph = MplWidget(self.toolsFrame,
+                                       toolbar=self.toolbarEnable)
 
         self.reconsLayout.addWidget(self.reconTS, 0, 0)
         self.reconsLayout.addWidget(self.plotInitial, 0, 1)
@@ -212,8 +230,6 @@ class MuScaleMainDialog(QMainWindow):
 
         self.setCentralWidget(self.centralWidget)
 
-        self.trayIcon = QSystemTrayIcon(self)
-
         # dialogs #
         self.openFileDialog = QFileDialog(self)
 
@@ -228,18 +244,6 @@ class MuScaleMainDialog(QMainWindow):
         self.initActions()
         self.loadConfig()
         self.customEffects()
-
-        # computational modules #
-        self.trayIcon.show()
-        self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
-        self.R = R()
-
-        # external gui modules #
-        self.wizard = None
-        self.toolsFrame = ToolsFrame(self.R, self)
-        self.currentPlot = self.toolsFrame.plotWidget.plot()
-        self.infoDialog = InfoFrame(self)
-        self.messageInfo = SystemMessage(self)
 
         ### start ###
         self.statusBar.showMessage('Ready!')
@@ -291,13 +295,13 @@ class MuScaleMainDialog(QMainWindow):
         self.comboDecomposition.addItems(WT._enums.values())
         self.spinLevels.setValue(2)
         self.spinLevels.setRange(2, 10)
-        self.wavelistGraph.setVisible(False)
-        self.scalogramGraph.setVisible(False)
-        self.showScalogram.setVisible(False)
-        self.showScalogram.setCheckable(True)
-        self.showWavelist.setVisible(False)
-        self.showWavelist.setCheckable(True)
-        self.decompInfoLabel.setVisible(False)
+        self.wavelistGraph.hide()
+        self.scalogramGraph.hide()
+        self.showScalogram.hide()
+        self.showScalogram.hide()
+        self.showWavelist.hide()
+        self.showWavelist.hide()
+        self.decompInfoLabel.hide()
         self.decompInfoLabel.setAlignment(Qt.AlignCenter)
 
         self.decompLayout.setAlignment(Qt.AlignCenter)
@@ -316,11 +320,10 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemEnabled(int(Tabs.Results), False)
 
         # etc #
-        self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
         self.toolBar.setIconSize(QSize(ICO_SIZE, ICO_SIZE))
 
         # results #
-        self.resultingGraph.setVisible(False)
+        self.resultingGraph.hide()
 
         # tooltips #
         self.setCustomTooltips()
@@ -670,8 +673,9 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.tableWidget.setRowCount(0)
         self.showTable.setText('Show table')
 
-        self.currentPlot.free()
-        self.toolsFrame.plotWidget.update()
+#        self.currentPlot.free()
+#        self.toolsFrame.plotWidget.update()
+        self.toolsFrame.resetPlot()
         self.showGraph.setText('Show graph')
 
         self.statTools.setItemEnabled(int(Tabs.Decomposition), False)
@@ -692,6 +696,7 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.updateLog(['data reset'], warning=True)
         self.showScalogram.setChecked(False)
         self.showWavelist.setChecked(False)
+        
         # clearing R workspace
         self.R('rm(list = ls())')
         self.toolsFrame.updateNamespace()
@@ -700,7 +705,7 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateTable(self):
         if self.showTable.text() == 'Show table':
-            self.toolsFrame.updateTable(self.currentDataSet[0])
+#            self.toolsFrame.updateTable(self.currentDataSet[0])
             self.toolsFrame.show()
             self.toolsFrame.toolTabs.setCurrentIndex(3)
             self.showTable.setText('Hide table')
@@ -723,7 +728,8 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateGraph(self):
         if self.showGraph.text() == 'Show graph':
-            self.currentPlot.updateData(self.currentDataSet[0])
+            self.toolsFrame.updatePlot(self.currentDataSet[0])
+#            self.currentPlot.updateData(self.currentDataSet[0])
             self.toolsFrame.show()
             self.toolsFrame.toolTabs.setCurrentIndex(2)
 
@@ -815,11 +821,14 @@ class MuScaleMainDialog(QMainWindow):
             self.wavelistGraph.canvas.draw()
             self.update()
 
-            if self.isSWT: self.toolsFrame.updateLog(['performed SWT'])
-            else: self.toolsFrame.updateLog(['performed DWT'])
+            if self.isSWT:
+                self.toolsFrame.updateLog(['performed SWT'])
+            else:
+                self.toolsFrame.updateLog(['performed DWT'])
             self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' + self.wavelet.name + ' wavelet'])
 
-            if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Model))
+            if self.autoStep.isChecked():
+                self.statTools.setCurrentIndex(int(Tabs.Model))
         except Exception, e:
             if self.showStacktrace.isChecked():
                 message = traceback.format_exc(e)
@@ -945,7 +954,8 @@ class MuScaleMainDialog(QMainWindow):
             togglePreview.setCheckable(True)
             togglePreview.clicked.connect(self.showComponentPreview)
 
-            componentPreview = MplWidget()
+            componentPreview = MplWidget(self.toolsFrame,
+                                       toolbar=self.toolbarEnable)
             componentPreview.hide()
 
             # level label
@@ -1046,8 +1056,9 @@ class MuScaleMainDialog(QMainWindow):
 
             modelsList.addItem(str(model) + '. ' + self.multiModel[model].enumname.replace('_', ' '))
 
-            simulationPlot = MplWidget()
-            simulationPlot.updatePlot(self.wCoefficients[model], label='Time series')
+            simulationPlot = MplWidget(self.toolsFrame,
+                                       toolbar=self.toolbarEnable)
+            simulationPlot.updatePlot(self.wCoefficients[model], label='Coeff')
 
             modelsStack.addWidget(simulationPlot)
 
@@ -1097,7 +1108,7 @@ class MuScaleMainDialog(QMainWindow):
 
         simulateButton = QPushButton('Simulate')
         actionsMenu = QMenu()
-        actionsMenu.addAction(QAction('Fit model', self, triggered=constructModel))
+        actionsMenu.addAction(QAction('Model fit', self, triggered=constructModel))
         actionsMenu.addAction(QAction('Forecast', self, triggered=forecastModel))
         actionsMenu.addAction(QAction('Reset', self, triggered=resetModel))
         simulateButton.setMenu(actionsMenu)

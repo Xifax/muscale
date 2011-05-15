@@ -49,6 +49,8 @@ class InfoFrame(QFrame):
         self.initComposition()
         self.initComponents()
         self.initActions()
+
+        self.offset = QPoint()
         
     def initComposition(self):
         self.setWindowFlags(Qt.ToolTip)
@@ -61,10 +63,11 @@ class InfoFrame(QFrame):
         
     def initComponents(self):
         self.titleLabel.setAlignment(Qt.AlignCenter)
-        self.infoLabel.setAlignment(Qt.AlignCenter)
+#        self.infoLabel.setAlignment(Qt.AlignCenter)
         
         self.titleLabel.setWordWrap(True)
         self.infoLabel.setWordWrap(True)
+#        self.infoLabel.setTextFormat(Qt.RichText)
         
         self.dockButtonUp.setHidden(True)
         self.dockButtonUp.setCheckable(True)
@@ -83,7 +86,6 @@ class InfoFrame(QFrame):
         self.offset = QPoint()
 
         font = QFont(FONTS_DICT['info'][0], FONTS_DICT['info'][2])
-#        font.setStyleStrategy(QFont.PreferAntialias)
         self.titleLabel.setFont(font)
         self.infoLabel.setFont(font)
 

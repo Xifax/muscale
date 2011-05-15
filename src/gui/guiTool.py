@@ -47,7 +47,6 @@ class ToolsFrame(QWidget):
 
         # log tab #
         self.rLogGroup = QGroupBox()
-#        self.rlogLayout = QVBoxLayout()
         self.rlogLayout = QGridLayout()
 
         self.logStats = QLabel()
@@ -60,7 +59,7 @@ class ToolsFrame(QWidget):
         self.rlogLayout.addWidget(self.logClear, 2, 1)
 
         self.rLogGroup.setLayout(self.rlogLayout)
-        self.toolTabs.addTab(self.rLogGroup, 'Log')
+        self.toolTabs.addTab(self.rLogGroup, 'Lo&g')
 
         # r console tab #
         self.rConsoleGroup = QGroupBox()
@@ -81,25 +80,26 @@ class ToolsFrame(QWidget):
         self.rConsoleLayout.addWidget(self.namesList, 2, 0, 1, 5)
 
         self.rConsoleGroup.setLayout(self.rConsoleLayout)
-        self.toolTabs.addTab(self.rConsoleGroup, 'R')
+        self.toolTabs.addTab(self.rConsoleGroup, '&R')
 
         # graphs tab #
         self.plotWidget = PlotWidget()
+        self.data = None
 
         geometry = self.saveGeometry()
-        self.toolTabs.addTab(self.plotWidget, 'Graph')
+        self.toolTabs.addTab(self.plotWidget, 'Grap&h')
         self.restoreGeometry(geometry)
 
         # table tab #
         self.tableWidget = QTableWidget()
-        self.toolTabs.addTab(self.tableWidget, 'Table')
+        self.toolTabs.addTab(self.tableWidget, 'Ta&ble')
 
         # export tab #
         self.exportGroup = QGroupBox()
         self.exportLayout = QGridLayout()
 
         self.exportGroup.setLayout(self.exportLayout)
-        self.toolTabs.addTab(self.exportGroup, 'Export')
+        self.toolTabs.addTab(self.exportGroup, '&Export')
 
         # global layout #
         self.mainLayout = QVBoxLayout()
@@ -229,6 +229,9 @@ class ToolsFrame(QWidget):
         self.logList.setFont(QFont(FONTS_DICT['log'][0], FONTS_DICT['log'][2]))
         self.tableWidget.setFont(QFont(FONTS_DICT['table'][0], FONTS_DICT['table'][2]))
 
+        # hotkeys #
+        # ...
+
     def initActions(self):
         # R
         self.rInput.returnPressed.connect(self.rCommand)
@@ -251,13 +254,14 @@ class ToolsFrame(QWidget):
 
         # table
         self.tableWidget.addAction(QAction('Clear all', self, triggered=self.clearTable))
-        #TODO: copy selected
-        #TODO: export all
-        #TODO: remove selected column
+        self.tableWidget.addAction(QAction('Copy selected columns(s)', self, triggered=self.copyColumns))
+        self.tableWidget.addAction(QAction('Copy selected item(s)', self, triggered=self.copyItems))
+        self.tableWidget.addAction(QAction('Remove selected columns(s)', self, triggered=self.removeColumns))
+        self.tableWidget.addAction(QAction('Plot selected items', self, triggered=self.plotItems))
 
 #--------- actions ---------#
 
-    #------ ---- log -----------#
+    #---------- log -----------#
     def updateLog(self, entries, error=False, warning=False, NB=False):
         timestamp = time.strftime('%H:%M:%S')
         for entry in entries:
@@ -279,11 +283,12 @@ class ToolsFrame(QWidget):
 
     def highlightSearch(self):
         self.logList.clearSelection()
-        if unicode(self.logSearh.text()).strip() != '':
+        if unicode(self.logSearh.text()).strip():
             match = self.logList.findItems(self.logSearh.text(), Qt.MatchContains)
             for item in match: self.logList.setItemSelected(item, True)
 
-            if match: self.logList.scrollToItem(match[0])
+            if match:
+                self.logList.scrollToItem(match[0])
             self.logStats.setText('Found <b>' + str(len(match)) + '</b> item(s)')
             self.logStats.show()
         else:
@@ -387,11 +392,68 @@ class ToolsFrame(QWidget):
             for row in range(self.tableWidget.rowCount(), len(dataSet)):
                 self.tableWidget.insertRow(row)
 
-        i = -1
+        i = 0
         for element in dataSet:
             self.tableWidget.setItem(i, new_column, QTableWidgetItem(str(element))); i += 1
 
         self.tableWidget.update()
+
+    def copyColumns(self):
+        if self.tableWidget.selectedIndexes():
+            copy = u''
+            column_n = 0
+            for the_range in self.tableWidget.selectedRanges():
+                for column in range(the_range.leftColumn(), the_range.rightColumn() + 1):
+                    copy += self.tableWidget.horizontalHeaderItem(column).text()
+                    column_n += 1
+                    try:
+                        for row in range(0, self.tableWidget.rowCount() - 1):
+                            copy += ' ' +  self.tableWidget.item(row, column).text()
+                        copy += '\n'
+                    except Exception:
+                        pass
+
+            clipboard = QApplication.clipboard()
+            clipboard.setText(copy)
+
+            self.parentWidget().messageInfo.showInfo('Copied ' + str(column_n) + ' full column(s)')
+
+    def copyItems(self):
+        copy = u''
+        for item in self.tableWidget.selectedItems():
+            copy += item.text()
+
+        clipboard = QApplication.clipboard()
+        clipboard.setText(copy)
+        self.parentWidget().messageInfo.showInfo('Copied ' + str(len(self.tableWidget.selectedItems())) + ' item(s)')
+
+    def removeColumns(self):
+        if self.tableWidget.selectedIndexes():
+            for the_range in self.tableWidget.selectedRanges():
+                for column in range(the_range.leftColumn(), the_range.rightColumn() + 1):
+                    self.tableWidget.removeColumn(column)
+
+    def plotItems(self):
+        data = []
+        for item in self.tableWidget.selectedItems():
+            data.append(float(item.text()))
+
+        self.updatePlot(data)
+        self.toolTabs.setCurrentIndex(2)
+
+    #----------- graph -----------#
+    def updatePlot(self, data, append=False):
+        if not append:
+            if self.data is None:
+                self.data = self.plotWidget.plot(data)
+            else:
+                self.data.updateData(data)
+        else:
+            return self.plotWidget.plot(data)
+
+    def resetPlot(self):
+        if self.data is not None:
+            self.data.free()
 
     #------ dialog behavior ------#
     def changeScale(self):

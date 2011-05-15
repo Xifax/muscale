@@ -44,7 +44,4 @@ class Config:
     def loadCustomFonts(self):
         for font in FONTS_DICT.values():
             # 0 ~ font name, 1 ~ extension
-            id = QFontDatabase.addApplicationFont(RES + FONTS + font[0] + '.' + font[1])
-            lst = QFontDatabase.applicationFontFamilies(id)
-            for str in lst:
-                print str
+            QFontDatabase.addApplicationFont(RES + FONTS + font[0] + '.' + font[1])

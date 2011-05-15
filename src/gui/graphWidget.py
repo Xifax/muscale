@@ -55,7 +55,7 @@ class MplCanvas(FigureCanvas):
 
 class MplWidget(QtGui.QWidget):
     """Widget defined in Qt Designer"""
-    def __init__(self, toolbar=True, menu=True, parent=None):
+    def __init__(self, tools, toolbar=True, menu=True, parent=None):
         # initialization of Qt MainWindow widget
         QtGui.QWidget.__init__(self, parent)
         # set the canvas to the Matplotlib widget
@@ -64,6 +64,8 @@ class MplWidget(QtGui.QWidget):
         self.layout = QtGui.QVBoxLayout()
         # add mpl widget to layout
         self.layout.addWidget(self.canvas)
+        # reference to toolsFrame
+        self.tool = tools
 
         if toolbar:
             # add navigation toolbar to layout
@@ -97,11 +99,8 @@ class MplWidget(QtGui.QWidget):
         self.newIcons()
 
     def initActions(self):
-        #TODO: add 'plot to Tools'
-        #TODO: add copy data
-        #TODO: add something else!
-#        self.addAction(QtGui.QAction('Hide', self, triggered=self.hide))
-        pass
+        self.addAction(QtGui.QAction('Copy data to table', self, triggered=self.toTable))
+        self.addAction(QtGui.QAction('Plot data in tools', self, triggered=self.toGraphTool))
 
     def newIcons(self):
         for position in range(0, self.toolbar.layout().count()):
@@ -237,6 +236,32 @@ class MplWidget(QtGui.QWidget):
             i += 1
             if i != len(data):
                 setp(ax.get_xticklabels(), visible=False)
+
+    #----------------- actions -----------------#
+    def getTopParent(self):
+        widget = self.parentWidget()
+        while True:
+            if widget.parentWidget() is None:
+                return widget
+            else:
+                widget = widget.parentWidget()
+#        return self.parentWidget().parent().parent().parent().parent().parent()
+
+    def toTable(self):
+        try:
+            for line in self.canvas.ax.get_lines():
+                self.tool.updateTable(line._y, line._label)
+            self.getTopParent().messageInfo.showInfo('Copied to table')
+        except Exception:
+            pass
+
+    def toGraphTool(self):
+        try:
+            for line in self.canvas.ax.get_lines():
+                self.tool.updatePlot(line._y)
+            self.getTopParent().messageInfo.showInfo("Updated tool's graph")
+        except Exception:
+            pass
 
     #------------------ utils ------------------#
     ## Generates previews for specified data.
