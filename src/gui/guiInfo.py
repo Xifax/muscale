@@ -7,10 +7,10 @@ Created on Mar 23, 2011
 # external #
 from PyQt4.QtCore import QObject, QEvent, Qt, QPoint
 from PyQt4.QtGui import QFrame, QVBoxLayout,\
-                        QLabel, QPushButton, QAction
+                        QLabel, QPushButton, QAction, QFont
 
 # own #
-from utility.const import I_WIDTH, infoContens
+from utility.const import I_WIDTH, infoContens, FONTS_DICT
 from utility.guiTweaks import roundCorners
 
 class InfoFilter(QObject):
@@ -81,7 +81,12 @@ class InfoFrame(QFrame):
         self.installEventFilter(self.filter)
 
         self.offset = QPoint()
-        
+
+        font = QFont(FONTS_DICT['info'][0], FONTS_DICT['info'][2])
+#        font.setStyleStrategy(QFont.PreferAntialias)
+        self.titleLabel.setFont(font)
+        self.infoLabel.setFont(font)
+
     def initActions(self):
         self.dockButtonUp.clicked.connect(self.setTopPosition)
         self.dockButtonDown.clicked.connect(self.setBottomPosition)
@@ -90,7 +95,7 @@ class InfoFrame(QFrame):
         self.detach = QAction('Detatch', self)
         self.detach.setCheckable(True)
         self.addAction(self.detach)
-        self.addAction(QAction('Hide', self, triggered=self.hide))
+        self.addAction(QAction('Hide', self, triggered=self.hideInfo))
         
     def updateContents(self, index):
         content = infoContens(index)
@@ -116,6 +121,10 @@ class InfoFrame(QFrame):
         
     def updateCornersMask(self):
         self.setMask(roundCorners(self.rect(), 5))
+
+    def hideInfo(self):
+        self.parent().toggleInfo.setChecked(False)
+        self.hide()
 
     #------------ events -------------#
     def showEvent(self, event):

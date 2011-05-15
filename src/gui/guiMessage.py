@@ -3,23 +3,21 @@ __author__ = 'Yadavito'
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer, QObject, QEvent
-from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout, QApplication
+from PyQt4.QtGui import QFrame, QLabel, QVBoxLayout, QApplication, QFont
 
 # own #
 from utility.tools import RepeatTimer
 from utility.const import infoTips, TIP_VISIBLE, STATUS_CHECK_DELAY,\
-                        M_INTERVAL, BOTTOM_SPACE
+                        M_INTERVAL, BOTTOM_SPACE, FONTS_DICT
 
 class MessageFilter(QObject):
     """Status message mouse click filter"""
     def eventFilter(self, object, event):
         if event.type() == QEvent.HoverEnter:
             object.countdownTimer.stop()
-#            object.info.setStyleSheet('QLabel { border: none; color: lightsteelblue; }')
             object.setWindowOpacity(0.8)
         if event.type() == QEvent.HoverLeave:
             object.countdownTimer.start(TIP_VISIBLE + STATUS_CHECK_DELAY)
-#            object.info.setStyleSheet('QLabel { border: none; color: white; }')
             object.setWindowOpacity(1.0)
         if event.type() == QEvent.MouseButtonPress:
             object.countdownTimer.stop()
@@ -58,6 +56,8 @@ class SystemMessage(QFrame):
 
         self.countdownTimer.setSingleShot(True)
         self.countdownTimer.timeout.connect(self.fadeStatus)
+
+        self.info.setFont(QFont(FONTS_DICT['message'][0], FONTS_DICT['message'][2]))
 
     def updateStyle(self, error=False):
         if not error:

@@ -43,6 +43,7 @@ Created on Mar 9, 2011
 #TODO: implement data criterion
 #TODO: check parsed data length (> n)
 #TODO: implement some kind of automatic resize mechanism
+#TODO: draw vertical line to separate forecast from initial data
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
 #TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]
 #TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)

@@ -109,8 +109,8 @@ class MplWidget(QtGui.QWidget):
             if isinstance(widget, QtGui.QToolButton):
                 icon = QtGui.QIcon(RES + ICONS + TOOLBAR_ICONS[position])
                 self.toolbar.layout().itemAt(position).widget().setIcon(icon)
-                self.toolbar.layout().itemAt(position).widget().resize(QSize(8, 8))
-                self.update()
+#                self.toolbar.layout().itemAt(position).widget().resize(QSize(8, 8)) # does not work
+#                self.update()
 #                self.toolbar.layout().itemAt(position).widget().setIconSize(QSize(16, 16))
 
     def resetGraphicEffect(self):

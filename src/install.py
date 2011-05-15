@@ -9,9 +9,12 @@ import sys
 import urllib
 import subprocess
 import os
+import shutil
+import platform
 
 # external #
-from utility.const import easy_packages, downloadable_packages, URL_SETUPTOOLS, URL_R
+from utility.const import easy_packages, downloadable_packages,\
+                        URL_SETUPTOOLS, URL_R
 
 def dlProgress(count, blockSize, totalSize):
     percent = int(count * blockSize * 100 / totalSize)

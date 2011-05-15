@@ -42,6 +42,7 @@ RES = '../res/'
 ICONS = 'icons/'
 WV = 'wv/'
 TEMP = 'tmp/'
+FONTS = 'fonts/'
 
 #--------- icons ----------#
 LOGO = 'chart_line.png'
@@ -186,16 +187,28 @@ style = 'style'
 tray = 'tray'
 trace = 'trace'
 folder = 'folder'
+table = 'table'
+model = 'model'
 
 # dictionary
-CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder],
+CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder, table],
                s_graph: [show_toolbar, plot_multiline],
-               s_model: [data_r, basic_swt, lock_max],
+               s_model: [data_r, basic_swt, lock_max, model],
             }
 
-#------ data -------#
+#---------- data -----------#
 DATA_LOW_LIMIT = 10 # values count
 DATA_HIGH_LIMIT = 1000
 
-#------ preview generation ------#
+#---- preview generation ---#
 LINE_WITH = 0.9
+
+#-------- typefaces --------#
+# application (typeface, format, size)
+FONTS_DICT = {'main': ('Consolas', 'ttf', 11),
+              'info': ('Droid Sans', 'ttf', 9),
+              'message': ('Anonymous', 'ttf', 8),
+              'log': ('Droid Serif', 'ttf', 9),
+              'splash': ('GreyscaleBasic', 'ttf', 10),
+              'table': ('Dekar', 'otf', 12)
+            }

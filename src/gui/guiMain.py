@@ -33,7 +33,8 @@ from utility.const import __name__,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
-    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE
+    infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
+    FONTS_DICT
 from utility.guiTweaks import unfillLayout, createSeparator, createShadow,\
     walkNonGridLayoutShadow, walkGridLayoutShadow
 from utility.tools import prettifyNames, clearFolderContents
@@ -337,6 +338,10 @@ class MuScaleMainDialog(QMainWindow):
         self.applySettings.setText('Apply visual style')
         self.optionsGroup.hide()
 
+        # fonts #
+#        self.manualDataInput.setFont(QFont(FONTS_DICT['main'][0], (FONTS_DICT['main'][2])))
+        self.setFont(QFont(FONTS_DICT['main'][0], (FONTS_DICT['main'][2])))
+
     def initActions(self):
         # menu actions #
         quitAction = QAction('&Quit', self)
@@ -453,7 +458,10 @@ class MuScaleMainDialog(QMainWindow):
     def loadConfig(self):
         self.lastFolder = RES
         # the same order as in utility.const.CONFIG_DICT
-        step, shadows, style, tray, trace, folder, r, basic, lock, toolbar, multiline = self.config.loadConfig()
+        step, shadows, style, tray, trace, folder, table, \
+            r, basic, lock, model, \
+            toolbar, multiline = self.config.loadConfig()
+
         self.toggleShadows.setChecked(shadows.toBool())
         self.stylesCombo.setCurrentIndex(style.toInt()[0])
         self.lockMaxLevel.setChecked(lock.toBool())
@@ -464,6 +472,8 @@ class MuScaleMainDialog(QMainWindow):
         self.autoBaseSWT.setChecked(basic.toBool())
         self.showStacktrace.setChecked(trace.toBool())
         self.hidetoTray.setChecked(tray.toBool())
+        self.autoUpdateTable.setChecked(table.toBool())
+        self.autoConstructModel.setChecked(model.toBool())
         try:
             self.saveLastFolder.setChecked(folder.toList()[0].toBool())
             self.lastFolder = folder.toList()[1].toString()
@@ -484,7 +494,9 @@ class MuScaleMainDialog(QMainWindow):
             toolbar=self.enableToolbar.isChecked(),
             trace=self.showStacktrace.isChecked(),
             tray=self.hidetoTray.isChecked(),
-            folder=[self.saveLastFolder.isChecked(), self.lastFolder]
+            folder=[self.saveLastFolder.isChecked(), self.lastFolder],
+            table=self.autoUpdateTable.isChecked(),
+            model=self.autoConstructModel.isChecked(),
         )
 
     def customEffects(self):

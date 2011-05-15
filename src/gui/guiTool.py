@@ -11,10 +11,9 @@ import time
 from PyQt4.QtCore import Qt, QObject,QEvent, QTimer
 from PyQt4.QtGui import *
 from pyqtgraph.PlotWidget import PlotWidget
-#from pyqtgraph.graphicsItems import *
 
 # own #
-from utility.const import T_WIDTH, T_HEIGHT
+from utility.const import T_WIDTH, T_HEIGHT, FONTS_DICT
 from utility.tools import checkParentheses
 from utility.const import LABEL_VISIBLE, FLASH_LABEL
 from utility.log import log
@@ -48,14 +47,17 @@ class ToolsFrame(QWidget):
 
         # log tab #
         self.rLogGroup = QGroupBox()
-        self.rlogLayout = QVBoxLayout()
+#        self.rlogLayout = QVBoxLayout()
+        self.rlogLayout = QGridLayout()
 
+        self.logStats = QLabel()
         self.logList = QListWidget()
-        self.logClear = QPushButton('Clear')
+        self.logClear = QToolButton()
         self.logSearh = QLineEdit()
-        self.rlogLayout.addWidget(self.logClear)
-        self.rlogLayout.addWidget(self.logList)
-        self.rlogLayout.addWidget(self.logSearh)
+        self.rlogLayout.addWidget(self.logStats, 0, 0, 1, 2)
+        self.rlogLayout.addWidget(self.logList, 1, 0, 1, 2)
+        self.rlogLayout.addWidget(self.logSearh, 2, 0)
+        self.rlogLayout.addWidget(self.logClear, 2, 1)
 
         self.rLogGroup.setLayout(self.rlogLayout)
         self.toolTabs.addTab(self.rLogGroup, 'Log')
@@ -185,6 +187,11 @@ class ToolsFrame(QWidget):
         self.logList.setAlternatingRowColors(True)
         self.logList.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.logList.setWordWrap(True)
+        self.logList.setToolTip('Doubleclick on item to copy')
+
+        self.logClear.setText('Clear')
+        self.logStats.setAlignment(Qt.AlignCenter)
+        self.logStats.hide()
 
         self.logList.setStyleSheet(
             '''QListView { alternate-background-color: whitesmoke; }
@@ -218,6 +225,10 @@ class ToolsFrame(QWidget):
                  border: 1px solid #bfcde4;
             }''')
 
+        # fonts #
+        self.logList.setFont(QFont(FONTS_DICT['log'][0], FONTS_DICT['log'][2]))
+        self.tableWidget.setFont(QFont(FONTS_DICT['table'][0], FONTS_DICT['table'][2]))
+
     def initActions(self):
         # R
         self.rInput.returnPressed.connect(self.rCommand)
@@ -233,13 +244,10 @@ class ToolsFrame(QWidget):
 
         # log
         self.logClear.clicked.connect(self.clearEntries)
-        self.logSearh.textChanged.connect(self.highlightSearh)
+        self.logSearh.textChanged.connect(self.highlightSearch)
         self.logSearh.returnPressed.connect(self.logSearh.clear)
-        #TODO: implement context menu features
-#        self.logList.itemDoubleClicked.connect(self.copyToClipboard)
+        self.logList.itemDoubleClicked.connect(self.copyToClipboard)
         self.logList.addAction(QAction('Toggle controls', self, triggered=self.toggleLogControls))
-#        self.logList.addAction(QAction('Export to file', self, triggered=self.toggleLogControls))
-#        self.logList.addAction(QAction('Copy to clipboard', self, triggered=self.toggleLogControls))
 
         # table
         self.tableWidget.addAction(QAction('Clear all', self, triggered=self.clearTable))
@@ -253,7 +261,8 @@ class ToolsFrame(QWidget):
     def updateLog(self, entries, error=False, warning=False, NB=False):
         timestamp = time.strftime('%H:%M:%S')
         for entry in entries:
-            item = QListWidgetItem(13 * ' ' + entry)      # one tab is too much, it seems
+            indent = 13
+            item = QListWidgetItem(indent * ' ' + entry)      # one tab is too much, as it seems
             if error:
                 item.setTextColor(QColor(255, 0, 0, 127))
             if warning:
@@ -268,17 +277,17 @@ class ToolsFrame(QWidget):
     def clearEntries(self):
         self.logList.clear()
 
-    def highlightSearh(self):
+    def highlightSearch(self):
         self.logList.clearSelection()
         if unicode(self.logSearh.text()).strip() != '':
             match = self.logList.findItems(self.logSearh.text(), Qt.MatchContains)
             for item in match: self.logList.setItemSelected(item, True)
 
             if match: self.logList.scrollToItem(match[0])
-#            self.logList.setText('<b>' + str(len(match)) + '</b> items found')
+            self.logStats.setText('Found <b>' + str(len(match)) + '</b> item(s)')
+            self.logStats.show()
         else:
-            pass
-#            self.updateItemsCount()
+            self.logStats.hide()
 
     def toggleLogControls(self):
         if self.logClear.isHidden():
@@ -287,6 +296,10 @@ class ToolsFrame(QWidget):
         else:
             self.logClear.hide()
             self.logSearh.hide()
+
+    def copyToClipboard(self, item):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(item.text())
 
     #----------- R -------------#
     def updateStack(self, request):

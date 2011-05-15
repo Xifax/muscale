@@ -20,7 +20,6 @@ def check(path, ignore=None, to_file=False):
     pep = '--show-pep8'
     rep = '--repeat'
 
-#    args = [quite_mode, show_source]
     args = [rep]
 
     if ignore is None:

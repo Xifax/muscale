@@ -6,7 +6,8 @@ from PyQt4.QtGui import QPixmap, QSplashScreen
 from PyQt4.QtCore import Qt
 
 # own #
-from utility.const import RES, ICONS, SPLASH, __version__, __name__
+from utility.const import RES, ICONS, SPLASH, FONTS_DICT,\
+                    __version__, __name__
 
 def showSplash(app):
 
@@ -22,7 +23,9 @@ def showSplash(app):
     # status message
     labelAlignment = Qt.Alignment(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute)
     newline = '<br/>'
-    font = "<font style='font-family: Courier New; font-size: 10pt; color: white;'>"
+    family = FONTS_DICT['splash'][0]
+    size = str(FONTS_DICT['splash'][2])
+    font = "<font style='font-family: " + family + "; font-size: " + size + "pt; color: white;'>"
     info = newline * 10 + font + 'Loading...<br/>' + __name__ + ' ' + __version__ + '</font'
     splash.showMessage(info, labelAlignment)        #NB: html tags completely break alignment and color settings
 
