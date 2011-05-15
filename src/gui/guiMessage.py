@@ -72,6 +72,7 @@ class SystemMessage(QFrame):
                             QLabel { border: none; color: white; }''')
 
     def showInfo(self, message, error=False, adjust=True):
+        #TODO: fix delay
         if not self.isShown:
             self.info.setText('')
             self.updateStyle(error)

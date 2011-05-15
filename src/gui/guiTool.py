@@ -98,6 +98,18 @@ class ToolsFrame(QWidget):
         self.exportGroup = QGroupBox()
         self.exportLayout = QGridLayout()
 
+        self.exportForecast = QCheckBox('Export resulting forecast')
+        self.exportStepByStep = QCheckBox('Export modelling steps')
+        self.exportGraph = QCheckBox('Export graphics')
+        self.exportData = QCheckBox('Export data')
+        self.exportButton = QPushButton('Export as')
+
+        self.exportLayout.addWidget(self.exportForecast, 0, 0)
+        self.exportLayout.addWidget(self.exportStepByStep, 0, 1)
+        self.exportLayout.addWidget(self.exportData, 1, 0)
+        self.exportLayout.addWidget(self.exportGraph, 1, 1)
+        self.exportLayout.addWidget(self.exportButton, 2, 0, 1, 2)
+
         self.exportGroup.setLayout(self.exportLayout)
         self.toolTabs.addTab(self.exportGroup, '&Export')
 
@@ -229,6 +241,11 @@ class ToolsFrame(QWidget):
         self.logList.setFont(QFont(FONTS_DICT['log'][0], FONTS_DICT['log'][2]))
         self.tableWidget.setFont(QFont(FONTS_DICT['table'][0], FONTS_DICT['table'][2]))
 
+        # export #
+        self.exportLayout.setAlignment(Qt.AlignCenter)
+        self.exportData.hide()
+        self.exportGraph.hide()
+
         # hotkeys #
         # ...
 
@@ -259,7 +276,42 @@ class ToolsFrame(QWidget):
         self.tableWidget.addAction(QAction('Remove selected columns(s)', self, triggered=self.removeColumns))
         self.tableWidget.addAction(QAction('Plot selected items', self, triggered=self.plotItems))
 
+        # export
+        exportMenu = QMenu()
+        exportMenu.addAction(QAction('Portable Document Format (PDF)', self, triggered=self.exportToPdf))
+        exportMenu.addAction(QAction('Microsoft Excel Spreadsheet (XLS)', self, triggered=self.exportToXls))
+        exportMenu.addAction(QAction('Plain text (TXT) && PNG', self, triggered=self.exportToVarious))
+        exportMenu.addAction(QAction('Send to print', self, triggered=self.sendToPrint))
+        self.exportButton.setMenu(exportMenu)
+
+        self.exportForecast.stateChanged.connect(self.toggleExportOptions)
+        self.exportStepByStep.stateChanged.connect(self.toggleExportOptions)
+
 #--------- actions ---------#
+
+    #-------- export ----------#
+    def toggleExportOptions(self):
+        if self.exportForecast.isChecked() or\
+            self.exportStepByStep.isChecked():
+            self.exportData.show()
+            self.exportGraph.show()
+        else:
+            self.exportData.hide()
+            self.exportGraph.hide()
+
+    def exportToPdf(self):
+#       QPrinter
+#        http://goo.gl/AgX3l
+#        http://goo.gl/K5zg4
+        pass
+    def exportToXls(self):
+#        http://goo.gl/xalIt
+#        http://goo.gl/K9cjx
+        pass
+    def exportToVarious(self):
+        pass
+    def sendToPrint(self):
+        pass
 
     #---------- log -----------#
     def updateLog(self, entries, error=False, warning=False, NB=False):
@@ -443,6 +495,7 @@ class ToolsFrame(QWidget):
 
     #----------- graph -----------#
     def updatePlot(self, data, append=False):
+        #TODO: update axes and position
         if not append:
             if self.data is None:
                 self.data = self.plotWidget.plot(data)

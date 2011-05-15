@@ -20,7 +20,6 @@ from PyQt4.QtCore import Qt, QRect, QSize, QTimer,\
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
-#from numpy import *
 
 # own #
 from utility.log import log
@@ -31,12 +30,12 @@ from utility.const import __name__,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
     P_PREVIEW_HEIGHT, DATA_LOW_LIMIT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
-    FIRST, LAST, NEXT, PREV, ABOUT, QUIT, TEST, RESET,\
+    FIRST, LAST, NEXT, PREV, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
     FONTS_DICT
-from utility.guiTweaks import unfillLayout, createSeparator, createShadow,\
-    walkNonGridLayoutShadow, walkGridLayoutShadow
+from utility.guiTweaks import unfillLayout, createSeparator, \
+    walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
 from utility.tools import prettifyNames, clearFolderContents
 from utility.config import Config
 from stats.parser import DataParser
@@ -45,6 +44,7 @@ from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
+from gui.flowLayout import FlowLayout
 from stats.models import processModel, calculateForecast
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, normalize_dwt_dimensions, iswt
 from usr.test import test_data
@@ -177,8 +177,8 @@ class MuScaleMainDialog(QMainWindow):
         self.autoStep = QCheckBox('Auto next step')
         self.enableToolbar = QCheckBox('Show graph controls on hover')
         self.plotMultiline = QCheckBox('Plot wavelist as multiline graph')
-        self.autoBaseSWT = QCheckBox("Automatically process 'basic' SWT levels")
-        self.autoUpdateTools = QCheckBox('Add all temporary data to R workspace')
+        self.autoBaseSWT = QCheckBox("Process 'basic' SWT levels")
+        self.autoUpdateTools = QCheckBox('Append data to R workspace')
         self.showStacktrace = QCheckBox('Show exception stacktrace')
         self.saveLastFolder = QCheckBox('Remember last opened folder')
         self.hidetoTray = QCheckBox('Hide to tray on close')
@@ -188,20 +188,43 @@ class MuScaleMainDialog(QMainWindow):
 
         self.optionsLayout = QGridLayout()
         self.optionsLayout.addWidget(self.stylesCombo, 0, 0)
-        self.optionsLayout.addWidget(self.toggleShadows, 0, 1)
-        self.optionsLayout.addWidget(self.applySettings, 0, 2)
-        self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 3)
-        self.optionsLayout.addWidget(self.lockMaxLevel, 2, 0)
-        self.optionsLayout.addWidget(self.autoStep, 2, 1)
-        self.optionsLayout.addWidget(self.enableToolbar, 2, 2)
-        self.optionsLayout.addWidget(self.autoBaseSWT, 3, 0)
-        self.optionsLayout.addWidget(self.autoUpdateTools, 3, 1)
-        self.optionsLayout.addWidget(self.plotMultiline, 3, 2)
-        self.optionsLayout.addWidget(self.showStacktrace, 4, 0)
-        self.optionsLayout.addWidget(self.saveLastFolder, 4, 1)
-        self.optionsLayout.addWidget(self.hidetoTray, 4, 2)
-        self.optionsLayout.addWidget(self.autoUpdateTable, 5, 0)
-        self.optionsLayout.addWidget(self.autoConstructModel, 5, 1)
+        self.optionsLayout.addWidget(self.toggleShadows, 0, 2)
+        self.optionsLayout.addWidget(self.applySettings, 0, 4)
+        self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 5)
+#        #--
+#        self.optionsLayout.addWidget(self.autoStep, 2, 0)
+#        self.optionsLayout.addWidget(self.autoUpdateTable, 2, 1)
+#        self.optionsLayout.addWidget(self.autoConstructModel, 2, 2)
+#        self.optionsLayout.addWidget(self.autoUpdateTools, 3, 1)
+#        self.optionsLayout.addWidget(createSeparator(), 4, 0, 1, 3)
+#        #---
+#        self.optionsLayout.addWidget(self.lockMaxLevel, 5, 0)
+#        self.optionsLayout.addWidget(self.autoBaseSWT, 5, 1)
+#        self.optionsLayout.addWidget(self.enableToolbar, 5, 2)
+#        self.optionsLayout.addWidget(self.plotMultiline, 6, 1)
+#        self.optionsLayout.addWidget(createSeparator(), 7, 0, 1, 3)
+#        #--
+#        self.optionsLayout.addWidget(self.showStacktrace, 8, 0)
+#        self.optionsLayout.addWidget(self.saveLastFolder, 8, 1)
+#        self.optionsLayout.addWidget(self.hidetoTray, 8, 2)
+
+        #--
+        self.optionsLayout.addWidget(self.autoStep, 2, 0)
+        self.optionsLayout.addWidget(self.autoUpdateTable, 3, 0)
+        self.optionsLayout.addWidget(self.autoConstructModel, 4, 0)
+        self.optionsLayout.addWidget(self.autoUpdateTools, 5, 0)
+        self.optionsLayout.addWidget(createVerticalSeparator(), 2, 1, 4, 1)
+        #---
+        self.optionsLayout.addWidget(self.lockMaxLevel, 2, 2)
+        self.optionsLayout.addWidget(self.autoBaseSWT, 3, 2)
+        self.optionsLayout.addWidget(self.enableToolbar, 4, 2)
+        self.optionsLayout.addWidget(self.plotMultiline, 5, 2)
+        self.optionsLayout.addWidget(createVerticalSeparator(), 2, 3, 4, 1)
+        #--
+        self.optionsLayout.addWidget(self.showStacktrace, 2, 4)
+        self.optionsLayout.addWidget(self.saveLastFolder, 3, 4)
+        self.optionsLayout.addWidget(self.hidetoTray, 4, 4)
+
         self.optionsGroup.setLayout(self.optionsLayout)
 
         # menus, toolbars, layouts & composition #
@@ -337,13 +360,30 @@ class MuScaleMainDialog(QMainWindow):
 
         # settings #
         self.stylesCombo.addItems(QStyleFactory.keys())
-#        self.optionsLayout.setAlignment(Qt.AlignCenter)
+        self.optionsLayout.setAlignment(Qt.AlignCenter)
         self.applySettings.setText('Apply visual style')
         self.optionsGroup.hide()
 
         # fonts #
-#        self.manualDataInput.setFont(QFont(FONTS_DICT['main'][0], (FONTS_DICT['main'][2])))
-        self.setFont(QFont(FONTS_DICT['main'][0], (FONTS_DICT['main'][2])))
+        font_tooltip = 'Cambria'
+        tooltip_size = 12
+        font = FONTS_DICT['main'][0]
+        size = FONTS_DICT['main'][2]
+        self.centralWidget.setStyleSheet('QPushButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QComboBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QLabel {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QToolBox::tab {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QCheckBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QToolTip {font-family: ' + font_tooltip + '; font-size: ' + str(tooltip_size) + 'px;}')
+
+        self.toolBar.setStyleSheet('QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                    QToolTip {font-family: ' + font_tooltip + '; font-size: ' + str(tooltip_size) + 'px;}')
+
+        self.menuBar.setStyleSheet('QMenu {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
+
+        self.statusBar.setStyleSheet('QStatusBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
 
     def initActions(self):
         # menu actions #
@@ -670,11 +710,9 @@ class MuScaleMainDialog(QMainWindow):
         self.clearAll.hide()
         self.separator.hide()
 
-        self.toolsFrame.tableWidget.setRowCount(0)
+        self.toolsFrame.clearTable()
         self.showTable.setText('Show table')
 
-#        self.currentPlot.free()
-#        self.toolsFrame.plotWidget.update()
         self.toolsFrame.resetPlot()
         self.showGraph.setText('Show graph')
 
@@ -700,8 +738,6 @@ class MuScaleMainDialog(QMainWindow):
         # clearing R workspace
         self.R('rm(list = ls())')
         self.toolsFrame.updateNamespace()
-
-#        self.messageInfo.showInfo("Data's been reset")
 
     def updateTable(self):
         if self.showTable.text() == 'Show table':

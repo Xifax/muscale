@@ -64,7 +64,7 @@ def lines_of_code(root='', ignore=None, recurse=True):
     return count_mini, count_maxi
 
 def show_results():
-    ignore_list = ['pyqtgraph', 'usr']
+    ignore_list = ['pyqtgraph', 'usr', 'pyper.py']
     loc_result = lines_of_code('../', ignore_list)
     
     print 'Excluded modules: ' + ', '.join(ignore_list)

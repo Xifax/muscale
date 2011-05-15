@@ -92,14 +92,14 @@ LABEL_VISIBLE = 3000
 
 #--------- info ------------#
 
-#NB: Alas, QLabel does not support advanced css
+#NB: Alas, QLabel does not support advanced css (ul/ol use results in crooked formatting)
 def infoContens(index):
     try:
         return { 
                     0: {'title': u'Загрузка исходных данных',
-                        'info': u'''<div align="center">Ввод одномерного временного ряда из файла или вручную:</div>
-<ul style="list-style-type: circle; margin-left: 0px;"><li>Допускается загрузка из любого формата — будет осуществленна попытка чтения текстовых данных;</li>
-<li>При ручном вводе необходимо разделять вводимые величины запятой, пробелом или переносом строки.</li></ul>'''},
+                        'info': u'''<div align="center">Ввод одномерного временного ряда из файла или вручную:<br/><br/>
+Допускается загрузка из любого формата — будет осуществленна попытка чтения текстовых данных;<br/><br/>
+При ручном вводе необходимо разделять вводимые величины запятой, пробелом или переносом строки.</div>'''},
                     1: {'title': u'Декомпозиция временного ряда',
                         'info': u'''<div align="center">Стационарное/дискретное вейвлет-разложение на определённое число составляющих:
 дискретное разложение предполагает существенную редукцию исходных данных; стационарное обеспечивает временную инвариантность получаемых компонент.</div>'''},
@@ -213,9 +213,9 @@ LINE_WITH = 0.9
 
 #-------- typefaces --------#
 # application (typeface, format, size)
-FONTS_DICT = {'main': ('Consolas', 'ttf', 11),
+#FONTS_DICT = {'main': ('Anonymous', 'ttf', 10),
+FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
               'info': ('Droid Sans', 'ttf', 9),
-#              'message': ('Anonymous', 'ttf', 8),
               'message': ('Consolas', 'ttf', 9),
               'log': ('Droid Serif', 'ttf', 9),
               'splash': ('GreyscaleBasic', 'ttf', 10),

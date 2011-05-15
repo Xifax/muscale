@@ -38,7 +38,7 @@ Created on Mar 9, 2011
 #TODO: export menu
 #TODO: graph legend
 #TODO: wizard template
-#TODO: allow multicolumn table
+#TODO: fix DWT reconstruction
 #TODO: implement parse template
 #TODO: implement data criterion
 #TODO: check parsed data length (> n)

@@ -64,8 +64,8 @@ model_predict_methods = { Models.Holt_Winters : hwPredict, Models.Least_Squares_
                           Models.ARIMA : arimaPredict, Models.Harmonic_Regression : arPredict }
 
 # interface methods
-def processModel(model, data, r):
+def processModel(model, data, r, options=None):
     return model_process_methods[model](data, r)
 
-def calculateForecast(model, data, r, steps = steps_default):
+def calculateForecast(model, data, r, steps = steps_default, options=None):
     return model_predict_methods[model](data, r, steps)

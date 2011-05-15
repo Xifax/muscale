@@ -52,6 +52,13 @@ def createSeparator():
     separator.setFrameShadow(QFrame.Sunken)
     return separator
 
+def createVerticalSeparator():
+    '''Create simple separator'''
+    separator = QFrame()
+    separator.setFrameShape(QFrame.VLine)
+    separator.setFrameShadow(QFrame.Sunken)
+    return separator
+
 def createShadow():
     '''Create shadow effect'''
     shadow = QGraphicsDropShadowEffect()
