@@ -9,7 +9,7 @@ from flufl.enum import make_enum
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -58,6 +58,7 @@ LAST = 'last.png'
 TEST = 'flag.png'
 ABOUT = 'about.png'
 QUIT = 'quit.png'
+SHOW = 'show.png'
 RESET = 'delete.png'
 # ~*~ #
 LOAD = 'load.png'
@@ -65,6 +66,14 @@ DECOM = 'cog.png'
 LAYERS = 'layers.png'
 ANALYSIS = 'forecast.png'
 FIN = 'fin.png'
+# ~*~ #
+CONTROLS = 'ctrl.png'
+GRAPH = 'graph.png'
+CLEAR = 'clear.png'
+COPY = 'copy.png'
+ELEMENTS = 'elements.png'
+CUT = 'cut.png'
+SERIES = ['series0.png', 'series1.png', 'series2.png', 'series3.png']
 
 # toolbar icons #
 TOOLBAR_ICONS = ['home.png', 'back.png', 'forward.png', '',
@@ -95,7 +104,7 @@ LABEL_VISIBLE = 3000
 #NB: Alas, QLabel does not support advanced css (ul/ol use results in crooked formatting)
 def infoContens(index):
     try:
-        return { 
+        return {    #TODO: check why scaling does not work as it should
                     0: {'title': u'Загрузка исходных данных',
                         'info': u'''<div align="center">Ввод одномерного временного ряда из файла или вручную:<br/><br/>
 Допускается загрузка из любого формата — будет осуществленна попытка чтения текстовых данных;<br/><br/>
@@ -207,6 +216,9 @@ CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder, table],
 #---------- data -----------#
 DATA_LOW_LIMIT = 10 # values count
 DATA_HIGH_LIMIT = 1000
+MAX_FORECAST = 500
+MIN_FORECAST = 2
+DEFAULT_STEPS = 20
 
 #---- preview generation ---#
 LINE_WITH = 0.9

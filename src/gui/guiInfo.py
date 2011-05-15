@@ -20,7 +20,7 @@ class InfoFilter(QObject):
             object.dockButtonUp.setVisible(True)
             object.dockButtonDown.setVisible(True)
             object.adjustSize()
-            object.updateCornersMask()
+#            object.updateCornersMask()
         if event.type() == QEvent.HoverLeave:
             object.dockButtonUp.setHidden(True)
             object.dockButtonDown.setHidden(True)
@@ -67,7 +67,7 @@ class InfoFrame(QFrame):
         
         self.titleLabel.setWordWrap(True)
         self.infoLabel.setWordWrap(True)
-#        self.infoLabel.setTextFormat(Qt.RichText)
+        self.infoLabel.setTextFormat(Qt.RichText)
         
         self.dockButtonUp.setHidden(True)
         self.dockButtonUp.setCheckable(True)

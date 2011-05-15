@@ -30,10 +30,10 @@ from utility.const import __name__,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
     P_PREVIEW_HEIGHT, DATA_LOW_LIMIT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
-    FIRST, LAST, NEXT, PREV, TEST, RESET,\
+    FIRST, LAST, NEXT, PREV, QUIT, SHOW, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
-    FONTS_DICT
+    FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS
 from utility.guiTweaks import unfillLayout, createSeparator, \
     walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
 from utility.tools import prettifyNames, clearFolderContents
@@ -71,12 +71,13 @@ class MuScaleMainDialog(QMainWindow):
         self.trayIcon.setIcon(QIcon(RES + ICONS + LOGO))
         self.trayIcon.show()
         self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
+        self.forbidClose = True
+
         self.R = R()
 
         # external gui modules #
         self.wizard = None
         self.toolsFrame = ToolsFrame(self.R, self)
-#        self.currentPlot = self.toolsFrame.plotWidget.plot()
         self.infoDialog = InfoFrame(self)
         self.messageInfo = SystemMessage(self)
 
@@ -129,16 +130,26 @@ class MuScaleMainDialog(QMainWindow):
         self.scalogramGraph = MplWidget(self.toolsFrame,
                                         toolbar=self.toolbarEnable)
 
-        self.decompLayout.addWidget(self.comboWavelet, 0, 0)
-        self.decompLayout.addWidget(self.comboWavelist, 0, 1)
-        self.decompLayout.addWidget(self.comboDecomposition, 0, 2)
-        self.decompLayout.addWidget(self.spinLevels, 0, 3)
-        self.decompLayout.addWidget(self.calculateButton, 1, 0, 1, 4)
-        self.decompLayout.addWidget(self.showWavelist, 2, 0)
-        self.decompLayout.addWidget(self.decompInfoLabel, 2, 1, 1, 2)
-        self.decompLayout.addWidget(self.showScalogram, 2, 3)
-        self.decompLayout.addWidget(self.wavelistGraph, 3, 0, 1, 4)
-        self.decompLayout.addWidget(self.scalogramGraph, 4, 0, 1, 4)
+        self.wvFamilyLbl = QLabel("<font style='color: gray'>Wavelet family</font>")
+        self.wvTypeLbl = QLabel("<font style='color: gray'>Wavelet type</font>")
+        self.wvDecompLbl = QLabel("<font style='color: gray'>Decomposition method</font>")
+        self.wvLevelLbl = QLabel("<font style='color: gray'>Decombosition level</font>")
+
+        self.decompLayout.addWidget(self.wvFamilyLbl, 0, 0)
+        self.decompLayout.addWidget(self.wvTypeLbl, 0, 1)
+        self.decompLayout.addWidget(self.wvDecompLbl, 0, 2)
+        self.decompLayout.addWidget(self.wvLevelLbl, 0, 3)
+        #---
+        self.decompLayout.addWidget(self.comboWavelet, 1, 0)
+        self.decompLayout.addWidget(self.comboWavelist, 1, 1)
+        self.decompLayout.addWidget(self.comboDecomposition, 1, 2)
+        self.decompLayout.addWidget(self.spinLevels, 1, 3)
+        self.decompLayout.addWidget(self.calculateButton, 2, 0, 1, 4)
+        self.decompLayout.addWidget(self.showWavelist, 3, 0)
+        self.decompLayout.addWidget(self.decompInfoLabel, 3, 1, 1, 2)
+        self.decompLayout.addWidget(self.showScalogram, 3, 3)
+        self.decompLayout.addWidget(self.wavelistGraph, 4, 0, 1, 4)
+        self.decompLayout.addWidget(self.scalogramGraph, 5, 0, 1, 4)
 
         self.decompGroup.setLayout(self.decompLayout)
 
@@ -172,7 +183,7 @@ class MuScaleMainDialog(QMainWindow):
         # options #
         self.optionsGroup = QGroupBox('Settings')
         self.stylesCombo = QComboBox()
-        self.toggleShadows = QCheckBox('Enable shadows')
+        self.toggleShadows = QCheckBox('Enable shadow effect')
         self.lockMaxLevel = QCheckBox('Lock max decomposition level')
         self.autoStep = QCheckBox('Auto next step')
         self.enableToolbar = QCheckBox('Show graph controls on hover')
@@ -191,24 +202,7 @@ class MuScaleMainDialog(QMainWindow):
         self.optionsLayout.addWidget(self.toggleShadows, 0, 2)
         self.optionsLayout.addWidget(self.applySettings, 0, 4)
         self.optionsLayout.addWidget(createSeparator(), 1, 0, 1, 5)
-#        #--
-#        self.optionsLayout.addWidget(self.autoStep, 2, 0)
-#        self.optionsLayout.addWidget(self.autoUpdateTable, 2, 1)
-#        self.optionsLayout.addWidget(self.autoConstructModel, 2, 2)
-#        self.optionsLayout.addWidget(self.autoUpdateTools, 3, 1)
-#        self.optionsLayout.addWidget(createSeparator(), 4, 0, 1, 3)
-#        #---
-#        self.optionsLayout.addWidget(self.lockMaxLevel, 5, 0)
-#        self.optionsLayout.addWidget(self.autoBaseSWT, 5, 1)
-#        self.optionsLayout.addWidget(self.enableToolbar, 5, 2)
-#        self.optionsLayout.addWidget(self.plotMultiline, 6, 1)
-#        self.optionsLayout.addWidget(createSeparator(), 7, 0, 1, 3)
-#        #--
-#        self.optionsLayout.addWidget(self.showStacktrace, 8, 0)
-#        self.optionsLayout.addWidget(self.saveLastFolder, 8, 1)
-#        self.optionsLayout.addWidget(self.hidetoTray, 8, 2)
-
-        #--
+        #---
         self.optionsLayout.addWidget(self.autoStep, 2, 0)
         self.optionsLayout.addWidget(self.autoUpdateTable, 3, 0)
         self.optionsLayout.addWidget(self.autoConstructModel, 4, 0)
@@ -220,7 +214,7 @@ class MuScaleMainDialog(QMainWindow):
         self.optionsLayout.addWidget(self.enableToolbar, 4, 2)
         self.optionsLayout.addWidget(self.plotMultiline, 5, 2)
         self.optionsLayout.addWidget(createVerticalSeparator(), 2, 3, 4, 1)
-        #--
+        #---
         self.optionsLayout.addWidget(self.showStacktrace, 2, 4)
         self.optionsLayout.addWidget(self.saveLastFolder, 3, 4)
         self.optionsLayout.addWidget(self.hidetoTray, 4, 4)
@@ -285,8 +279,6 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.updateLog(['muScale ' + __version__ + ' launched', 'loading time: ' + str(loadingTime)])
 
         ### disable unimplemented features ###
-        self.autoBaseSWT.setDisabled(True)
-        self.hidetoTray.setDisabled(True)
 
 #------------------- initialization ------------------# #--------------- * * * ---------------#
     def initComposition(self):
@@ -321,9 +313,9 @@ class MuScaleMainDialog(QMainWindow):
         self.wavelistGraph.hide()
         self.scalogramGraph.hide()
         self.showScalogram.hide()
-        self.showScalogram.hide()
+        self.showScalogram.setCheckable(True)
         self.showWavelist.hide()
-        self.showWavelist.hide()
+        self.showWavelist.setCheckable(True)
         self.decompInfoLabel.hide()
         self.decompInfoLabel.setAlignment(Qt.AlignCenter)
 
@@ -367,6 +359,8 @@ class MuScaleMainDialog(QMainWindow):
         # fonts #
         font_tooltip = 'Cambria'
         tooltip_size = 12
+        edit_font = FONTS_DICT['table'][0]
+        edit_size = FONTS_DICT['table'][2] + 3
         font = FONTS_DICT['main'][0]
         size = FONTS_DICT['main'][2]
         self.centralWidget.setStyleSheet('QPushButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
@@ -376,6 +370,7 @@ class MuScaleMainDialog(QMainWindow):
                                             QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QCheckBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QTextEdit {font-family: ' + edit_font + '; font-size: ' + str(edit_size) + 'px;}\
                                             QToolTip {font-family: ' + font_tooltip + '; font-size: ' + str(tooltip_size) + 'px;}')
 
         self.toolBar.setStyleSheet('QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
@@ -384,6 +379,9 @@ class MuScaleMainDialog(QMainWindow):
         self.menuBar.setStyleSheet('QMenu {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
 
         self.statusBar.setStyleSheet('QStatusBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
+
+        # tray #
+        self.trayIcon.setToolTip(u'Ensconced in system tray, μScale awaits')
 
     def initActions(self):
         # menu actions #
@@ -455,14 +453,11 @@ class MuScaleMainDialog(QMainWindow):
         self.toolBar.addAction(self.toggleInfo)
         self.toolBar.addAction(launchWizard)
         self.toolBar.addSeparator()
-#        self.toolBar.addAction(goToFirstAction)
         self.toolBar.addAction(previousStepAction)
         self.toolBar.addAction(nextStepAction)
         self.toolBar.addSeparator()
         self.toolBar.addAction(quickTest)
         self.toolBar.addAction(resetAll)
-
-#        self.toolBar.addAction(goToLastAction)
 
         # load data actions #
         self.toggleManual.clicked.connect(self.toggleInputField)
@@ -489,6 +484,13 @@ class MuScaleMainDialog(QMainWindow):
 
         # settings #
         self.applySettings.clicked.connect(self.saveSettings)
+
+        # tray #
+        self.trayIcon.activated.connect(self.restoreFromTray)
+        self.trayMenu = QMenu()
+        self.trayMenu.addAction(QAction(QIcon(RES + ICONS + QUIT), '&Quit', self, triggered=self.quit))
+        self.trayMenu.addAction(QAction(QIcon(RES + ICONS + SHOW), '&Show', self, triggered=self.showHide))
+        self.trayIcon.setContextMenu(self.trayMenu)
 
     def setCustomTooltips(self):
         # data input #
@@ -831,14 +833,17 @@ class MuScaleMainDialog(QMainWindow):
                      ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1); i += 1
                      ax.plot(coeff)
                      MplWidget.hideAxes(ax)
-            else: self.wavelistGraph.multiline(self.wCoefficients)
+            else:
+                self.wavelistGraph.multiline(self.wCoefficients)
                 
             self.wavelistGraph.show()
             self.showWavelist.setChecked(True)
 
             # resulting scalogram
-            if not self.isSWT: self.scalogramGraph.scalogram(normalize_dwt_dimensions(self.wCoefficients))
-            else: self.scalogramGraph.scalogram(self.wCoefficients)
+            if not self.isSWT:
+                self.scalogramGraph.scalogram(normalize_dwt_dimensions(self.wCoefficients))
+            else:
+                self.scalogramGraph.scalogram(self.wCoefficients)
 
             self.showWavelist.show()
             self.showScalogram.show()
@@ -1062,12 +1067,11 @@ class MuScaleMainDialog(QMainWindow):
             self.statTools.setItemEnabled(int(Tabs.Results), True)
             self.toolsFrame.updateLog(['multiscale model complete'])
 
-#            info = u''
-#            for index, model in self.multiModel.iteritems():
-#                info += '<b>' + str(index) + '</b>\t' + prettifyNames([model._enumname])[0] + ';\t'
-#            print info
-#            self.messageInfo.showInfo('Multiscale model complete: ' + info, adjust=False)
-            self.messageInfo.showInfo('Multiscale model complete')
+            info = u''
+            for index, model in self.multiModel.iteritems():
+                info += '<b>Lvl' + str(index) + ':</b> ' + prettifyNames([model._enumname])[0] + ';\t'
+            self.messageInfo.showInfo('Multiscale model complete<br/>' + info, adjust=False)
+#            self.messageInfo.showInfo('Multiscale model complete')
 
             if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Simulation))
 
@@ -1102,7 +1106,8 @@ class MuScaleMainDialog(QMainWindow):
         modelsListLayout.addWidget(modelsList)
         modelsListLayout.addWidget(nextModel)
 
-        def changeStackPage(): modelsStack.setCurrentIndex(modelsList.currentIndex())
+        def changeStackPage():
+            modelsStack.setCurrentIndex(modelsList.currentIndex())
 
         modelsList.currentIndexChanged.connect(changeStackPage)
 
@@ -1125,14 +1130,19 @@ class MuScaleMainDialog(QMainWindow):
 
         def constructModel():
             model = modelsList.currentIndex()
-            result = processModel(self.multiModel[model], self.wCoefficients[model], self.R)
+            result = processModel(self.multiModel[model],
+                                  self.wCoefficients[model],
+                                  self.R)
             self.processedWCoeffs[model] = result
 
             modelsStack.currentWidget().updatePlot(result, label='Model fit')
 
         def forecastModel():
             model = modelsList.currentIndex()
-            result = calculateForecast(self.multiModel[model], self.wCoefficients[model], self.R, forecastSteps.value())
+            result = calculateForecast(self.multiModel[model],
+                                       self.wCoefficients[model],
+                                       self.R,
+                                       forecastSteps.value())
             self.processedWCoeffs[model] = result
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast')
@@ -1142,22 +1152,73 @@ class MuScaleMainDialog(QMainWindow):
             modelsStack.currentWidget().canvas.ax.clear()
             modelsStack.currentWidget().updatePlot(self.wCoefficients[model])
 
+        def forecastAllLevels():
+            for model in self.multiModel:
+                self.processedWCoeffs[model] = calculateForecast(self.multiModel[model],
+                                                                 self.wCoefficients[model],
+                                                                 self.R,
+                                                                 forecastSteps.value())
+                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model], label='Forecast')
+
+            self.messageInfo.showInfo('Simulation completed')
+
+        def fitAllLevels():
+            for model in self.multiModel:
+                self.processedWCoeffs[model] = processModel(self.multiModel[model],
+                                                                 self.wCoefficients[model],
+                                                                 self.R)
+
+            self.messageInfo.showInfo('Performed models fit')
+
+        def resetAllLevels():
+            for model in self.multiModel:
+                modelsStack.widget(model).canvas.ax.clear()
+                modelsStack.widget(model).updatePlot(self.wCoefficients[model])
+
+            self.messageInfo.showInfo('All changes reverted')
+
         simulateButton = QPushButton('Simulate')
         actionsMenu = QMenu()
-        actionsMenu.addAction(QAction('Model fit', self, triggered=constructModel))
+        actionsMenu.addAction(QAction('Fit model', self, triggered=constructModel))
         actionsMenu.addAction(QAction('Forecast', self, triggered=forecastModel))
         actionsMenu.addAction(QAction('Reset', self, triggered=resetModel))
         simulateButton.setMenu(actionsMenu)
 
+        lblLayout = QHBoxLayout()
+        lblLevels = QLabel("<font style='color: gray'>Models by level</font>")
+        lblLevels.setAlignment(Qt.AlignCenter)
+        lblSimulate = QLabel("<font style='color: gray'>Fit/forecast</font>")
+        lblSteps = QLabel("<font style='color: gray'>Forecast horizon</font>")
+
+        lblLayout.addWidget(lblLevels)
+        lblLayout.addWidget(QLabel())
+        lblLayout.addWidget(lblSimulate)
+        lblLayout.addWidget(lblSteps)
+        lblLayout.setAlignment(Qt.AlignCenter)
+
         forecastSteps = QSpinBox()
-        forecastSteps.setRange(2, 100)
-        forecastSteps.setValue(20)
+        forecastSteps.setRange(MIN_FORECAST, MAX_FORECAST)
+        forecastSteps.setValue(DEFAULT_STEPS)
         forecastSteps.valueChanged.connect(forecastModel)
 
+        forecastAll = QPushButton('Simulate all levels')
+        forecastAll.clicked.connect(forecastAllLevels)
+        fitAll = QPushButton('Fit all')
+        fitAll.clicked.connect(fitAllLevels)
+        resetAll = QPushButton('Reset all')
+        resetAll.clicked.connect(resetAllLevels)
+
+        batchLayout = QHBoxLayout()
+        batchLayout.addWidget(forecastAll)
+        batchLayout.addWidget(fitAll)
+        batchLayout.addWidget(resetAll)
+        #TODO: add models options
         modelsListLayout.addWidget(simulateButton)
         modelsListLayout.addWidget(forecastSteps)
-        self.implementLayout.addLayout(modelsListLayout, 0, 0)
-        self.implementLayout.addWidget(modelsStack, 1, 0)
+        self.implementLayout.addLayout(lblLayout, 0, 0)
+        self.implementLayout.addLayout(modelsListLayout, 1, 0)
+        self.implementLayout.addWidget(modelsStack, 2, 0)
+        self.implementLayout.addLayout(batchLayout, 3, 0)
 
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(modelsListLayout)
@@ -1190,10 +1251,9 @@ class MuScaleMainDialog(QMainWindow):
 #-------------- resulting forecast -----------------#
 #####################################################
     def updateResultingTSWithInitialData(self):
+        #TODO: add information regarding processed levels
         self.resultingGraph.updatePlot(self.currentDataSet[0], label='Time series')
-#        self.resultingGraph.canvas.ax.plot(self.currentDataSet[0])
         self.resultingGraph.show()
-#        self.resultingGraph.canvas.draw()
 
 #####################################################
 #------------- utilities and modules ---------------#
@@ -1238,8 +1298,33 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
                           '\nPlatform:\t' + platform.system())
 
     def closeEvent(self, event):
-        self.saveConfig()
-        clearFolderContents(RES + TEMP)
+        if self.hidetoTray.isChecked() and self.forbidClose:
+            self.hide()
+            self.messageInfo.hide()
+            self.infoDialog.hide()
+            self.toolsFrame.hide()
+            self.trayIcon.show()
+            event.ignore()
+        else:
+            self.saveConfig()
+            clearFolderContents(RES + TEMP)
+            self.toolsFrame.close()
+            self.infoDialog.close()
+            self.messageInfo.close()
+            event.accept()
+
+    def restoreFromTray(self, reason):
+        if reason == QSystemTrayIcon.Trigger:
+            self.show()
+            self.trayIcon.hide()
+            
+    def quit(self):
+        self.forbidClose = False
+        self.close()
+
+    def showHide(self):
+        self.show()
+        self.trayIcon.hide()
 
 #####################################################
 #---------------------- tests ----------------------#

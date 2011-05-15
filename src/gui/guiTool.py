@@ -15,7 +15,9 @@ from pyqtgraph.PlotWidget import PlotWidget
 # own #
 from utility.const import T_WIDTH, T_HEIGHT, FONTS_DICT
 from utility.tools import checkParentheses
-from utility.const import LABEL_VISIBLE, FLASH_LABEL
+from utility.const import LABEL_VISIBLE, FLASH_LABEL,\
+                        RES, ICONS, CLEAR, GRAPH, COPY, CONTROLS,\
+                        ELEMENTS, CUT, SERIES
 from utility.log import log
 
 class StatusFilter(QObject):
@@ -103,12 +105,14 @@ class ToolsFrame(QWidget):
         self.exportGraph = QCheckBox('Export graphics')
         self.exportData = QCheckBox('Export data')
         self.exportButton = QPushButton('Export as')
+        self.picLbl = QLabel()
 
-        self.exportLayout.addWidget(self.exportForecast, 0, 0)
-        self.exportLayout.addWidget(self.exportStepByStep, 0, 1)
-        self.exportLayout.addWidget(self.exportData, 1, 0)
-        self.exportLayout.addWidget(self.exportGraph, 1, 1)
-        self.exportLayout.addWidget(self.exportButton, 2, 0, 1, 2)
+        self.exportLayout.addWidget(self.picLbl, 0, 0, 1, 2)
+        self.exportLayout.addWidget(self.exportForecast, 1, 0)
+        self.exportLayout.addWidget(self.exportStepByStep, 1, 1)
+        self.exportLayout.addWidget(self.exportData, 2, 0)
+        self.exportLayout.addWidget(self.exportGraph, 2, 1)
+        self.exportLayout.addWidget(self.exportButton, 3, 0, 1, 2)
 
         self.exportGroup.setLayout(self.exportLayout)
         self.toolTabs.addTab(self.exportGroup, '&Export')
@@ -246,6 +250,10 @@ class ToolsFrame(QWidget):
         self.exportData.hide()
         self.exportGraph.hide()
 
+        self.picLbl.setPixmap(QPixmap(RES + ICONS + GRAPH))
+        self.picLbl.setAlignment(Qt.AlignCenter)
+        self.picLbl.hide()
+
         # hotkeys #
         # ...
 
@@ -267,14 +275,14 @@ class ToolsFrame(QWidget):
         self.logSearh.textChanged.connect(self.highlightSearch)
         self.logSearh.returnPressed.connect(self.logSearh.clear)
         self.logList.itemDoubleClicked.connect(self.copyToClipboard)
-        self.logList.addAction(QAction('Toggle controls', self, triggered=self.toggleLogControls))
+        self.logList.addAction(QAction(QIcon(RES + ICONS + CONTROLS), 'Toggle controls', self, triggered=self.toggleLogControls))
 
         # table
-        self.tableWidget.addAction(QAction('Clear all', self, triggered=self.clearTable))
-        self.tableWidget.addAction(QAction('Copy selected columns(s)', self, triggered=self.copyColumns))
-        self.tableWidget.addAction(QAction('Copy selected item(s)', self, triggered=self.copyItems))
-        self.tableWidget.addAction(QAction('Remove selected columns(s)', self, triggered=self.removeColumns))
-        self.tableWidget.addAction(QAction('Plot selected items', self, triggered=self.plotItems))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + CLEAR), 'Clear all', self, triggered=self.clearTable))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + COPY), 'Copy selected columns(s)', self, triggered=self.copyColumns))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + ELEMENTS), 'Copy selected item(s)', self, triggered=self.copyItems))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + CUT), 'Remove selected columns(s)', self, triggered=self.removeColumns))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + GRAPH), 'Plot selected items', self, triggered=self.plotItems))
 
         # export
         exportMenu = QMenu()
@@ -286,6 +294,7 @@ class ToolsFrame(QWidget):
 
         self.exportForecast.stateChanged.connect(self.toggleExportOptions)
         self.exportStepByStep.stateChanged.connect(self.toggleExportOptions)
+        self.exportGraph.stateChanged.connect(self.updatePix)
 
 #--------- actions ---------#
 
@@ -295,9 +304,45 @@ class ToolsFrame(QWidget):
             self.exportStepByStep.isChecked():
             self.exportData.show()
             self.exportGraph.show()
+
+            self.updatePix()
         else:
             self.exportData.hide()
             self.exportGraph.hide()
+            self.picLbl.hide()
+
+    def updatePix(self):
+
+        if self.exportForecast.isChecked() and\
+            self.exportStepByStep.isChecked() and\
+            self.exportGraph.isChecked():
+
+            self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[2]))
+
+        elif self.exportForecast.isChecked() and\
+            self.exportStepByStep.isChecked():
+
+            self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[1]))
+            self.picLbl.show()
+
+#        elif self.exportForecast.isChecked() or\
+#            self.exportStepByStep.isChecked():
+#
+#            self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[0]))
+#            self.picLbl.show()
+
+        elif self.exportForecast.isChecked():
+
+            self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[0]))
+            self.picLbl.show()
+
+        elif self.exportStepByStep.isChecked():
+
+            self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[3]))
+            self.picLbl.show()
+
+        else:
+            self.picLbl.hide()
 
     def exportToPdf(self):
 #       QPrinter
