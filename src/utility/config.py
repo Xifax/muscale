@@ -18,21 +18,22 @@ class Config:
             self.loadCustomFonts()
         except Exception, e:
             log.exception(e)
-    #TODO: check if works right (3 values fluctuate)
     def updateConfig(self, **kwargs):
         for section, options in CONFIG_DICT.iteritems():
             for option in options:
-                print option    # test saving order
                 if option in kwargs:
                     self.settings.setValue(section + option, kwargs[option])
 
     def loadConfig(self):
-        config = []
+        config = {}
         for section, options in CONFIG_DICT.iteritems():
             for option in options:
-                print option    # test loading order
-                config.append(self.settings.value(section + option))
-        return list(sorted(config))
+                config[option] = self.settings.value(section + option)
+        # arrange by alphabet
+        params = []
+        for option in sorted(config):
+            params.append(config[option])
+        return params
 
     def getParams(self, **kwargs):
         found = {}

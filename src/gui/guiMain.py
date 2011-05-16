@@ -507,10 +507,9 @@ class MuScaleMainDialog(QMainWindow):
 
     def loadConfig(self):
         self.lastFolder = RES
-        # the same order as in utility.const.CONFIG_DICT
-        step, shadows, style, tray, trace, folder, table, \
-            r, basic, lock, model, \
-            toolbar, multiline = self.config.loadConfig()
+        # by alphabet
+        basic, folder, lock, model, multiline, r, shadows,\
+        step, style, table, toolbar, trace, tray = self.config.loadConfig()
 
         self.toggleShadows.setChecked(shadows.toBool())
         self.stylesCombo.setCurrentIndex(style.toInt()[0])
