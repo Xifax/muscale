@@ -325,12 +325,6 @@ class ToolsFrame(QWidget):
             self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[1]))
             self.picLbl.show()
 
-#        elif self.exportForecast.isChecked() or\
-#            self.exportStepByStep.isChecked():
-#
-#            self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[0]))
-#            self.picLbl.show()
-
         elif self.exportForecast.isChecked():
 
             self.picLbl.setPixmap(QPixmap(RES + ICONS + SERIES[0]))

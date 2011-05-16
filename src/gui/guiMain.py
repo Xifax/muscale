@@ -831,7 +831,7 @@ class MuScaleMainDialog(QMainWindow):
                 rows = len(self.wCoefficients);  i = 0
                 for coeff in self.wCoefficients:
                      ax = self.wavelistGraph.canvas.fig.add_subplot(rows, 1, i + 1); i += 1
-                     ax.plot(coeff)
+                     ax.plot(coeff, label='Lvl' + str(rows))
                      MplWidget.hideAxes(ax)
             else:
                 self.wavelistGraph.multiline(self.wCoefficients)
@@ -938,7 +938,7 @@ class MuScaleMainDialog(QMainWindow):
                             level = self.modelLayout.itemAtPosition(row, 0).widget()
                             # Level number enclosed in <b>N</b>
                             index = level.text().right(5)[0].toInt()[0]
-                            preview.updatePlot(self.wCoefficients[index])
+                            preview.updatePlot(self.wCoefficients[index], label='Lvl' + str(index))
 
                             preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.show()
@@ -1098,7 +1098,7 @@ class MuScaleMainDialog(QMainWindow):
 
             simulationPlot = MplWidget(self.toolsFrame,
                                        toolbar=self.toolbarEnable)
-            simulationPlot.updatePlot(self.wCoefficients[model], label='Coeff')
+            simulationPlot.updatePlot(self.wCoefficients[model], label='Series' + str(model))
 
             modelsStack.addWidget(simulationPlot)
 
@@ -1135,7 +1135,7 @@ class MuScaleMainDialog(QMainWindow):
                                   self.R)
             self.processedWCoeffs[model] = result
 
-            modelsStack.currentWidget().updatePlot(result, label='Model fit')
+            modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed')
 
         def forecastModel():
             model = modelsList.currentIndex()
@@ -1145,12 +1145,12 @@ class MuScaleMainDialog(QMainWindow):
                                        forecastSteps.value())
             self.processedWCoeffs[model] = result
 
-            modelsStack.currentWidget().updatePlot(result, label='Forecast')
+            modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted')
 
         def resetModel():
             model = modelsList.currentIndex()
             modelsStack.currentWidget().canvas.ax.clear()
-            modelsStack.currentWidget().updatePlot(self.wCoefficients[model])
+            modelsStack.currentWidget().updatePlot(self.wCoefficients[model], label='Series' + str(model))
 
         def forecastAllLevels():
             for model in self.multiModel:
@@ -1158,7 +1158,8 @@ class MuScaleMainDialog(QMainWindow):
                                                                  self.wCoefficients[model],
                                                                  self.R,
                                                                  forecastSteps.value())
-                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model], label='Forecast')
+                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
+                                                     label='Forecast', style='dotted')
 
             self.messageInfo.showInfo('Simulation completed')
 
@@ -1167,13 +1168,15 @@ class MuScaleMainDialog(QMainWindow):
                 self.processedWCoeffs[model] = processModel(self.multiModel[model],
                                                                  self.wCoefficients[model],
                                                                  self.R)
+                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
+                                                     label='Model fit', style='dashed')
 
             self.messageInfo.showInfo('Performed models fit')
 
         def resetAllLevels():
             for model in self.multiModel:
                 modelsStack.widget(model).canvas.ax.clear()
-                modelsStack.widget(model).updatePlot(self.wCoefficients[model])
+                modelsStack.widget(model).updatePlot(self.wCoefficients[model], label='Series' + str(model))
 
             self.messageInfo.showInfo('All changes reverted')
 

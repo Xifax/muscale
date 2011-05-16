@@ -22,6 +22,7 @@ class Config:
     def updateConfig(self, **kwargs):
         for section, options in CONFIG_DICT.iteritems():
             for option in options:
+                print option    # test saving order
                 if option in kwargs:
                     self.settings.setValue(section + option, kwargs[option])
 
@@ -29,6 +30,7 @@ class Config:
         config = []
         for section, options in CONFIG_DICT.iteritems():
             for option in options:
+                print option    # test loading order
                 config.append(self.settings.value(section + option))
         return list(sorted(config))
 

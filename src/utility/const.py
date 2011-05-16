@@ -82,7 +82,10 @@ SERIES = ['series0.png', 'series1.png', 'series2.png', 'series3.png']
 TOOLBAR_ICONS = ['home.png', 'back.png', 'forward.png', '',
                  'pan.png', 'zoom.png', '',
                  'sub.png', 'edit.png', 'save.png']
+LEGEND = 'legend.png'
+
 ICO_SIZE = 32
+ICO_GRAPH = 16
 #---------- styles ---------#
 STYLE = 'plastique'
 SPLASH = 'mu_logo.png'

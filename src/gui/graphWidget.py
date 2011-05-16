@@ -9,7 +9,9 @@ Created on Mar 10, 2011
 import os
 
 # own #
-from utility.const import RES, ICONS, TOOLBAR_ICONS, TEMP, LINE_WITH
+from utility.const import RES, ICONS, TOOLBAR_ICONS,\
+                        TEMP, LINE_WITH, ICO_GRAPH, LEGEND,\
+                        GRAPH, COPY
 from utility.tools import clearFolderContents
 
 # external #
@@ -17,10 +19,14 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QObject, QEvent, QSize
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+from matplotlib.backends.backend_qt4agg import \
+    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg import \
+    NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib.pyplot import setp
+from matplotlib.legend import DraggableLegend
+from matplotlib import font_manager
 import numpy as np
 
 class Filter(QObject):
@@ -70,8 +76,8 @@ class MplWidget(QtGui.QWidget):
         if toolbar:
             # add navigation toolbar to layout
             self.toolbar = NavigationToolbar(self.canvas, self)
-            self.toolbar.layout()
-            #TODO: add button to show/hide legend
+#            self.toolbar.showLegend = QtGui.QPushButton('Legend')
+#            self.toolbar.layout().addWidget(self.toolbar.showLegend)
 #            self.toolbar.setStyleSheet('QWidget { border-style: outset;  border-width: 2px; border-color: beige; }')
 #            self.toolbar.setStyleSheet('QWidget {  border: 1px solid black; border-radius: 4px; }')
             self.layout.addWidget(self.toolbar)
@@ -87,6 +93,8 @@ class MplWidget(QtGui.QWidget):
         self.setLayout(self.layout)
         # active lines list
         self.lines = []
+        # legend
+        self.legend = None
 
         if menu:
             # setup context menu
@@ -99,8 +107,18 @@ class MplWidget(QtGui.QWidget):
         self.newIcons()
 
     def initActions(self):
-        self.addAction(QtGui.QAction('Copy data to table', self, triggered=self.toTable))
-        self.addAction(QtGui.QAction('Plot data in tools', self, triggered=self.toGraphTool))
+        # toolbar
+        self.toggleLegendAction = QtGui.QAction(QtGui.QIcon(RES + ICONS + LEGEND), 'Toggle legend',
+                                     self, triggered=self.toggleLegend)
+        self.toggleLegendAction.setCheckable(True)
+        self.toolbar.addAction(self.toggleLegendAction)
+
+        # context menu
+        self.addAction(self.toggleLegendAction)
+        self.addAction(QtGui.QAction(QtGui.QIcon(RES + ICONS + COPY),'Copy data to table',
+                                     self, triggered=self.toTable))
+        self.addAction(QtGui.QAction(QtGui.QIcon(RES + ICONS + GRAPH),'Plot data in tools',
+                                     self, triggered=self.toGraphTool))
 
     def newIcons(self):
         for position in range(0, self.toolbar.layout().count()):
@@ -108,9 +126,8 @@ class MplWidget(QtGui.QWidget):
             if isinstance(widget, QtGui.QToolButton):
                 icon = QtGui.QIcon(RES + ICONS + TOOLBAR_ICONS[position])
                 self.toolbar.layout().itemAt(position).widget().setIcon(icon)
-#                self.toolbar.layout().itemAt(position).widget().resize(QSize(8, 8)) # does not work
-#                self.update()
-#                self.toolbar.layout().itemAt(position).widget().setIconSize(QSize(16, 16))
+
+        self.toolbar.setIconSize(QSize(ICO_GRAPH, ICO_GRAPH))
 
     def resetGraphicEffect(self):
         if self.graphicsEffect() is not None:
@@ -137,18 +154,20 @@ class MplWidget(QtGui.QWidget):
     #  @param data List or array to plot/update.
     #  @param line Which line (by index) to update (if any).
     #  @param label Data label (new or existing).
-    def updatePlot(self, data, line=0, label=None):
+    #  @param style Line style (solid, dashed, dotted).
+    #  @param color Line color.
+    def updatePlot(self, data, line=0, label=None, style='solid', color=None):
         if not self.canvas.ax.has_data():
             if label is not None:
-                self.lines = self.canvas.ax.plot(data, label=label)
+                self.lines = self.canvas.ax.plot(data, label=label, linestyle=style)
             else:
-                self.lines = self.canvas.ax.plot(data)
+                self.lines = self.canvas.ax.plot(data, linestyle=style)
         else:
             if not self.lines:
                 self.lines = self.canvas.ax.get_lines()
             if label is not None:
                 if label not in [l._label for l in self.lines]:
-                    self.lines.extend(self.canvas.ax.plot(data, label=label))
+                    self.lines.extend(self.canvas.ax.plot(data, label=label, linestyle=style))
                     line = len(self.lines) - 1
                 else:
                     line = [l._label for l in self.lines].index(label)
@@ -160,6 +179,8 @@ class MplWidget(QtGui.QWidget):
                 # in case data length stays the same
                 line_to_update.set_data(line_to_update._x, data)
             self.canvas.draw()
+
+        self.updateLegend()
 
     ## Plots scalogram for wavelet decomposition.
     #  @param data Wavelet coefficients in matrix.
@@ -231,7 +252,7 @@ class MplWidget(QtGui.QWidget):
         while i < len(data):
             bottom -= height
             ax = self.canvas.fig.add_axes([left, bottom, width, height], **axprops)
-            ax.plot(data[i])
+            ax.plot(data[i], label='Lvl' + str(i))
             ax.set_ylabel(label % i, **yprops)
             i += 1
             if i != len(data):
@@ -245,7 +266,22 @@ class MplWidget(QtGui.QWidget):
                 return widget
             else:
                 widget = widget.parentWidget()
-#        return self.parentWidget().parent().parent().parent().parent().parent()
+
+    def toggleLegend(self):
+        self.updateLegend()
+
+    def updateLegend(self):
+        #NB: sometimes induces random exceptions from legend.py -> offsetbox.py
+        try:
+            prop = font_manager.FontProperties(size=11)
+            self.legend = DraggableLegend(self.canvas.ax.legend(fancybox=True, shadow=True, prop=prop))
+            if self.toggleLegendAction.isChecked():
+                    self.legend.legend.set_visible(True)
+            else:
+                    self.legend.legend.set_visible(False)
+            self.canvas.draw()
+        except Exception, e:
+            pass
 
     def toTable(self):
         try:
