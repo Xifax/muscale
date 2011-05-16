@@ -18,7 +18,7 @@ class Config:
             self.loadCustomFonts()
         except Exception, e:
             log.exception(e)
-
+    #TODO: check if works right (3 values fluctuate)
     def updateConfig(self, **kwargs):
         for section, options in CONFIG_DICT.iteritems():
             for option in options:

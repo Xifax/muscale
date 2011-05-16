@@ -5,7 +5,10 @@ Created on Mar 9, 2011
 @author: Yadavito
 '''
 # external
-from flufl.enum import make_enum
+try:
+    from flufl.enum import make_enum
+except ImportError, e:
+    print e
 
 #--------- global ---------#
 __name__    = 'muScale'
@@ -85,7 +88,7 @@ STYLE = 'plastique'
 SPLASH = 'mu_logo.png'
 
 #---------- parser ---------#
-LR_PRNTH_MAPPINGS = { "(":")", "[":"]", "{":"}"}
+LR_PRNTH_MAPPINGS = { "(": ")", "[": "]", "{": "}"}
 
 L_PRNTH = set(LR_PRNTH_MAPPINGS.iterkeys())
 R_PRNTH = set(LR_PRNTH_MAPPINGS.itervalues())
@@ -152,15 +155,20 @@ infoWavelets = {'haar': u'Haar (step function)',
             }
 
 #----------- WT ------------#
-WT = make_enum('WT', 'StationaryWT DiscreteWT')
+try:
+    WT = make_enum('WT', 'StationaryWT DiscreteWT')
 
 #--------- models ----------#
 
-Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA')
+    Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA')
 
 #-------- gui tabs ---------#
-Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results'); Tabs.Data = 0
+    Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results')
+    Tabs.Data = 0
 
+except NameError, e:
+    print e
+    
 #------ gui tooltips -------#
 Tooltips = {# data input
             'load_from_file': u'Load data series from text file',
@@ -174,17 +182,18 @@ Tooltips = {# data input
 }
 
 #------ install url --------#
-URL_PYQT = 'http://cran.r-project.org/bin/windows/base/R-2.13.0-win.exe'
-URL_R = 'http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.3-1.exe'
+#TODO: find static url for PyQt4
+URL_PYQT = 'http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.4-1.exe'
+URL_R = 'http://cran.r-project.org/bin/windows/base/R-2.13.0-win.exe'
 URL_MATPLOTLIB = 'http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1.win32-py2.6.exe/download'
 URL_NUMPY = 'http://sourceforge.net/projects/numpy/files/NumPy/1.6.0rc1/numpy-1.6.0c1-win32-superpack-python2.6.exe/download'
 URL_SCIPY = 'http://sourceforge.net/projects/scipy/files/scipy/0.9.0/scipy-0.9.0-win32-superpack-python2.6.exe/download'
 URL_SETUPTOOLS = 'http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe'
 
 #---- required packages ----#
-easy_packages = ['pywt', 'flufl.enum', 'userconfig', 'simpledropbox', 'pep8']
-downloadable_packages = {'PyQt4' : URL_PYQT, 'matplotlib' : URL_MATPLOTLIB,
-                         'numpy' : URL_NUMPY, 'scipy' : URL_SCIPY}
+easy_packages = ['PyWavelets', 'flufl.enum', 'userconfig', 'simpledropbox', 'pep8']
+downloadable_packages = {'PyQt4': URL_PYQT, 'matplotlib': URL_MATPLOTLIB,
+                         'numpy': URL_NUMPY, 'scipy': URL_SCIPY}
 
 #----- here be options -----#
 # sections
