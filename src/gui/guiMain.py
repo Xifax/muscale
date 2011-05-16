@@ -16,7 +16,7 @@ from datetime import datetime
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer,\
-                PYQT_VERSION_STR, QPointF, QPoint
+                PYQT_VERSION_STR, QPointF, QPoint, QObject
 from PyQt4.QtGui import *
 from stats.pyper import R
 import pywt
@@ -169,7 +169,7 @@ class MuScaleMainDialog(QMainWindow):
         self.reconsGroup = QGroupBox('Reconstruction')
         self.reconsLayout = QGridLayout()
 
-        self.reconTS = QPushButton('Update from WT coeff''s')
+        self.reconTS = QPushButton('Plot constructed model')
         self.plotInitial = QPushButton('Plot initial data')
         self.resultingGraph = MplWidget(self.toolsFrame,
                                        toolbar=self.toolbarEnable)
@@ -1073,7 +1073,7 @@ class MuScaleMainDialog(QMainWindow):
 
             info = u''
             for index, model in self.multiModel.iteritems():
-                info += '<b>Lvl' + str(index) + ':</b> ' + prettifyNames([model._enumname])[0] + ';\t'
+                info += 'Lvl' + str(index) + ': <i>' + prettifyNames([model._enumname])[0] + '</i>;\t'
             self.messageInfo.showInfo('Multiscale model complete<br/>' + info, adjust=False)
 #            self.messageInfo.showInfo('Multiscale model complete')
 
@@ -1136,7 +1136,8 @@ class MuScaleMainDialog(QMainWindow):
             model = modelsList.currentIndex()
             result = processModel(self.multiModel[model],
                                   self.wCoefficients[model],
-                                  self.R)
+                                  self.R,
+                                  compileOptions(optMod))
             self.processedWCoeffs[model] = result
 
             modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed', color='g')
@@ -1146,7 +1147,8 @@ class MuScaleMainDialog(QMainWindow):
             result = calculateForecast(self.multiModel[model],
                                        self.wCoefficients[model],
                                        self.R,
-                                       forecastSteps.value())
+                                       forecastSteps.value(),
+                                       compileOptions(optMod))
             self.processedWCoeffs[model] = result
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
@@ -1156,26 +1158,28 @@ class MuScaleMainDialog(QMainWindow):
             modelsStack.currentWidget().canvas.ax.clear()
             modelsStack.currentWidget().updatePlot(self.wCoefficients[model], label='Series' + str(model))
 
+        def fitAllLevels():
+            for model in self.multiModel:
+                self.processedWCoeffs[model] = processModel(self.multiModel[model],
+                                                            self.wCoefficients[model],
+                                                            self.R,
+                                                            compileOptions(optMod))
+                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
+                                                     label='Model fit', style='dashed', color='g')
+
+            self.messageInfo.showInfo('Performed models fit')
+
         def forecastAllLevels():
             for model in self.multiModel:
                 self.processedWCoeffs[model] = calculateForecast(self.multiModel[model],
                                                                  self.wCoefficients[model],
                                                                  self.R,
-                                                                 forecastSteps.value())
+                                                                 forecastSteps.value(),
+                                                                 compileOptions(optMod))
                 modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
                                                      label='Forecast', style='dotted', color='r')
 
             self.messageInfo.showInfo('Simulation completed')
-
-        def fitAllLevels():
-            for model in self.multiModel:
-                self.processedWCoeffs[model] = processModel(self.multiModel[model],
-                                                                 self.wCoefficients[model],
-                                                                 self.R)
-                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
-                                                     label='Model fit', style='dashed', color='g')
-
-            self.messageInfo.showInfo('Performed models fit')
 
         def resetAllLevels():
             for model in self.multiModel:
@@ -1232,13 +1236,32 @@ class MuScaleMainDialog(QMainWindow):
             else:
                 modelOptionsGroup.hide()
 
+        def toggleGraph():
+            if hideGraph.isChecked():
+                modelsStack.hide()
+                for widget in range(0, modelsListLayout.count()):
+                    modelsListLayout.itemAt(widget).widget().hide()
+                for widget in range(0, lblLayout.count()):
+                    lblLayout.itemAt(widget).widget().hide()
+            else:
+                modelsStack.show()
+                for widget in range(0, modelsListLayout.count()):
+                    modelsListLayout.itemAt(widget).widget().show()
+                for widget in range(0, lblLayout.count()):
+                    lblLayout.itemAt(widget).widget().show()
+
         modelOptions = QToolButton()
+        hideGraph = QToolButton()
         modelOptions.setText('Configure models')
+        hideGraph.setText('Hide graph')
+        hideGraph.setCheckable(True)
         modelOptions.clicked.connect(toggleModelOptions)
+        hideGraph.clicked.connect(toggleGraph)
         modelOptions.setCheckable(True)
 
         modelOptButtons = QHBoxLayout()
         modelOptButtons.addWidget(modelOptions)
+        modelOptButtons.addWidget(hideGraph)
         modelOptButtons.setAlignment(Qt.AlignCenter)
 
         modelOptionsLayout = QVBoxLayout()
@@ -1246,38 +1269,183 @@ class MuScaleMainDialog(QMainWindow):
         modelOptionsLayout.addWidget(modelOptionsGroup)
         modelOptionsLayout.setAlignment(Qt.AlignCenter)
 
+        class optElem(object):
+            pass
+        optMod = optElem()
         # models options groups
-        def optHW():
-            hwGroup = QGroupBox('Holt-Winters')
-            hwGroup.setCheckable(True)
-            hwLayout = QVBoxLayout()
+        def optHW(optMod):
+            optMod.hwGroup = QGroupBox('Holt-Winters')
+            optMod.hwGroup.setCheckable(True)
+            hwLayout = QHBoxLayout()
 
-            hwGroup.setLayout(hwLayout)
-            modelOptionsGroupLayout.addWidget(hwGroup)
+            def hwSeasonalShow():
+                if optMod.seasonal.isChecked():
+                    optMod.seasonal.setText('Use seasonal model:')
+                    optMod.model.show()
+                    periodLbl.show()
+                    optMod.period.show()
+                else:
+                    optMod.seasonal.setText('Use seasonal model')
+                    optMod.model.hide()
+                    periodLbl.hide()
+                    optMod.period.hide()
 
-        def optAR():
+            optMod.seasonal = QCheckBox('Use seasonal model')
+            optMod.seasonal.clicked.connect(hwSeasonalShow)
+            optMod.model = QComboBox()
+            optMod.model.addItems(['additive', 'multiplicative'])
+            periodLbl = QLabel('Estimated period:')
+            periodLbl.setAlignment(Qt.AlignCenter)
+            optMod.period = QSpinBox()
+            optMod.period.setMinimum(2)    #TODO: calculate max
+
+            hwLayout.addWidget(optMod.seasonal)
+            hwLayout.addWidget(optMod.model)
+            hwLayout.addWidget(periodLbl)
+            hwLayout.addWidget(optMod.period)
+            hwLayout.setAlignment(Qt.AlignCenter)
+
+            hwSeasonalShow()
+
+            optMod.hwGroup.setLayout(hwLayout)
+            modelOptionsGroupLayout.addWidget(optMod.hwGroup)
+
+        def optAR(optMod):
             arGroup = QGroupBox('Harmonic Regression')
             arGroup.setCheckable(True)
-            arLayout = QVBoxLayout()
+            arLayout = QHBoxLayout()
+
+            def arOrderShow():
+                if useAIC.isChecked():
+                    ar_orderLbl.hide()
+                    ar_order.hide()
+                else:
+                    ar_orderLbl.show()
+                    ar_order.show()
+
+            methodLbl = QLabel('Method:')
+            methodLbl.setAlignment(Qt.AlignCenter)
+            method = QComboBox()
+            method.addItems(['yule-walker', 'burg', 'mle'])
+            useAIC = QCheckBox('Use AIC')    #Akaike Information Criterion
+            useAIC.clicked.connect(arOrderShow)
+            ar_orderLbl = QLabel('Model order:')
+            ar_orderLbl.setAlignment(Qt.AlignCenter)
+            ar_order = QSpinBox()
+            ar_order.setMinimum(1)
+            # missing values fun?
+            
+            arLayout.addWidget(methodLbl)
+            arLayout.addWidget(method)
+            arLayout.addWidget(ar_orderLbl)
+            arLayout.addWidget(ar_order)
+            arLayout.addWidget(useAIC)
+            arLayout.setAlignment(Qt.AlignCenter)
 
             arGroup.setLayout(arLayout)
             modelOptionsGroupLayout.addWidget(arGroup)
 
-        def optLSF():
+        def optLSF(optMod):
             lsfGroup = QGroupBox('Least Squares Fit')
             lsfGroup.setCheckable(True)
-            lsfayout = QVBoxLayout()
+            lsfayout = QHBoxLayout()
+
+            def lsfOrderShow():
+                if useAIC.isChecked():
+                    lsf_orderLbl.hide()
+                    lsf_order.hide()
+                else:
+                    lsf_orderLbl.show()
+                    lsf_order.show()
+
+            useAIC = QCheckBox('Use AIC')
+            useAIC.clicked.connect(lsfOrderShow)
+            lsf_orderLbl = QLabel('Model order:')
+            lsf_orderLbl.setAlignment(Qt.AlignCenter)
+            lsf_order = QSpinBox()
+            lsf_order.setMinimum(1)
+
+            lsfayout.addWidget(lsf_orderLbl)
+            lsfayout.addWidget(lsf_order)
+            lsfayout.addWidget(useAIC)
+            lsfayout.setAlignment(Qt.AlignCenter)
 
             lsfGroup.setLayout(lsfayout)
             modelOptionsGroupLayout.addWidget(lsfGroup)
 
-        def optARIMA():
+        def optARIMA(optMod):
             arimaGroup = QGroupBox('ARIMA')
             arimaGroup.setCheckable(True)
-            arimaLayout = QVBoxLayout()
+            arimaLayout = QGridLayout()
+
+            def showOptions():
+                if automatic.isChecked():
+                    arima_orderCheck.setChecked(False)
+                    arima_orderCheck.hide()
+                    arima_seasonalOrderCheck.setChecked(False)
+                    arima_seasonalOrderCheck.hide()
+                    showOrder()
+                else:
+                    arima_orderCheck.show()
+                    arima_seasonalOrderCheck.show()
+
+            def showOrder():
+                if arima_orderCheck.isChecked():
+                    arima_order.show()
+                else:
+                    arima_order.hide()
+                if arima_seasonalOrderCheck.isChecked():
+                    arima_seasonalOrder.show()
+                else:
+                    arima_seasonalOrder.hide()
+
+            automatic = QCheckBox('Estimate orders automatically')
+            automatic.clicked.connect(showOptions)
+            automatic.setChecked(True)
+
+            arima_orderCheck = QCheckBox('Non-seasonal orders')
+            arima_orderCheck.clicked.connect(showOrder)
+            arima_order = QLineEdit()
+            arima_order.setInputMask('9,9,9')
+            arima_order.setText('1,0,0')
+            arima_order.setMaximumWidth(80)
+
+            arima_seasonalOrderCheck = QCheckBox('Seasonal orders')
+            arima_seasonalOrderCheck.clicked.connect(showOrder)
+            arima_seasonalOrder = QLineEdit()
+            arima_seasonalOrder.setInputMask('9,9,9')
+            arima_seasonalOrder.setText('0,0,1')
+            arima_seasonalOrder.setMaximumWidth(80)
+            # also should add period
+
+            showOptions()
+            showOrder()
+
+            arimaLayout.addWidget(automatic, 0, 0, 1, 2)
+            arimaLayout.addWidget(arima_orderCheck, 1, 0)
+            arimaLayout.addWidget(arima_order, 2, 0)
+            arimaLayout.addWidget(arima_seasonalOrderCheck, 1, 1)
+            arimaLayout.addWidget(arima_seasonalOrder, 2, 1)
+            arimaLayout.setAlignment(Qt.AlignCenter)
 
             arimaGroup.setLayout(arimaLayout)
             modelOptionsGroupLayout.addWidget(arimaGroup)
+
+        def compileOptions(optMod):
+            options = {}
+            # HoltWinter
+            try:
+                if optMod.hwGroup.isChecked():
+                    options['hw_gamma'] = optMod.seasonal.isChecked()
+                    if options['hw_gamma']:
+                        options['hw_model'] = optMod.model.currentText()
+                        options['hw_period'] = optMod.period.value()
+            except Exception, e:
+                pass
+            # Harmonic Regression
+            # ...
+
+            return options
 
         for model in uniqueModels(self.multiModel.values()):
             try:
@@ -1285,23 +1453,36 @@ class MuScaleMainDialog(QMainWindow):
                         Models.Harmonic_Regression: optAR,
                         Models.Least_Squares_Fit: optLSF,
                         Models.ARIMA: optARIMA,
-                }[model]()
+                }[model](optMod)
             except KeyError:
                 pass
 
-        if self.autoBaseSWT.isChecked():
-            basicLvlLayout = QHBoxLayout()
-            label = QLabel('Basic level models:')
-            label.setAlignment(Qt.AlignCenter)
-            combo = QComboBox()
-            combo.addItems(
-                prettifyNames(Models._enums.values()))
+#        compileOptions(optMod)
 
-            basicLvlLayout.addWidget(label)
-            basicLvlLayout.addWidget(combo)
-            basicLvlLayout.setAlignment(Qt.AlignCenter)
+        if self.isSWT:
+            if self.autoBaseSWT.isChecked():
+                def basicModels():
+                    if label.isChecked():
+                        label.setText('Process basic levels using:')
+                        combo.show()
+                    else:
+                        label.setText('Process basic levels')
+                        combo.hide()
 
-            modelOptionsGroupLayout.addLayout(basicLvlLayout)
+                basicLvlLayout = QHBoxLayout()
+                label = QCheckBox('Process basic levels')
+                label.clicked.connect(basicModels)
+                combo = QComboBox()
+                combo.addItems(
+                    prettifyNames(Models._enums.values()))
+
+                basicModels()
+
+                basicLvlLayout.addWidget(label)
+                basicLvlLayout.addWidget(combo)
+                basicLvlLayout.setAlignment(Qt.AlignCenter)
+
+                modelOptionsGroupLayout.addLayout(basicLvlLayout)
 
         modelsListLayout.addWidget(simulateButton)
         modelsListLayout.addWidget(forecastSteps)
@@ -1323,19 +1504,18 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateResultingTS(self):
         if self.processedWCoeffs is None:
-            self.resultingGraph.canvas.ax.clear()
-            self.resultingGraph.canvas.ax.plot(pywt.waverec(self.wCoefficients, self.wavelet))
+            self.resultingGraph.updatePlot(pywt.waverec(self.wCoefficients, self.wavelet),
+                                           label='Simulation', color='r')
             self.resultingGraph.show()
-            self.resultingGraph.canvas.draw()
         else:
             try:
-                self.resultingGraph.canvas.ax.clear()
                 if not self.isSWT:
-                    self.resultingGraph.canvas.ax.plot(pywt.waverec(self.processedWCoeffs, self.wavelet))
+                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),label='Simulation', color='r')
                 else:
-                    self.resultingGraph.canvas.ax.plot(iswt(update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs), self.wavelet))
+                    self.resultingGraph.updatePlot(iswt(update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs), self.wavelet),
+                                                   label='Simulation', color='r')
+                self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed')
                 self.resultingGraph.show()
-                self.resultingGraph.canvas.draw()
             except Exception, e:
                 if self.showStacktrace.isChecked():
                     message = traceback.format_exc(e)
@@ -1350,7 +1530,7 @@ class MuScaleMainDialog(QMainWindow):
 #####################################################
     def updateResultingTSWithInitialData(self):
         #TODO: add information regarding processed levels
-        self.resultingGraph.updatePlot(self.currentDataSet[0], label='Time series')
+        self.resultingGraph.updatePlot(self.currentDataSet[0], label='Initial data', color='b')
         self.resultingGraph.show()
 
 #####################################################

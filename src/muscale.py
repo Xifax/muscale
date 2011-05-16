@@ -35,15 +35,12 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: export menu
-#TODO: graph legend
 #TODO: wizard template
 #TODO: fix DWT reconstruction
 #TODO: implement parse template
 #TODO: implement data criterion
 #TODO: check parsed data length (> n)
 #TODO: implement some kind of automatic resize mechanism
-#TODO: draw vertical line to separate forecast from initial data
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
 #TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]
 #TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
@@ -77,9 +74,13 @@ Created on Mar 9, 2011
 #NB: (***) documentation is lacking
 
 #---------------R packages---------------#
-#Guidelines                               http://goo.gl/dVizL
-#stats, tseries, ast, lmtest              http://goo.gl/4WIeW
-#TSA (Time Series Analysis)               http://goo.gl/Chh0z
+# Guidelines                               http://goo.gl/dVizL
+# stats, tseries, ast, lmtest              http://goo.gl/4WIeW
+# TSA (Time Series Analysis)               http://goo.gl/Chh0z
+# forecast
+# timsac
+# wavethresh
+# wavesim
 
 #--------------- IDE ---------------------#
 # PyCharm ~ /.idea
