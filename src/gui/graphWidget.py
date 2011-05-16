@@ -76,10 +76,6 @@ class MplWidget(QtGui.QWidget):
         if toolbar:
             # add navigation toolbar to layout
             self.toolbar = NavigationToolbar(self.canvas, self)
-#            self.toolbar.showLegend = QtGui.QPushButton('Legend')
-#            self.toolbar.layout().addWidget(self.toolbar.showLegend)
-#            self.toolbar.setStyleSheet('QWidget { border-style: outset;  border-width: 2px; border-color: beige; }')
-#            self.toolbar.setStyleSheet('QWidget {  border: 1px solid black; border-radius: 4px; }')
             self.layout.addWidget(self.toolbar)
             # enable hover event handling
             self.setAttribute(Qt.WA_Hover)
@@ -159,15 +155,24 @@ class MplWidget(QtGui.QWidget):
     def updatePlot(self, data, line=0, label=None, style='solid', color=None):
         if not self.canvas.ax.has_data():
             if label is not None:
-                self.lines = self.canvas.ax.plot(data, label=label, linestyle=style)
+                if color is not None:
+                    self.lines = self.canvas.ax.plot(data, label=label, linestyle=style, color=color)
+                else:
+                    self.lines = self.canvas.ax.plot(data, label=label, linestyle=style)
             else:
-                self.lines = self.canvas.ax.plot(data, linestyle=style)
+                if color is not None:
+                    self.lines = self.canvas.ax.plot(data, linestyle=style, color=color)
+                else:
+                    self.lines = self.canvas.ax.plot(data, linestyle=style)
         else:
             if not self.lines:
                 self.lines = self.canvas.ax.get_lines()
             if label is not None:
                 if label not in [l._label for l in self.lines]:
-                    self.lines.extend(self.canvas.ax.plot(data, label=label, linestyle=style))
+                    if color is not None:
+                        self.lines.extend(self.canvas.ax.plot(data, label=label, linestyle=style, color=color))
+                    else:
+                        self.lines.extend(self.canvas.ax.plot(data, label=label, linestyle=style))
                     line = len(self.lines) - 1
                 else:
                     line = [l._label for l in self.lines].index(label)

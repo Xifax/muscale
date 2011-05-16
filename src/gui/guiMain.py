@@ -36,7 +36,7 @@ from utility.const import __name__,\
     FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS
 from utility.guiTweaks import unfillLayout, createSeparator, \
     walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
-from utility.tools import prettifyNames, clearFolderContents
+from utility.tools import prettifyNames, clearFolderContents, uniqueModels
 from utility.config import Config
 from stats.parser import DataParser
 from gui.guiTool import ToolsFrame
@@ -133,7 +133,7 @@ class MuScaleMainDialog(QMainWindow):
         self.wvFamilyLbl = QLabel("<font style='color: gray'>Wavelet family</font>")
         self.wvTypeLbl = QLabel("<font style='color: gray'>Wavelet type</font>")
         self.wvDecompLbl = QLabel("<font style='color: gray'>Decomposition method</font>")
-        self.wvLevelLbl = QLabel("<font style='color: gray'>Decombosition level</font>")
+        self.wvLevelLbl = QLabel("<font style='color: gray'>Decomposition level</font>")
 
         self.decompLayout.addWidget(self.wvFamilyLbl, 0, 0)
         self.decompLayout.addWidget(self.wvTypeLbl, 0, 1)
@@ -350,6 +350,10 @@ class MuScaleMainDialog(QMainWindow):
         self.statTools.setItemIcon(int(Tabs.Simulation), QIcon(RES + ICONS + ANALYSIS))
         self.statTools.setItemIcon(int(Tabs.Results), QIcon(RES + ICONS + FIN))
 
+        # tabs alignment #
+        for tab in range(0, self.statTools.count()):
+            self.statTools.widget(tab).setAlignment(Qt.AlignCenter)
+
         # settings #
         self.stylesCombo.addItems(QStyleFactory.keys())
         self.optionsLayout.setAlignment(Qt.AlignCenter)
@@ -370,6 +374,7 @@ class MuScaleMainDialog(QMainWindow):
                                             QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QCheckBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QGroupBox::title {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QTextEdit {font-family: ' + edit_font + '; font-size: ' + str(edit_size) + 'px;}\
                                             QToolTip {font-family: ' + font_tooltip + '; font-size: ' + str(tooltip_size) + 'px;}')
 
@@ -1145,7 +1150,7 @@ class MuScaleMainDialog(QMainWindow):
                                        forecastSteps.value())
             self.processedWCoeffs[model] = result
 
-            modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted')
+            modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
 
         def resetModel():
             model = modelsList.currentIndex()
@@ -1159,7 +1164,7 @@ class MuScaleMainDialog(QMainWindow):
                                                                  self.R,
                                                                  forecastSteps.value())
                 modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
-                                                     label='Forecast', style='dotted')
+                                                     label='Forecast', style='dotted', color='r')
 
             self.messageInfo.showInfo('Simulation completed')
 
@@ -1215,13 +1220,85 @@ class MuScaleMainDialog(QMainWindow):
         batchLayout.addWidget(forecastAll)
         batchLayout.addWidget(fitAll)
         batchLayout.addWidget(resetAll)
-        #TODO: add models options
+
+        modelOptionsGroup = QGroupBox()
+        modelOptionsGroupLayout = QVBoxLayout()
+        modelOptionsGroup.setLayout(modelOptionsGroupLayout)
+        modelOptionsGroup.hide()
+
+        def toggleModelOptions():
+            if modelOptions.isChecked():
+                modelOptionsGroup.show()
+            else:
+                modelOptionsGroup.hide()
+
+        modelOptions = QToolButton()
+        modelOptions.setText('Configure models')
+        modelOptions.clicked.connect(toggleModelOptions)
+        modelOptions.setCheckable(True)
+
+        modelOptButtons = QHBoxLayout()
+        modelOptButtons.addWidget(modelOptions)
+        modelOptButtons.setAlignment(Qt.AlignCenter)
+
+        modelOptionsLayout = QVBoxLayout()
+        modelOptionsLayout.addLayout(modelOptButtons)
+        modelOptionsLayout.addWidget(modelOptionsGroup)
+        modelOptionsLayout.setAlignment(Qt.AlignCenter)
+
+        # models options groups
+        def optHW():
+            hwGroup = QGroupBox('Holt-Winters')
+            hwLayout = QVBoxLayout()
+
+            hwGroup.setLayout(hwLayout)
+            modelOptionsGroupLayout.addWidget(hwGroup)
+
+        def optAR():
+            arGroup = QGroupBox('Harmonic Regression')
+            arLayout = QVBoxLayout()
+
+            arGroup.setLayout(arLayout)
+            modelOptionsGroupLayout.addWidget(arGroup)
+
+        def optLSF():
+            lsfGroup = QGroupBox('Least Squares Fit')
+            lsfayout = QVBoxLayout()
+
+            lsfGroup.setLayout(lsfayout)
+            modelOptionsGroupLayout.addWidget(lsfGroup)
+        
+        def optARIMA():
+            arimaGroup = QGroupBox('ARIMA')
+            arimaLayout = QVBoxLayout()
+
+            arimaGroup.setLayout(arimaLayout)
+            modelOptionsGroupLayout.addWidget(arimaGroup)
+
+        for model in uniqueModels(self.multiModel.values()):
+            try:
+                {Models.Holt_Winters: optHW,
+                        Models.Harmonic_Regression: optAR,
+                        Models.Least_Squares_Fit: optLSF,
+                        Models.ARIMA: optARIMA,
+                }[model]()
+            except KeyError:
+                pass
+
         modelsListLayout.addWidget(simulateButton)
         modelsListLayout.addWidget(forecastSteps)
+        # labels
         self.implementLayout.addLayout(lblLayout, 0, 0)
+        # controls
         self.implementLayout.addLayout(modelsListLayout, 1, 0)
+        # models
         self.implementLayout.addWidget(modelsStack, 2, 0)
-        self.implementLayout.addLayout(batchLayout, 3, 0)
+        # options groups
+        self.implementLayout.addLayout(modelOptionsLayout, 3, 0)
+        # batch controls
+        self.implementLayout.addLayout(batchLayout, 4, 0)
+
+        self.implementLayout.setAlignment(Qt.AlignCenter)
 
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(modelsListLayout)

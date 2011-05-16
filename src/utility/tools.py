@@ -63,3 +63,6 @@ prettifyNames = lambda list: [item.replace('_', ' ') for item in list]
 
 '''Dictionary reverse search'''
 reverseSearch = lambda dic, value : [k for k, lst in dic.iteritems() if value in lst]
+
+'''Select unique models'''
+uniqueModels = lambda models : list(set(models))

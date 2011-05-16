@@ -23,7 +23,7 @@ _separator = '.'
 
 #------- main window ------#
 WIDTH = 640
-HEIGHT = 600
+HEIGHT = 700
 
 #------ tools dialog ------#
 T_WIDTH = 400
@@ -163,7 +163,8 @@ try:
 
 #--------- models ----------#
 
-    Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA')
+    Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA \
+                                GARCH ETS StructTS Cubic_Splines')
 
 #-------- gui tabs ---------#
     Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results')
