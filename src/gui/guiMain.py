@@ -1140,7 +1140,7 @@ class MuScaleMainDialog(QMainWindow):
                                   self.R)
             self.processedWCoeffs[model] = result
 
-            modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed')
+            modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed', color='g')
 
         def forecastModel():
             model = modelsList.currentIndex()
@@ -1174,7 +1174,7 @@ class MuScaleMainDialog(QMainWindow):
                                                                  self.wCoefficients[model],
                                                                  self.R)
                 modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
-                                                     label='Model fit', style='dashed')
+                                                     label='Model fit', style='dashed', color='g')
 
             self.messageInfo.showInfo('Performed models fit')
 
@@ -1224,6 +1224,7 @@ class MuScaleMainDialog(QMainWindow):
         modelOptionsGroup = QGroupBox()
         modelOptionsGroupLayout = QVBoxLayout()
         modelOptionsGroup.setLayout(modelOptionsGroupLayout)
+        modelOptionsGroup.setFlat(True)
         modelOptionsGroup.hide()
 
         def toggleModelOptions():
@@ -1249,6 +1250,7 @@ class MuScaleMainDialog(QMainWindow):
         # models options groups
         def optHW():
             hwGroup = QGroupBox('Holt-Winters')
+            hwGroup.setCheckable(True)
             hwLayout = QVBoxLayout()
 
             hwGroup.setLayout(hwLayout)
@@ -1256,6 +1258,7 @@ class MuScaleMainDialog(QMainWindow):
 
         def optAR():
             arGroup = QGroupBox('Harmonic Regression')
+            arGroup.setCheckable(True)
             arLayout = QVBoxLayout()
 
             arGroup.setLayout(arLayout)
@@ -1263,13 +1266,15 @@ class MuScaleMainDialog(QMainWindow):
 
         def optLSF():
             lsfGroup = QGroupBox('Least Squares Fit')
+            lsfGroup.setCheckable(True)
             lsfayout = QVBoxLayout()
 
             lsfGroup.setLayout(lsfayout)
             modelOptionsGroupLayout.addWidget(lsfGroup)
-        
+
         def optARIMA():
             arimaGroup = QGroupBox('ARIMA')
+            arimaGroup.setCheckable(True)
             arimaLayout = QVBoxLayout()
 
             arimaGroup.setLayout(arimaLayout)
@@ -1284,6 +1289,20 @@ class MuScaleMainDialog(QMainWindow):
                 }[model]()
             except KeyError:
                 pass
+
+        if self.autoBaseSWT.isChecked():
+            basicLvlLayout = QHBoxLayout()
+            label = QLabel('Basic level models:')
+            label.setAlignment(Qt.AlignCenter)
+            combo = QComboBox()
+            combo.addItems(
+                prettifyNames(Models._enums.values()))
+
+            basicLvlLayout.addWidget(label)
+            basicLvlLayout.addWidget(combo)
+            basicLvlLayout.setAlignment(Qt.AlignCenter)
+
+            modelOptionsGroupLayout.addLayout(basicLvlLayout)
 
         modelsListLayout.addWidget(simulateButton)
         modelsListLayout.addWidget(forecastSteps)
