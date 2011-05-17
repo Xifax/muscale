@@ -40,7 +40,8 @@ class DataParser():
 
     @staticmethod
     def getTimeSeriesFromTextData(data, template=' '):
-        #TODO: allow input of negative values
+        #TODO: check input of negative values
+        #TODO: check parsed data length (> n)
         series = []
         parseErrors = 0
 

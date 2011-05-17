@@ -33,7 +33,8 @@ from utility.const import __name__,\
     FIRST, LAST, NEXT, PREV, QUIT, SHOW, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
-    FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS
+    FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS,\
+    R_BIN
 from utility.guiTweaks import unfillLayout, createSeparator, \
     walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
 from utility.tools import prettifyNames, clearFolderContents, uniqueModels
@@ -73,7 +74,7 @@ class MuScaleMainDialog(QMainWindow):
         self.trayIcon.showMessage('Loading...', 'Initializing R', QSystemTrayIcon.Information, TRAY_VISIBLE_DELAY)
         self.forbidClose = True
 
-        self.R = R()
+        self.R = R(R_BIN)
 
         # external gui modules #
         self.wizard = None

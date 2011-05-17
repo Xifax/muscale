@@ -3,8 +3,10 @@
 Created on Mar 9, 2011
 
 @author: Yadavito
-@version: 0.0.1
+@version: 0.1.0
 @requires: preferably python 2.6.6
+@requires: PyQt 4.8.1
+@requires: R 2.13.0
 '''
 
 ####################################
@@ -24,11 +26,29 @@ Created on Mar 9, 2011
 #   - utility ~ constants & useful methods
 #   - res ~ gui objects & initial data
 #       * icons ~ gui icons and logos
-#       * wv ~ wavelet previews (may be regenerated)
+#       * wv ~ wavelet previews (in repo, may be regenerated)
+#       * data ~ time series samples
+#       * tmp ~ temporary folder for previews
+#       * r ~ R binaries and packages (zip packages in repo)
+#       * fonts ~ custom fonts
+#       * docs ~ docs for R modules (not in repo)
 #   - pyqtgraph ~ additional plot modules
 #   - usr ~ project utilities, stats, docs and so on
+#   - src:
+#       * muscale.py, mu.pyw ~ main modules
+#       * install.py ~ install script
+#       * build.py, setup.py ~ currently do not work
+#   - muscale:
+#       * .gitignore ~ ignore list for git
+#       * .idea ~ project configuration
+#       * .git ~ repo
+#       * README.md ~ readme in markdown format
 # -> launch:
 #   - python muscale.py
+#   or
+#   - pythonw mu.pyw
+# -> Install:
+#   - python install.py
 #===============================================================================
 
 ####################################
@@ -39,18 +59,16 @@ Created on Mar 9, 2011
 #TODO: fix DWT reconstruction
 #TODO: implement parse template
 #TODO: implement data criterion
-#TODO: check parsed data length (> n)
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
-#TODO: initialize R with custom (non-SYSTEM PATH) path [compiled application ver.]
 #TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
 
 ####################################
 #            Dependencies          #
 ####################################
 
-# R 2.12.2 i386                          http://goo.gl/nxOOk
-# PySide 1.0.0 (PyQT 4.8.1)              http://goo.gl/owd8y
+# R 2.13.0 i386                          http://goo.gl/nxOOk
+# PyQT 4.8.1                             http://goo.gl/owd8y
 # PypeR 1.1.0                            http://goo.gl/5Q1JX    (*)
 # PyWavelets 0.2.0                       http://goo.gl/9pp1Y    (http://goo.gl/Zhb65)
 # NumPy 1.5.1                            http://goo.gl/lZfYj
@@ -61,7 +79,7 @@ Created on Mar 9, 2011
 # PyQtGraph                              http://goo.gl/hQjvW    (***)
 # PyCairo 1.8.1                          http://goo.gl/ScUvx
 # CairoPlot 1.1                          http://goo.gl/VjTUO
-# R plot engine
+# R plot engine1
 
 # additional statistical packages:
 # scikits.timeseries                     http://goo.gl/t6Hy8

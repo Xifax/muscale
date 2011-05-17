@@ -7,7 +7,7 @@ Requirements:
 
 * **Python**, *preferably 2.6.6*
 * **PyQT** 4.8.1
-* **R** 2.12.2 *in system PATH*
+* **R** 2.13.0
 
 ---
 

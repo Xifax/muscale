@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.0.9'
+__version__ = '0.1.0'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -198,6 +198,16 @@ URL_SETUPTOOLS = 'http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.
 easy_packages = ['PyWavelets', 'flufl.enum', 'userconfig', 'simpledropbox', 'pep8']
 downloadable_packages = {'PyQt4': URL_PYQT, 'matplotlib': URL_MATPLOTLIB,
                          'numpy': URL_NUMPY, 'scipy': URL_SCIPY}
+
+#------------ R ------------#
+R = 'r/'
+R_PKG = RES + R + 'pkg_zip/'
+R_PATH = RES + R + 'R/'
+R_BIN = R_PATH + 'bin/R'
+R_LIB = R_PATH + 'library/'
+R_COMPONENTS = '"main, i386"'
+
+r_packages = []
 
 #----- here be options -----#
 # sections
