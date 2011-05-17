@@ -32,7 +32,6 @@ import numpy as np
 class Filter(QObject):
     """Status message mouse click filter"""
     def eventFilter(self, object, event):
-
         if event.type() == QEvent.HoverEnter:
             object.toolbar.show()
 
@@ -303,6 +302,11 @@ class MplWidget(QtGui.QWidget):
             self.getTopParent().messageInfo.showInfo("Updated tool's graph")
         except Exception:
             pass
+
+    #------------------ events -----------------#
+    #TODO: add option
+#    def showEvent(self, QShowEvent):
+#        self.canvas.setFixedHeight(self.canvas.height())
 
     #------------------ utils ------------------#
     ## Generates previews for specified data.

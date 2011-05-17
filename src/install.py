@@ -11,8 +11,6 @@ import subprocess
 import os
 import os.path
 import zipfile
-import getopt
-import shutil
 
 # external #
 from utility.const import easy_packages, downloadable_packages,\
@@ -152,6 +150,8 @@ if __name__ == '__main__':
             try:
                 if os.path.isfile(file_path):
                     unzipper.extract(file_path, R_LIB)
+                    # removing zip
+                    os.unlink(file_path)
             except Exception, e:
                 print e
 

@@ -46,7 +46,7 @@ from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from gui.flowLayout import FlowLayout
-from stats.models import processModel, calculateForecast
+from stats.models import processModel, calculateForecast, initRLibraries
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, normalize_dwt_dimensions, iswt
 from usr.test import test_data
 
@@ -75,6 +75,7 @@ class MuScaleMainDialog(QMainWindow):
         self.forbidClose = True
 
         self.R = R(R_BIN)
+        initRLibraries(self.R)
 
         # external gui modules #
         self.wizard = None
@@ -925,10 +926,10 @@ class MuScaleMainDialog(QMainWindow):
             combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
 
     def showComponentPreview(self):
-        if self.gem is not None:
-            if not self.toggleSizeAction.isChecked():
-                self.resize(self.width(), self.gem.height())
-            self.gem = None
+#        if self.gem is not None:
+#            if not self.toggleSizeAction.isChecked():
+#                self.resize(self.width(), self.gem.height())
+#            self.gem = None
 
         for row in range(0, self.modelLayout.rowCount()):
             # 4th row in grid layout ~ 'preview' button
@@ -945,11 +946,11 @@ class MuScaleMainDialog(QMainWindow):
                             index = level.text().right(5)[0].toInt()[0]
                             preview.updatePlot(self.wCoefficients[index], label='Lvl' + str(index))
 
-                            preview.setMaximumHeight(P_PREVIEW_HEIGHT)
+#                            preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.show()
-                            if not self.toggleSizeAction.isChecked():
-                                self.gem = self.size()
-                                self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
+#                            if not self.toggleSizeAction.isChecked():
+#                                self.gem = self.size()
+#                                self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 1, 0).widget()
                             preview.hide()
@@ -1277,7 +1278,7 @@ class MuScaleMainDialog(QMainWindow):
         def optHW(optMod):
             optMod.hwGroup = QGroupBox('Holt-Winters')
             optMod.hwGroup.setCheckable(True)
-            hwLayout = QHBoxLayout()
+            hwLayout = QGridLayout()
 
             def hwSeasonalShow():
                 if optMod.seasonal.isChecked():
@@ -1295,15 +1296,16 @@ class MuScaleMainDialog(QMainWindow):
             optMod.seasonal.clicked.connect(hwSeasonalShow)
             optMod.model = QComboBox()
             optMod.model.addItems(['additive', 'multiplicative'])
-            periodLbl = QLabel('Estimated period:')
+            periodLbl = QLabel('Estimated frequency:')
             periodLbl.setAlignment(Qt.AlignCenter)
             optMod.period = QSpinBox()
             optMod.period.setMinimum(2)    #TODO: calculate max
+            optMod.period.setValue(12)
 
-            hwLayout.addWidget(optMod.seasonal)
-            hwLayout.addWidget(optMod.model)
-            hwLayout.addWidget(periodLbl)
-            hwLayout.addWidget(optMod.period)
+            hwLayout.addWidget(optMod.seasonal, 0, 0)
+            hwLayout.addWidget(optMod.model, 0, 1)
+            hwLayout.addWidget(periodLbl, 1, 0)
+            hwLayout.addWidget(optMod.period, 1, 1)
             hwLayout.setAlignment(Qt.AlignCenter)
 
             hwSeasonalShow()
@@ -1312,125 +1314,223 @@ class MuScaleMainDialog(QMainWindow):
             modelOptionsGroupLayout.addWidget(optMod.hwGroup)
 
         def optAR(optMod):
-            arGroup = QGroupBox('Harmonic Regression')
-            arGroup.setCheckable(True)
+            optMod.arGroup = QGroupBox('Harmonic Regression')
+            optMod.arGroup.setCheckable(True)
             arLayout = QHBoxLayout()
 
             def arOrderShow():
-                if useAIC.isChecked():
+                if optMod.ar_useAIC.isChecked():
                     ar_orderLbl.hide()
-                    ar_order.hide()
+                    optMod.ar_order.hide()
                 else:
                     ar_orderLbl.show()
-                    ar_order.show()
+                    optMod.ar_order.show()
 
-            methodLbl = QLabel('Method:')
-            methodLbl.setAlignment(Qt.AlignCenter)
-            method = QComboBox()
-            method.addItems(['yule-walker', 'burg', 'mle'])
-            useAIC = QCheckBox('Use AIC')    #Akaike Information Criterion
-            useAIC.clicked.connect(arOrderShow)
+            ar_methodLbl = QLabel('Method:')
+            ar_methodLbl.setAlignment(Qt.AlignCenter)
+            optMod.ar_method = QComboBox()
+            optMod.ar_method.addItems(['yule-walker', 'burg', 'mle'])
+            optMod.ar_useAIC = QCheckBox('Use AIC')    #Akaike Information Criterion
+            optMod.ar_useAIC.clicked.connect(arOrderShow)
             ar_orderLbl = QLabel('Model order:')
             ar_orderLbl.setAlignment(Qt.AlignCenter)
-            ar_order = QSpinBox()
-            ar_order.setMinimum(1)
+            optMod.ar_order = QSpinBox()
+            optMod.ar_order.setMinimum(1)
             # missing values fun?
+
+            optMod.ar_useAIC.setChecked(True)
+            arOrderShow()
             
-            arLayout.addWidget(methodLbl)
-            arLayout.addWidget(method)
+            arLayout.addWidget(ar_methodLbl)
+            arLayout.addWidget(optMod.ar_method)
             arLayout.addWidget(ar_orderLbl)
-            arLayout.addWidget(ar_order)
-            arLayout.addWidget(useAIC)
+            arLayout.addWidget(optMod.ar_order)
+            arLayout.addWidget(optMod.ar_useAIC)
             arLayout.setAlignment(Qt.AlignCenter)
 
-            arGroup.setLayout(arLayout)
-            modelOptionsGroupLayout.addWidget(arGroup)
+            optMod.arGroup.setLayout(arLayout)
+            modelOptionsGroupLayout.addWidget(optMod.arGroup)
 
         def optLSF(optMod):
-            lsfGroup = QGroupBox('Least Squares Fit')
-            lsfGroup.setCheckable(True)
+            optMod.lsfGroup = QGroupBox('Least Squares Fit')
+            optMod.lsfGroup.setCheckable(True)
             lsfayout = QHBoxLayout()
 
             def lsfOrderShow():
-                if useAIC.isChecked():
+                if optMod.lsf_useAIC.isChecked():
                     lsf_orderLbl.hide()
-                    lsf_order.hide()
+                    optMod.lsf_order.hide()
                 else:
                     lsf_orderLbl.show()
-                    lsf_order.show()
+                    optMod.lsf_order.show()
 
-            useAIC = QCheckBox('Use AIC')
-            useAIC.clicked.connect(lsfOrderShow)
+            optMod.lsf_useAIC = QCheckBox('Use AIC')
+            optMod.lsf_useAIC.clicked.connect(lsfOrderShow)
             lsf_orderLbl = QLabel('Model order:')
             lsf_orderLbl.setAlignment(Qt.AlignCenter)
-            lsf_order = QSpinBox()
-            lsf_order.setMinimum(1)
+            optMod.lsf_order = QSpinBox()
+            optMod.lsf_order.setMinimum(1)
 
             lsfayout.addWidget(lsf_orderLbl)
-            lsfayout.addWidget(lsf_order)
-            lsfayout.addWidget(useAIC)
+            lsfayout.addWidget(optMod.lsf_order)
+            lsfayout.addWidget(optMod.lsf_useAIC)
             lsfayout.setAlignment(Qt.AlignCenter)
 
-            lsfGroup.setLayout(lsfayout)
-            modelOptionsGroupLayout.addWidget(lsfGroup)
+            optMod.lsfGroup.setLayout(lsfayout)
+            modelOptionsGroupLayout.addWidget(optMod.lsfGroup)
 
         def optARIMA(optMod):
-            arimaGroup = QGroupBox('ARIMA')
-            arimaGroup.setCheckable(True)
+            optMod.arimaGroup = QGroupBox('ARIMA')
+            optMod.arimaGroup.setCheckable(True)
             arimaLayout = QGridLayout()
 
             def showOptions():
-                if automatic.isChecked():
-                    arima_orderCheck.setChecked(False)
-                    arima_orderCheck.hide()
-                    arima_seasonalOrderCheck.setChecked(False)
-                    arima_seasonalOrderCheck.hide()
+                if optMod.arima_automatic.isChecked():
+                    optMod.arima_orderCheck.setChecked(False)
+                    optMod.arima_orderCheck.hide()
+                    optMod.arima_seasonalOrderCheck.setChecked(False)
+                    optMod.arima_seasonalOrderCheck.hide()
                     showOrder()
                 else:
-                    arima_orderCheck.show()
-                    arima_seasonalOrderCheck.show()
+                    optMod.arima_orderCheck.show()
+                    optMod.arima_seasonalOrderCheck.show()
 
             def showOrder():
-                if arima_orderCheck.isChecked():
-                    arima_order.show()
+                if optMod.arima_orderCheck.isChecked():
+                    optMod.arima_order.show()
                 else:
-                    arima_order.hide()
-                if arima_seasonalOrderCheck.isChecked():
-                    arima_seasonalOrder.show()
+                    optMod.arima_order.hide()
+                if optMod.arima_seasonalOrderCheck.isChecked():
+                    optMod.arima_seasonalOrder.show()
                 else:
-                    arima_seasonalOrder.hide()
+                    optMod.arima_seasonalOrder.hide()
 
-            automatic = QCheckBox('Estimate orders automatically')
-            automatic.clicked.connect(showOptions)
-            automatic.setChecked(True)
+            optMod.arima_automatic = QCheckBox('Estimate orders automatically')
+            optMod.arima_automatic.clicked.connect(showOptions)
+            optMod.arima_automatic.setChecked(True)
 
-            arima_orderCheck = QCheckBox('Non-seasonal orders')
-            arima_orderCheck.clicked.connect(showOrder)
-            arima_order = QLineEdit()
-            arima_order.setInputMask('9,9,9')
-            arima_order.setText('1,0,0')
-            arima_order.setMaximumWidth(80)
+            optMod.arima_orderCheck = QCheckBox('Non-seasonal orders')
+            optMod.arima_orderCheck.clicked.connect(showOrder)
+            optMod.arima_order = QLineEdit()
+            optMod.arima_order.setInputMask('9,9,9')
+            optMod.arima_order.setText('1,0,0')
+            optMod.arima_order.setMaximumWidth(80)
 
-            arima_seasonalOrderCheck = QCheckBox('Seasonal orders')
-            arima_seasonalOrderCheck.clicked.connect(showOrder)
-            arima_seasonalOrder = QLineEdit()
-            arima_seasonalOrder.setInputMask('9,9,9')
-            arima_seasonalOrder.setText('0,0,1')
-            arima_seasonalOrder.setMaximumWidth(80)
-            # also should add period
+            optMod.arima_seasonalOrderCheck = QCheckBox('Seasonal orders')
+            optMod.arima_seasonalOrderCheck.clicked.connect(showOrder)
+            optMod.arima_seasonalOrder = QLineEdit()
+            optMod.arima_seasonalOrder.setInputMask('9,9,9')
+            optMod.arima_seasonalOrder.setText('0,0,1')
+            optMod.arima_seasonalOrder.setMaximumWidth(80)
+            # should also add period
 
             showOptions()
             showOrder()
 
-            arimaLayout.addWidget(automatic, 0, 0, 1, 2)
-            arimaLayout.addWidget(arima_orderCheck, 1, 0)
-            arimaLayout.addWidget(arima_order, 2, 0)
-            arimaLayout.addWidget(arima_seasonalOrderCheck, 1, 1)
-            arimaLayout.addWidget(arima_seasonalOrder, 2, 1)
+            arimaLayout.addWidget(optMod.arima_automatic, 0, 0, 1, 2)
+            arimaLayout.addWidget(optMod.arima_orderCheck, 1, 0)
+            arimaLayout.addWidget(optMod.arima_order, 1, 1)
+            arimaLayout.addWidget(optMod.arima_seasonalOrderCheck, 2, 0)
+            arimaLayout.addWidget(optMod.arima_seasonalOrder, 2, 1)
             arimaLayout.setAlignment(Qt.AlignCenter)
 
-            arimaGroup.setLayout(arimaLayout)
-            modelOptionsGroupLayout.addWidget(arimaGroup)
+            optMod.arimaGroup.setLayout(arimaLayout)
+            modelOptionsGroupLayout.addWidget(optMod.arimaGroup)
+
+        def optETS(optMod):
+            optMod.etsGroup = QGroupBox('ETS')
+            optMod.etsGroup.setCheckable(True)
+            etsLayout = QGridLayout()
+
+            def showModel():
+                if optMod.ets_auto.isChecked():
+                    optMod.ets_seasonal.hide()
+                    optMod.ets_seasonal_model.hide()
+                    optMod.ets_trend.hide()
+                    optMod.ets_trend_model.hide()
+                    optMod.ets_random.hide()
+                    optMod.ets_random_model.hide()
+
+                    ets_preiodLbl.hide()
+                    optMod.ets_period.hide()
+                else:
+                    optMod.ets_seasonal.show()
+                    optMod.ets_seasonal.setChecked(False)
+                    optMod.ets_trend.show()
+                    optMod.ets_trend.setChecked(False)
+                    optMod.ets_random.show()
+                    optMod.ets_random.setChecked(False)
+
+                    ets_preiodLbl.show()
+                    optMod.ets_period.show()
+                    showModels()
+
+            def showModels():
+                if optMod.ets_seasonal.isChecked():
+                    optMod.ets_seasonal_model.show()
+                    optMod.ets_seasonal.setText('Seasonal:')
+                else:
+                    optMod.ets_seasonal_model.hide()
+                    optMod.ets_seasonal.setText('Seasonal')
+
+                if optMod.ets_trend.isChecked():
+                    optMod.ets_trend_model.show()
+                    optMod.ets_trend.setText('Trend:')
+                else:
+                    optMod.ets_trend_model.hide()
+                    optMod.ets_trend.setText('Trend:')
+
+                if optMod.ets_random.isChecked():
+                    optMod.ets_random_model.show()
+                    optMod.ets_random.setText('Random:')
+                else:
+                    optMod.ets_random_model.hide()
+                    optMod.ets_random.setText('Random')
+
+            optMod.ets_auto = QCheckBox('Choose model automatically')
+            optMod.ets_auto.clicked.connect(showModel)
+            optMod.ets_auto.setChecked(True)
+
+            models = ['additive', 'multiplicative', 'auto']
+            optMod.ets_seasonal = QCheckBox('Seasonal')
+            optMod.ets_seasonal.clicked.connect(showModels)
+            optMod.ets_seasonal_model = QComboBox()
+            optMod.ets_seasonal_model.addItems(models)
+
+            optMod.ets_trend = QCheckBox('Trend')
+            optMod.ets_trend.clicked.connect(showModels)
+            optMod.ets_trend_model = QComboBox()
+            optMod.ets_trend_model.addItems(models)
+
+            optMod.ets_random = QCheckBox('Random')
+            optMod.ets_random.clicked.connect(showModels)
+            optMod.ets_random_model = QComboBox()
+            optMod.ets_random_model.addItems(models)
+
+            ets_preiodLbl = QLabel('Estimated frequency:')
+            optMod.ets_period = QSpinBox()
+            optMod.ets_period.setMinimum(2)
+            optMod.ets_period.setValue(12)
+            ets_preiodLbl.hide()
+            optMod.ets_period.hide()
+
+            showModels()
+            showModel()
+
+            etsLayout.addWidget(optMod.ets_auto, 0, 0, 1, 2)
+            etsLayout.addWidget(optMod.ets_seasonal, 1, 0)
+            etsLayout.addWidget(optMod.ets_seasonal_model, 1, 1)
+            etsLayout.addWidget(optMod.ets_trend, 2, 0)
+            etsLayout.addWidget(optMod.ets_trend_model, 2, 1)
+            etsLayout.addWidget(optMod.ets_random, 3, 0)
+            etsLayout.addWidget(optMod.ets_random_model, 3, 1)
+            etsLayout.addWidget(ets_preiodLbl, 4, 0)
+            etsLayout.addWidget(optMod.ets_period, 4, 1)
+
+            etsLayout.setAlignment(Qt.AlignCenter)
+
+            optMod.etsGroup.setLayout(etsLayout)
+            modelOptionsGroupLayout.addWidget(optMod.etsGroup)
 
         def compileOptions(optMod):
             options = {}
@@ -1439,12 +1539,64 @@ class MuScaleMainDialog(QMainWindow):
                 if optMod.hwGroup.isChecked():
                     options['hw_gamma'] = optMod.seasonal.isChecked()
                     if options['hw_gamma']:
-                        options['hw_model'] = optMod.model.currentText()
+                        options['hw_model'] = str(optMod.model.currentText())
                         options['hw_period'] = optMod.period.value()
-            except Exception, e:
+            except Exception:
                 pass
             # Harmonic Regression
-            # ...
+            try:
+                if optMod.arGroup.isChecked():
+                    options['ar_aic'] = optMod.ar_useAIC.isChecked()
+                    options['ar_method'] = str(optMod.ar_method.currentText())
+                    options['ar_order'] = optMod.ar_order.value()
+            except Exception:
+                pass
+            # LSF
+            try:
+                if optMod.lsfGroup.isChecked():
+                    options['lsf_aic'] = optMod.lsf_useAIC.isChecked()
+                    options['lsf_order'] = optMod.lsf_order.value()
+            except Exception:
+                pass
+            # ARIMA
+            try:
+                if optMod.arimaGroup.isChecked():
+                    options['arima_auto'] = optMod.arima_automatic.isChecked()
+                    options['arima_nons'] = optMod.arima_orderCheck.isChecked()
+                    options['arima_nons_order'] = [int(o) for o in
+                                                   optMod.arima_order.text().split(',')]
+                    options['arima_seas'] = optMod.arima_seasonalOrderCheck.isChecked()
+                    options['arima_seas_order'] = [int(o) for o in
+                                                   optMod.arima_seasonalOrder.text().split(',')]
+            except Exception:
+                pass
+            # ETS
+            try:
+                if optMod.etsGroup.isChecked():
+                    modelId = { 'additive': 'A', 'multiplicative': 'M', 'auto': 'Z', 'none': 'N'}
+                    options['ets_auto'] = optMod.ets_auto.isChecked()
+                    options['ets_period'] = optMod.ets_period.value()
+                    
+#                    options['ets_seasonal'] = optMod.ets_seasonal.isChecked()
+                    if optMod.ets_seasonal.isChecked():
+                        options['ets_seasonal_model'] = \
+                            modelId[str(optMod.ets_seasonal_model.currentText())]
+                    else:
+                        options['ets_seasonal_model'] = modelId['none']
+#                    options['ets_trend'] = optMod.ets_trend.isChecked()
+                    if optMod.ets_trend.isChecked():
+                        options['ets_trend_model'] = \
+                            modelId[str(optMod.ets_trend_model.currentText())]
+                    else:
+                        options['ets_trend_model'] = modelId['none']
+#                    options['ets_random'] = optMod.ets_random.isChecked()
+                    if optMod.ets_random.isChecked():
+                        options['ets_random_model'] = \
+                            modelId[str(optMod.ets_random_model.currentText())]
+                    else:
+                        options['ets_random_model'] = modelId['none']
+            except Exception:
+                pass
 
             return options
 
@@ -1454,6 +1606,7 @@ class MuScaleMainDialog(QMainWindow):
                         Models.Harmonic_Regression: optAR,
                         Models.Least_Squares_Fit: optLSF,
                         Models.ARIMA: optARIMA,
+                        Models.ETS: optETS,
                 }[model](optMod)
             except KeyError:
                 pass
@@ -1571,10 +1724,14 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
             self.infoDialog.hide()
             
     def showAbout(self):
+        self.R('ver <- R.Version()$version.string')
         QMessageBox.about(self, 'About muScale',
                           'Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
                           '\nQtCore:\t' + PYQT_VERSION_STR +
-                          '\nPlatform:\t' + platform.system())
+                          '\nR:\t' + self.R.ver.split()[2] +
+                          '\n' + '-' * 22 + # mmm, magic number!
+                            '\nPlatform:\t' + platform.system() + ' ' + platform.release() +
+                            '\nAuthor:\t' + 'Artiom Basenko')
 
     def closeEvent(self, event):
         if self.hidetoTray.isChecked() and self.forbidClose:
