@@ -1725,7 +1725,7 @@ class MuScaleMainDialog(QMainWindow):
 
                     self.resultingGraph.updatePlot(iswt(update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs), self.wavelet),
                                                    label='Simulation', color='r')
-                self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed')
+                self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed', label='bound')
                 self.resultingGraph.show()
 
                 self.toolsFrame.updateLog(['reconstruction complete [' + str(len(self.processedWCoeffs)) + ' levels]'])

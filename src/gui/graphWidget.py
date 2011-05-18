@@ -115,6 +115,15 @@ class MplWidget(QtGui.QWidget):
         self.addAction(QtGui.QAction(QtGui.QIcon(RES + ICONS + GRAPH),'Plot data in tools',
                                      self, triggered=self.toGraphTool))
 
+        self.selectLinesMenu = QtGui.QMenu()
+        self.selectLines = (QtGui.QAction('Plots', self))
+        self.selectLines.setMenu(self.selectLinesMenu)
+
+        aSep = QtGui.QAction('', self)
+        aSep.setSeparator(True)
+        self.addAction(aSep)
+        self.addAction(self.selectLines)
+
     def newIcons(self):
         for position in range(0, self.toolbar.layout().count()):
             widget = self.toolbar.layout().itemAt(position).widget()
@@ -185,6 +194,7 @@ class MplWidget(QtGui.QWidget):
             self.canvas.draw()
 
         self.updateLegend()
+        self.updateLinesSubmenu()
 
     ## Plots scalogram for wavelet decomposition.
     #  @param data Wavelet coefficients in matrix.
@@ -288,10 +298,12 @@ class MplWidget(QtGui.QWidget):
             pass
 
     def toTable(self):
-        #TODO: allow selection from availiable plots/lines
         try:
             for line in self.canvas.ax.get_lines():
-                self.tool.updateTable(line._y, line._label)
+                for action in self.selectLinesMenu.actions():
+                    if action.isChecked():
+                        if line._label == action.text():
+                            self.tool.updateTable(line._y, line._label)
             self.getTopParent().messageInfo.showInfo('Copied to table')
         except Exception:
             pass
@@ -299,10 +311,26 @@ class MplWidget(QtGui.QWidget):
     def toGraphTool(self):
         try:
             for line in self.canvas.ax.get_lines():
-                self.tool.updatePlot(line._y)
+                for action in self.selectLinesMenu.actions():
+                    if action.isChecked():
+                        if line._label == action.text():
+                            self.tool.updatePlot(line._y)
             self.getTopParent().messageInfo.showInfo("Updated tool's graph")
         except Exception:
             pass
+
+    def updateLinesSubmenu(self):
+        if len(self.canvas.ax.get_lines()) > 1:
+            self.selectLines.setEnabled(True)
+            self.selectLinesMenu.clear()
+            for line in self.canvas.ax.get_lines():
+                lineSelectAction = QtGui.QAction(line._label, self)
+                lineSelectAction.setCheckable(True)
+                self.selectLinesMenu.addAction(lineSelectAction)
+            self.selectLinesMenu.actions()[0].setChecked(True)
+        else:
+            self.selectLines.setEnabled(False)
+        pass
 
     #------------------ events -----------------#
     #TODO: add option
