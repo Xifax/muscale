@@ -288,6 +288,7 @@ class MplWidget(QtGui.QWidget):
             pass
 
     def toTable(self):
+        #TODO: allow selection from availiable plots/lines
         try:
             for line in self.canvas.ax.get_lines():
                 self.tool.updateTable(line._y, line._label)

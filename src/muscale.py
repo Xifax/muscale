@@ -59,6 +59,7 @@ Created on Mar 9, 2011
 #TODO: fix DWT reconstruction
 #TODO: implement parse template
 #TODO: implement data criterion
+#TODO: show fit/forecast accuracy, error
 #TODO: add estimation/helpers for models (ARIMA, etc)
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)

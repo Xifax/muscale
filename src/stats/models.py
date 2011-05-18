@@ -3,7 +3,7 @@ __author__ = 'Yadavito'
 
 # external #
 from stats.pyper import R, Str4R
-from numpy import append, array
+from numpy import append, array, zeros
 
 # own #
 from utility.const import Models, r_packages
@@ -21,16 +21,13 @@ def hwProcess(data, r, options):
     nonSeasonalHw = lambda data, gamma: \
         r('hw <- HoltWinters( %s, gamma = %s )' % (Str4R(data), Str4R(gamma)))
     try:
-#        gamma = options['hw_gamma']
-#        period = options['hw_period']
-#        model = options['hw_model']
         r('hw <- HoltWinters( ts( %s, frequency = %s ), seasonal = %s, gamma = %s )' %
            (Str4R(data), Str4R(options['hw_period']),
             Str4R(options['hw_model']),
             Str4R(options['hw_gamma'])))
     except Exception:
         nonSeasonalHw(data, gamma)
-    print r.hw['SSE']   # <- do something with it
+#    print r.hw['SSE']   # <- do something with it
     return r.hw['fitted'][:,0]
 
 def hwPredict(data, r, steps=steps_default, options=None):
@@ -38,7 +35,10 @@ def hwPredict(data, r, steps=steps_default, options=None):
     r('pred <- predict(hw, %s, prediction.interval = TRUE)' % Str4R(steps))
     diff = abs(len(r.hw['fitted']) - len(data))
     r('fit <- c( array(0, %s), %s )' % (Str4R(diff), Str4R(r.hw['fitted'][:,0])))
-    return append(r.fit, r.pred[:,0])
+    if options['append_fit']:
+        return append(r.fit, r.pred[:,0])
+    else:
+        return append(zeros(len(data)), r.pred[:,0])
 
 # Least Squares Fit
 def lsfProcess(data, r, options):
@@ -54,7 +54,10 @@ def lsfProcess(data, r, options):
 def lsfPredict(data, r, steps=steps_default, options=None):
     lsfProcess(data, r, options)
     r('pred <- predict( lsf, n.ahead = %s ) ' % Str4R(steps) )
-    return append(data, r.pred['pred'])
+    if options['append_fit']:
+        return append(data, r.pred['pred'])
+    else:
+        return append(zeros(len(data)), r.pred['pred'])
 
 # ARIMA
 def arimaProcess(data, r, options=None):
@@ -92,8 +95,10 @@ def arimaPredict(data, r, steps=steps_default, options=None):
             arimaManual(steps)
     except Exception, e:
         arimaManual(steps)
-    return append(data, r.pred['pred'])
-#    return r.pred['pred']
+    if options['append_fit']:
+        return append(data, r.pred['pred'])
+    else:
+        return append(zeros(len(data)), r.pred['pred'])
 
 # Harmonic Regression
 def arProcess(data, r, options):
@@ -110,60 +115,83 @@ def arProcess(data, r, options):
 
 def arPredict(data, r, steps=steps_default, options=None):
     arProcess(data, r, options)
-    r('pred <- predict( afit, n.ahead = %s )' % Str4R(steps) )
-    return append(data, r.pred['pred'])
-#    return r.pred['pred']
+    r('pred <- predict( afit, n.ahead = %s )' % Str4R(steps))
+    if options['append_fit']:
+        return append(data, r.pred['pred'])
+    else:
+        return append(zeros(len(data)), r.pred['pred'])
 
 def etsProcess(data, r, options):
-    #TODO: fix this heresy
     etsAuto = lambda data: \
-        r('fit <- ets( %s )' % Str4R(data))
+        r('efit <- ets( %s )' % Str4R(data))
     try:
         if not options['ets_auto']:
-            r('fit <- ets( ts( %s, frequency = %s ), model = %s )' %
+            r('efit <- ets( ts( %s, frequency = %s ), model = %s )' %
               (Str4R(data), Str4R(options['ets_period']),
                Str4R(options['ets_random_model'] +
               options['ets_trend_model'] +
               options['ets_seasonal_model'])))
         else:
-            r.data = data
-            r('fit <- ets( data )')
-#            r('fit <- ets( %s )' % Str4R(data))
-#            etsAuto(data)
+            etsAuto(data)
     except Exception, e:
         etsAuto(data)
-    return r.fit['fitted']
+    return r['efit$fitted']
 
 def etsPredict(data, r, steps=steps_default, options=None):
     etsProcess(data, r, options)
-    r('pred <- forecast( fit, %s )' % Str4R(steps))
-    return append(r.fit['fitted'], r.pred['mean'])
+    r('pred <- forecast( efit, %s )' % Str4R(steps))
+    if options['append_fit']:
+        return append(r['efit$fitted'], r['pred$mean'])
+    else:
+        return append(zeros(len(data)), r['pred$mean'])
 
 def qsplineProcess(data, r, options):
     return []
 
 def qsplinePredict(data, r, steps=steps_default, options=None):
     r('spln <- splinef( %s, %s )' % (Str4R(data), Str4R(steps)))
-    return append(data, r.spln['mean'])
+    if options['append_fit']:
+        return append(data, r.spln['mean'])
+    else:
+        return append(zeros(len(data)), r.spln['mean'])
 
-def garchProcess(data, r, options):
-    # order=c(1,0)
-    r('g <- garch( %s )' % Str4R(daat))
-    return r.g['fitted.values'][:,0]
+#def garchProcess(data, r, options):
+#    # order=c(1,0)
+#    r('g <- garch( %s )' % Str4R(data))
+##    return r.g['fitted.values'][:,0]
+#    return[]
+#
+#def garchPredict(data, r, steps=steps_default, options=None):
+#    garchProcess(data, r, options)
+#    r('pred <- predict( g, %s )' % steps)
+#    if options['append_fit']:
+#        return append(data, r.pred[:,0])
+#    else:
+#        return append(zeros(len(data)), r.pred[:,0])
 
-def garchPredict(data, r, steps=steps_default, options=None):
-    r('pred <- predict(g, %s)' % steps)
-    return r.pred[:,0]
+def stsProcess(data, r, options):
+    r('sfit <- StructTS( %s, %s )' % (Str4R(data), Str4R(options['sts_type'])))
+    return r.sfit['fitted']
+
+def stsPredict(data, r, steps=steps_default, options=None):
+    stsProcess(data, r, options)
+    r('pred <- forecast( %s, %s )' % (Str4R(data), Str4R(steps)))
+    if options['append_fit']:
+        return append(r['pred$fitted'], r['pred$mean'])
+    else:
+        return append(zeros(len(data)), r.pred['mean'])
 
 # methods dicts
 model_process_methods = {Models.Holt_Winters: hwProcess,  Models.Least_Squares_Fit: lsfProcess,
                           Models.ARIMA: arimaProcess, Models.Harmonic_Regression: arProcess,
                           Models.ETS: etsProcess, Models.Cubic_Splines: qsplineProcess,
-                          Models.GARCH: garchProcess}
+                          Models.StructTS: stsProcess}
+#                          Models.GARCH: garchProcess, Models.StructTS: stsProcess}
 model_predict_methods = {Models.Holt_Winters: hwPredict, Models.Least_Squares_Fit: lsfPredict,
                           Models.ARIMA: arimaPredict, Models.Harmonic_Regression: arPredict,
                           Models.ETS: etsPredict, Models.Cubic_Splines: qsplinePredict,
-                          Models.GARCH: garchPredict}
+                          Models.StructTS: stsPredict}
+#                          Models.GARCH: garchPredict, Models.StructTS: stsPredict}
 
 # interface methods
 def processModel(model, data, r, options=None):

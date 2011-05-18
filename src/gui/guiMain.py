@@ -173,12 +173,14 @@ class MuScaleMainDialog(QMainWindow):
 
         self.reconTS = QPushButton('Plot constructed model')
         self.plotInitial = QPushButton('Plot initial data')
+        self.clearResult = QPushButton('Clear')
         self.resultingGraph = MplWidget(self.toolsFrame,
                                        toolbar=self.toolbarEnable)
 
         self.reconsLayout.addWidget(self.reconTS, 0, 0)
-        self.reconsLayout.addWidget(self.plotInitial, 0, 1)
-        self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 2)
+        self.reconsLayout.addWidget(self.clearResult, 0, 1)
+        self.reconsLayout.addWidget(self.plotInitial, 0, 2)
+        self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 3)
 
         self.reconsGroup.setLayout(self.reconsLayout)
 
@@ -488,6 +490,7 @@ class MuScaleMainDialog(QMainWindow):
         # results #
         self.reconTS.clicked.connect(self.updateResultingTS)
         self.plotInitial.clicked.connect(self.updateResultingTSWithInitialData)
+        self.clearResult.clicked.connect(self.clearResultingGraph)
 
         # settings #
         self.applySettings.clicked.connect(self.saveSettings)
@@ -742,6 +745,8 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame.updateLog(['data reset'], warning=True)
         self.showScalogram.setChecked(False)
         self.showWavelist.setChecked(False)
+
+        self.resultingGraph.canvas.ax.clear()
         
         # clearing R workspace
         self.R('rm(list = ls())')
@@ -1075,7 +1080,7 @@ class MuScaleMainDialog(QMainWindow):
 
             info = u''
             for index, model in self.multiModel.iteritems():
-                info += 'Lvl' + str(index) + ': <i>' + prettifyNames([model._enumname])[0] + '</i>;\t'
+                info += 'Lvl ' + str(index) + ': <i>' + prettifyNames([model._enumname])[0] + '</i>\t'
             self.messageInfo.showInfo('Multiscale model complete<br/>' + info, adjust=False)
 #            self.messageInfo.showInfo('Multiscale model complete')
 
@@ -1155,10 +1160,15 @@ class MuScaleMainDialog(QMainWindow):
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
 
+            self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' + prettifyNames([self.multiModel[model]._enumname])[0] +
+                                        ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+
         def resetModel():
             model = modelsList.currentIndex()
             modelsStack.currentWidget().canvas.ax.clear()
             modelsStack.currentWidget().updatePlot(self.wCoefficients[model], label='Series' + str(model))
+
+            self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] reset'])
 
         def fitAllLevels():
             for model in self.multiModel:
@@ -1181,12 +1191,17 @@ class MuScaleMainDialog(QMainWindow):
                 modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
                                                      label='Forecast', style='dotted', color='r')
 
+                self.toolsFrame.updateLog(['model  ' + prettifyNames([self.multiModel[model]._enumname])[0] +
+                            ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+
             self.messageInfo.showInfo('Simulation completed')
 
         def resetAllLevels():
             for model in self.multiModel:
                 modelsStack.widget(model).canvas.ax.clear()
                 modelsStack.widget(model).updatePlot(self.wCoefficients[model], label='Series' + str(model))
+
+                self.toolsFrame.updateLog(['all models reset'])
 
             self.messageInfo.showInfo('All changes reverted')
 
@@ -1235,8 +1250,12 @@ class MuScaleMainDialog(QMainWindow):
         def toggleModelOptions():
             if modelOptions.isChecked():
                 modelOptionsGroup.show()
+                if modelsStack.isVisible():
+                    hideGraph.click()
             else:
                 modelOptionsGroup.hide()
+                if modelsStack.isHidden():
+                    hideGraph.click()
 
         def toggleGraph():
             if hideGraph.isChecked():
@@ -1268,6 +1287,13 @@ class MuScaleMainDialog(QMainWindow):
 
         modelOptionsLayout = QVBoxLayout()
         modelOptionsLayout.addLayout(modelOptButtons)
+
+        allowZeroShift = QCheckBox('Exclude fit from forecast')
+        shiftLayout = QHBoxLayout()
+        shiftLayout.addWidget(allowZeroShift)
+        shiftLayout.setAlignment(Qt.AlignCenter)
+        modelOptionsGroupLayout.addLayout(shiftLayout)
+
         modelOptionsLayout.addWidget(modelOptionsGroup)
         modelOptionsLayout.setAlignment(Qt.AlignCenter)
 
@@ -1532,6 +1558,23 @@ class MuScaleMainDialog(QMainWindow):
             optMod.etsGroup.setLayout(etsLayout)
             modelOptionsGroupLayout.addWidget(optMod.etsGroup)
 
+        def optSTS(optMod):
+            optMod.stsGroup = QGroupBox('StructTS')
+            optMod.stsGroup.setCheckable(True)
+            stsLayout = QHBoxLayout()
+
+            #TODO: should add frequency, perchance
+            sts_typeLbl = QLabel('Structural model type:')
+            optMod.sts_type = QComboBox()
+            optMod.sts_type.addItems(['level', 'trend', 'BSM'])
+
+            stsLayout.setAlignment(Qt.AlignCenter)
+            stsLayout.addWidget(sts_typeLbl)
+            stsLayout.addWidget(optMod.sts_type)
+
+            optMod.stsGroup.setLayout(stsLayout)
+            modelOptionsGroupLayout.addWidget(optMod.stsGroup)
+
         def compileOptions(optMod):
             options = {}
             # HoltWinter
@@ -1577,19 +1620,16 @@ class MuScaleMainDialog(QMainWindow):
                     options['ets_auto'] = optMod.ets_auto.isChecked()
                     options['ets_period'] = optMod.ets_period.value()
                     
-#                    options['ets_seasonal'] = optMod.ets_seasonal.isChecked()
                     if optMod.ets_seasonal.isChecked():
                         options['ets_seasonal_model'] = \
                             modelId[str(optMod.ets_seasonal_model.currentText())]
                     else:
                         options['ets_seasonal_model'] = modelId['none']
-#                    options['ets_trend'] = optMod.ets_trend.isChecked()
                     if optMod.ets_trend.isChecked():
                         options['ets_trend_model'] = \
                             modelId[str(optMod.ets_trend_model.currentText())]
                     else:
                         options['ets_trend_model'] = modelId['none']
-#                    options['ets_random'] = optMod.ets_random.isChecked()
                     if optMod.ets_random.isChecked():
                         options['ets_random_model'] = \
                             modelId[str(optMod.ets_random_model.currentText())]
@@ -1597,6 +1637,14 @@ class MuScaleMainDialog(QMainWindow):
                         options['ets_random_model'] = modelId['none']
             except Exception:
                 pass
+            # StructTS
+            try:
+                if optMod.stsGroup.isChecked():
+                    options['sts_type'] = str(optMod.sts_type.currentText())
+            except Exception:
+                pass
+
+            options['append_fit'] = not allowZeroShift.isChecked()
 
             return options
 
@@ -1607,11 +1655,10 @@ class MuScaleMainDialog(QMainWindow):
                         Models.Least_Squares_Fit: optLSF,
                         Models.ARIMA: optARIMA,
                         Models.ETS: optETS,
+                        Models.StructTS: optSTS,
                 }[model](optMod)
             except KeyError:
                 pass
-
-#        compileOptions(optMod)
 
         if self.isSWT:
             if self.autoBaseSWT.isChecked():
@@ -1640,6 +1687,7 @@ class MuScaleMainDialog(QMainWindow):
 
         modelsListLayout.addWidget(simulateButton)
         modelsListLayout.addWidget(forecastSteps)
+
         # labels
         self.implementLayout.addLayout(lblLayout, 0, 0)
         # controls
@@ -1656,20 +1704,31 @@ class MuScaleMainDialog(QMainWindow):
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(modelsListLayout)
 
+#####################################################
+#-------------- resulting forecast -----------------#
+#####################################################
     def updateResultingTS(self):
         if self.processedWCoeffs is None:
             self.resultingGraph.updatePlot(pywt.waverec(self.wCoefficients, self.wavelet),
                                            label='Simulation', color='r')
             self.resultingGraph.show()
+            self.toolsFrame.updateLog(['no new data: reconstructed initial decomposition'])
         else:
             try:
                 if not self.isSWT:
+                    #TODO: check IDWT
                     self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),label='Simulation', color='r')
                 else:
+                    for lvl in update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs):
+                        self.toolsFrame.updateTable(lvl[0], 'ISWT_0')
+                        self.toolsFrame.updateTable(lvl[1], 'ISWT_1')
+
                     self.resultingGraph.updatePlot(iswt(update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs), self.wavelet),
                                                    label='Simulation', color='r')
                 self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed')
                 self.resultingGraph.show()
+
+                self.toolsFrame.updateLog(['reconstruction complete [' + str(len(self.processedWCoeffs)) + ' levels]'])
             except Exception, e:
                 if self.showStacktrace.isChecked():
                     message = traceback.format_exc(e)
@@ -1679,13 +1738,14 @@ class MuScaleMainDialog(QMainWindow):
                 self.toolsFrame.updateLog([message], True)
                 log.exception(e)
 
-#####################################################
-#-------------- resulting forecast -----------------#
-#####################################################
     def updateResultingTSWithInitialData(self):
         #TODO: add information regarding processed levels
         self.resultingGraph.updatePlot(self.currentDataSet[0], label='Initial data', color='b')
         self.resultingGraph.show()
+
+    def clearResultingGraph(self):
+        self.resultingGraph.canvas.ax.clear()
+        self.resultingGraph.canvas.draw()
 
 #####################################################
 #------------- utilities and modules ---------------#

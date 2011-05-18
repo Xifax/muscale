@@ -17,7 +17,7 @@ from utility.const import __version__, __name__, _company
 
 ##############
 
-distDit = 'muScale_build_' + __version__
+distDir = 'muScale_build_' + __version__
 
 ##############
 

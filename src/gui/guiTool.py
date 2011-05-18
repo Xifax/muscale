@@ -453,7 +453,7 @@ class ToolsFrame(QWidget):
 
     def updateNamespace(self):
         self.namesList.clear()
-#        for object in self.R('objects()').split(self.R.newline)[1:]:
+#        for object in self.R('objects()').split(self.R.newline)[1:]:   #\r\n
         for object in self.R('objects()').split('\n')[1:]:
             if object != self.R.newline:
                 for e in object.split(' '):

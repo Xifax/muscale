@@ -164,7 +164,8 @@ try:
 #--------- models ----------#
 
     Models = make_enum('Models', 'Holt_Winters Harmonic_Regression Least_Squares_Fit ARIMA \
-                                GARCH ETS StructTS Cubic_Splines')
+                                ETS StructTS Cubic_Splines')
+#                                GARCH ETS StructTS Cubic_Splines')
 
 #-------- gui tabs ---------#
     Tabs = make_enum('Tabs', 'Decomposition Model Simulation Results')
