@@ -63,8 +63,6 @@ Created on Mar 9, 2011
 #TODO: add estimation/helpers for models (ARIMA, etc)
 #TODO: implement some kind of automatic resize mechanism
 #TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
-#TODO: ponder what to do with SWT excluded coefficients (bedrock values for reconstruction?)
-#TODO: FIX SWT RECONSTRUCTION, PRONTO [in progress]
 
 ####################################
 #            Dependencies          #

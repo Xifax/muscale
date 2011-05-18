@@ -404,11 +404,11 @@ class ToolsFrame(QWidget):
             self.inStack['index'] += 1
 
     def rCommand(self, internalIn=None):
-        try:        #TODO: fix problem
+        try:
             if internalIn is None:
                 request = self.checkRequest(self.rInput.text())
                 if request is not None:
-#                    result = '\n'.join(self.R(request).split(self.R.newline)[1:])   #PyQt shenanigans
+                    # also possible: self.R.newline
                     result = '\n'.join(self.R(request).split('\n')[1:])   #PyQt shenanigans
                     self.updateStack(request)
                 else:
@@ -453,7 +453,6 @@ class ToolsFrame(QWidget):
 
     def updateNamespace(self):
         self.namesList.clear()
-#        for object in self.R('objects()').split(self.R.newline)[1:]:   #\r\n
         for object in self.R('objects()').split('\n')[1:]:
             if object != self.R.newline:
                 for e in object.split(' '):

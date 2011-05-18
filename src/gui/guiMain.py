@@ -28,14 +28,14 @@ from utility.const import __name__,\
     WIDTH, HEIGHT, M_INTERVAL,\
     RES, ICONS, TEMP, ICO_SIZE,\
     FULL_SCREEN, NORMAL_SIZE, LOGO, WIZARD, TOOLS, INFO,\
-    P_PREVIEW_HEIGHT, DATA_LOW_LIMIT,\
+    DATA_LOW_LIMIT,\
     LOAD_PAUSE, TRAY_VISIBLE_DELAY, TRAY_ICON_DELAY,\
     FIRST, LAST, NEXT, PREV, QUIT, SHOW, TEST, RESET,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
     FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS,\
     R_BIN
-from utility.guiTweaks import unfillLayout, createSeparator, \
+from utility.guiTweaks import unfillLayout, createSeparator,\
     walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
 from utility.tools import prettifyNames, clearFolderContents, uniqueModels
 from utility.config import Config
@@ -45,10 +45,12 @@ from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
-from gui.flowLayout import FlowLayout
 from stats.models import processModel, calculateForecast, initRLibraries
-from stats.wavelets import select_levels_from_swt, update_selected_levels_swt, normalize_dwt_dimensions, iswt
+from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
+                    normalize_dwt_dimensions, iswt,\
+                    select_node_levels_from_swt, update_swt
 from usr.test import test_data
+#from gui.flowLayout import FlowLayout
 
 ####################################
 #            GUI classes           #
@@ -830,6 +832,9 @@ class MuScaleMainDialog(QMainWindow):
                 self.wInitialCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
                 self.wCoefficients = select_levels_from_swt(self.wInitialCoefficients)
                 self.isSWT = True
+                # node coefficients
+                if self.autoBaseSWT.isChecked():
+                    self.wNodeCoefficients = select_node_levels_from_swt(self.wInitialCoefficients)
 
             if self.autoUpdateTable.isChecked():
                 lvl = 0
@@ -931,10 +936,6 @@ class MuScaleMainDialog(QMainWindow):
             combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
 
     def showComponentPreview(self):
-#        if self.gem is not None:
-#            if not self.toggleSizeAction.isChecked():
-#                self.resize(self.width(), self.gem.height())
-#            self.gem = None
 
         for row in range(0, self.modelLayout.rowCount()):
             # 4th row in grid layout ~ 'preview' button
@@ -951,11 +952,7 @@ class MuScaleMainDialog(QMainWindow):
                             index = level.text().right(5)[0].toInt()[0]
                             preview.updatePlot(self.wCoefficients[index], label='Lvl' + str(index))
 
-#                            preview.setMaximumHeight(P_PREVIEW_HEIGHT)
                             preview.show()
-#                            if not self.toggleSizeAction.isChecked():
-#                                self.gem = self.size()
-#                                self.resize(self.width(), self.height() + P_PREVIEW_HEIGHT)
                         else:
                             preview = self.modelLayout.itemAtPosition(row + 1, 0).widget()
                             preview.hide()
@@ -1020,7 +1017,6 @@ class MuScaleMainDialog(QMainWindow):
             self.modelLayout.addWidget(togglePreview, i, 3); i += 1
             # graph widget
             self.modelLayout.addWidget(componentPreview, i, 0, 1, 4); i += 1
-#            self.modelLayout.addWidget(createSeparator(), i, 0, 1, 4);            i += 1
 
         resetModel = QPushButton('Reset model setup')
         resetModel.clicked.connect(self.resetModel)
@@ -1082,7 +1078,6 @@ class MuScaleMainDialog(QMainWindow):
             for index, model in self.multiModel.iteritems():
                 info += 'Lvl ' + str(index) + ': <i>' + prettifyNames([model._enumname])[0] + '</i>\t'
             self.messageInfo.showInfo('Multiscale model complete<br/>' + info, adjust=False)
-#            self.messageInfo.showInfo('Multiscale model complete')
 
             if self.autoStep.isChecked(): self.statTools.setCurrentIndex(int(Tabs.Simulation))
 
@@ -1091,6 +1086,7 @@ class MuScaleMainDialog(QMainWindow):
 ###################################################
     def readyModelsStack(self):
         self.processedWCoeffs = [0] * len(self.wCoefficients)
+        self.nodesProcessed = False
 
         unfillLayout(self.implementLayout)
 
@@ -1194,6 +1190,25 @@ class MuScaleMainDialog(QMainWindow):
                 self.toolsFrame.updateLog(['model  ' + prettifyNames([self.multiModel[model]._enumname])[0] +
                             ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
 
+            # forecast node levels
+            if hasattr(optMod, 'node_label'):
+                if optMod.node_label.isChecked():
+                    node_model = Models(optMod.node_combo.currentIndex() + 1)
+                    self.wUpdatedNodeCoefficients = [0] * len(self.wNodeCoefficients)
+                    index = 0
+
+                    for coeff in self.wNodeCoefficients:
+                        self.wUpdatedNodeCoefficients[index] = calculateForecast(node_model,
+                                                                              coeff,
+                                                                              self.R,
+                                                                              forecastSteps.value(),
+                                                                              compileOptions(optMod))
+                        index += 1
+
+                    self.toolsFrame.updateLog(['basic nodes processed using ' + prettifyNames([node_model._enumname])[0] +
+                                ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+                    self.nodesProcessed = True
+
             self.messageInfo.showInfo('Simulation completed')
 
         def resetAllLevels():
@@ -1201,7 +1216,9 @@ class MuScaleMainDialog(QMainWindow):
                 modelsStack.widget(model).canvas.ax.clear()
                 modelsStack.widget(model).updatePlot(self.wCoefficients[model], label='Series' + str(model))
 
-                self.toolsFrame.updateLog(['all models reset'])
+                self.toolsFrame.updateLog(['all models reset'], warning=True)
+
+            self.wUpdatedNodeCoefficients = [0] * len(self.wNodeCoefficients)
 
             self.messageInfo.showInfo('All changes reverted')
 
@@ -1663,24 +1680,24 @@ class MuScaleMainDialog(QMainWindow):
         if self.isSWT:
             if self.autoBaseSWT.isChecked():
                 def basicModels():
-                    if label.isChecked():
-                        label.setText('Process node levels using:')
-                        combo.show()
+                    if optMod.node_label.isChecked():
+                        optMod.node_label.setText('Process node levels using:')
+                        optMod.node_combo.show()
                     else:
-                        label.setText('Process node levels')
-                        combo.hide()
+                        optMod.node_label.setText('Process node levels')
+                        optMod.node_combo.hide()
 
                 basicLvlLayout = QHBoxLayout()
-                label = QCheckBox('Process node levels')
-                label.clicked.connect(basicModels)
-                combo = QComboBox()
-                combo.addItems(
+                optMod.node_label = QCheckBox('Process node levels')
+                optMod.node_label.clicked.connect(basicModels)
+                optMod.node_combo = QComboBox()
+                optMod.node_combo.addItems(
                     prettifyNames(Models._enums.values()))
 
                 basicModels()
 
-                basicLvlLayout.addWidget(label)
-                basicLvlLayout.addWidget(combo)
+                basicLvlLayout.addWidget(optMod.node_label)
+                basicLvlLayout.addWidget(optMod.node_combo)
                 basicLvlLayout.setAlignment(Qt.AlignCenter)
 
                 modelOptionsGroupLayout.addLayout(basicLvlLayout)
@@ -1716,16 +1733,27 @@ class MuScaleMainDialog(QMainWindow):
         else:
             try:
                 if not self.isSWT:
-                    #TODO: check IDWT
-                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),label='Simulation', color='r')
-                else:
-                    for lvl in update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs):
-                        self.toolsFrame.updateTable(lvl[0], 'ISWT_0')
-                        self.toolsFrame.updateTable(lvl[1], 'ISWT_1')
-
-                    self.resultingGraph.updatePlot(iswt(update_selected_levels_swt(self.wInitialCoefficients, self.processedWCoeffs), self.wavelet),
+                    #TODO: reshape with zeros   (last array is double size of first array)
+                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet, correct_size=True),
                                                    label='Simulation', color='r')
-                self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed', label='bound')
+                else:
+                    if self.autoUpdateTable.isChecked():
+                        pass
+                    
+                    if self.nodesProcessed:
+                             self.resultingGraph.updatePlot(iswt(update_swt(self.wInitialCoefficients,
+                                                                            self.processedWCoeffs,
+                                                                            self.wUpdatedNodeCoefficients),
+                                                                 self.wavelet),
+                                                       label='Simulation', color='r')
+                    else:
+                        self.resultingGraph.updatePlot(iswt(update_selected_levels_swt(self.wInitialCoefficients,
+                                                                                       self.processedWCoeffs),
+                                                            self.wavelet),
+                                                   label='Simulation', color='r')
+                # draw forecast boundary
+                if 'bound' not in [line._label for line in self.resultingGraph.canvas.ax.get_lines()]:
+                    self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed', label='bound')
                 self.resultingGraph.show()
 
                 self.toolsFrame.updateLog(['reconstruction complete [' + str(len(self.processedWCoeffs)) + ' levels]'])

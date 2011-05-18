@@ -63,55 +63,55 @@ def modelling_cycle():
     print 'Max level:', max_level, '\t Decomposition level:', decomposition_level
 
 #--------------- decomposition -------------------#
-    wInitial_Coefficients = pywt.swt(initial_data, wavelet, level=decomposition_level)
-    wSelected_Coefficiets = select_levels_from_swt(wInitial_Coefficients)
-    wNodeCoefficients = select_node_levels_from_swt(wInitial_Coefficients)      #something terribly wrong here, yet the rest works!
+    w_initial_coefficients = pywt.swt(initial_data, wavelet, level=decomposition_level)
+    w_selected_coefficiets = select_levels_from_swt(w_initial_coefficients)
+    w_node_coefficients = select_node_levels_from_swt(w_initial_coefficients)      #something terribly wrong here, yet the rest works!
 
 #    plt.figure()
-#    for coeff in wSelected_Coefficiets:
+#    for coeff in w_selected_coefficiets:
 #        plt.plot(coeff)
 #    plt.figure()
-#    for coeff in wNodeCoefficients:
+#    for coeff in w_node_coefficients:
 #        plt.plot(coeff)
 #    plt.show()
 
 #--------------- modification -------------------#
     r = R()
 
-    wNewCoefficients = [0] * len(wSelected_Coefficiets)
-    for index in range(0, len(wSelected_Coefficiets)):
-        r.i_data = wSelected_Coefficiets[index]
+    w_new_coefficients = [0] * len(w_selected_coefficiets)
+    for index in range(0, len(w_selected_coefficiets)):
+        r.i_data = w_selected_coefficiets[index]
 
         r('hw <- HoltWinters( ts(i_data, frequency = 12), gamma = TRUE )')
         r('pred <- predict(hw, 50, prediction.interval = TRUE)')
 
-        wNewCoefficients[index] = append(wSelected_Coefficiets[index], r.pred[:,0])
+        w_new_coefficients[index] = append(w_selected_coefficiets[index], r.pred[:,0])
         index += 1
 
-    wNewNodeCoefficients = [0] * len(wNodeCoefficients)
-    for index in range(0, len(wNodeCoefficients)):
-        r.i_data = wNodeCoefficients[index]
+    w_new_node_coefficients = [0] * len(w_node_coefficients)
+    for index in range(0, len(w_node_coefficients)):
+        r.i_data = w_node_coefficients[index]
 
         r('hw <- HoltWinters( ts(i_data, frequency = 12), gamma = TRUE )')
         r('pred <- predict(hw, 50, prediction.interval = TRUE)')
 
-        wNewNodeCoefficients[index] = append(wNodeCoefficients[index], r.pred[:,0])
+        w_new_node_coefficients[index] = append(w_node_coefficients[index], r.pred[:,0])
         index += 1
 #----
 
 #    plt.figure()
-#    for coeff in wNewCoefficients:
+#    for coeff in w_new_coefficients:
 #        plt.plot(coeff)
 #    plt.figure()
-#    for coeff in wNewNodeCoefficients:
+#    for coeff in w_new_node_coefficients:
 #        plt.plot(coeff)
 #    plt.show()
 
 #--------------- reconstruction  -------------------#
-#    wInitialwithUpdated_Nodes = update_node_levels_swt(wInitial_Coefficients, wNewNodeCoefficients)
+#    wInitialwithUpdated_Nodes = update_node_levels_swt(w_initial_coefficients, w_new_node_coefficients)
 
-#    plot_initial_updated(wInitial_Coefficients, wNewNodeCoefficients, True)
-#    plot_initial_updated(wInitial_Coefficients, wInitialwithUpdated_Nodes) (!)
+#    plot_initial_updated(w_initial_coefficients, w_new_node_coefficients, True)
+#    plot_initial_updated(w_initial_coefficients, wInitialwithUpdated_Nodes) (!)
 
 #    plt.figure()
 #    for dyad in wInitialwithUpdated_Nodes:
@@ -119,29 +119,37 @@ def modelling_cycle():
 #        plt.plot(dyad[1])
 #
 #    plt.figure()
-#    for dyad in wInitial_Coefficients:
+#    for dyad in w_initial_coefficients:
 #        plt.plot(dyad[0])
 #        plt.plot(dyad[1])
 #
 #    plt.show()
 
-#    wUpdated_Coefficients = update_selected_levels_swt(wInitial_Coefficients, wSelected_Coefficiets)
-#    wUpdated_Coefficients = update_selected_levels_swt(wInitial_Coefficients, wNewCoefficients)
+#    w_updated_coefficients = update_selected_levels_swt(w_initial_coefficients, w_selected_coefficiets)
+#    w_updated_coefficients = update_selected_levels_swt(w_initial_coefficients, w_new_coefficients)
 
 
 #----
-#    wUpdated_Coefficients = update_swt(wInitial_Coefficients, wSelected_Coefficiets, wNodeCoefficients)
-    wUpdated_Coefficients = update_swt(wInitial_Coefficients, wNewCoefficients, wNewNodeCoefficients)
+#    w_updated_coefficients = update_swt(w_initial_coefficients, w_selected_coefficiets, w_node_coefficients)
 
-    plot_initial_updated(wInitial_Coefficients, wUpdated_Coefficients)
+    w_updated_coefficients_nodes = update_swt(w_initial_coefficients, w_new_coefficients, w_new_node_coefficients)
+    w_updated_coefficients = update_selected_levels_swt(w_initial_coefficients, w_new_coefficients)
 
-    reconstructed_Stationary = iswt(wUpdated_Coefficients, selected_wavelet)
+    plot_initial_updated(w_initial_coefficients, w_updated_coefficients_nodes)
+    plot_initial_updated(w_initial_coefficients, w_updated_coefficients)
+
+    reconstructed_Stationary_nodes = iswt(w_updated_coefficients_nodes, selected_wavelet)
+    reconstructed_Stationary = iswt(w_updated_coefficients, selected_wavelet)
 
     fig_sta_r = plt.figure()
     fig_sta_r.canvas.manager.set_window_title('SWT reconstruction')
     plt.plot(reconstructed_Stationary)
-    plt.show()
 
+    fig_sta_r_n = plt.figure()
+    fig_sta_r_n.canvas.manager.set_window_title('SWT reconstruction (nodes)')
+    plt.plot(reconstructed_Stationary_nodes)
+
+    plt.show()
 
 def __modelling_cycle():
 

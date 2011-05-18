@@ -90,6 +90,8 @@ class MplWidget(QtGui.QWidget):
         self.lines = []
         # legend
         self.legend = None
+        # autoscale
+        self.canvas.ax.autoscale_view(True, True, True)
 
         if menu:
             # setup context menu
@@ -161,6 +163,7 @@ class MplWidget(QtGui.QWidget):
     #  @param style Line style (solid, dashed, dotted).
     #  @param color Line color.
     def updatePlot(self, data, line=0, label=None, style='solid', color=None):
+        #TODO: autoscale axes
         if not self.canvas.ax.has_data():
             if label is not None:
                 if color is not None:
