@@ -9,10 +9,141 @@ import pywt
 import matplotlib.pyplot as plt
 
 # own #
-from stats.wavelets import iswt
-from usr.test import test_data
+from stats.wavelets import iswt, \
+    select_levels_from_swt, update_selected_levels_swt, \
+    select_node_levels_from_swt, update_node_levels_swt, update_swt
+from stats.models import *
+from usr.test import test_data, test_data_one
+
+def plot_initial_updated(initial_data, updated_data, matrix=False):
+    init_fig = plt.figure(); n_coeff = 1
+    init_fig.canvas.manager.set_window_title('Initial data')
+    for dyad in initial_data:
+        init_fig.add_subplot(len(initial_data) * 2, 1, n_coeff); n_coeff += 1
+        plt.plot(dyad[0])
+        init_fig.add_subplot(len(initial_data) * 2, 1, n_coeff); n_coeff += 1
+        plt.plot(dyad[1])
+
+    upd_fig = plt.figure(); n_coeff = 1
+    upd_fig.canvas.manager.set_window_title('Updated data')
+
+    if not matrix:
+        for dyad in updated_data:
+            upd_fig.add_subplot(len(updated_data) * 2, 1, n_coeff); n_coeff += 1
+            plt.plot(dyad[0])
+            upd_fig.add_subplot(len(updated_data) * 2, 1, n_coeff); n_coeff += 1
+            plt.plot(dyad[1])
+    else:
+        for level in updated_data:
+            upd_fig.add_subplot(len(updated_data), 1, n_coeff); n_coeff += 1
+            plt.plot(level)
+
+    plt.show()
 
 def modelling_cycle():
+
+#--------------- initialization -------------------#
+#    initial_data = test_data
+    initial_data = test_data_one
+
+#    fig_init = plt.figure()
+#    fig_init.canvas.manager.set_window_title('Initial data')
+#    plt.plot(initial_data, color='g')
+
+    wavelet_families = pywt.families()
+    print 'Wavelet families:', ', '.join(wavelet_families)
+    wavelet_family = wavelet_families[4]
+    selected_wavelet = pywt.wavelist(wavelet_family)[0]
+    wavelet = pywt.Wavelet(selected_wavelet)
+    print 'Selected wavelet:', selected_wavelet
+
+    max_level = pywt.swt_max_level(len(initial_data))
+#    decomposition_level = max_level / 2
+    decomposition_level = 3
+    print 'Max level:', max_level, '\t Decomposition level:', decomposition_level
+
+#--------------- decomposition -------------------#
+    wInitial_Coefficients = pywt.swt(initial_data, wavelet, level=decomposition_level)
+    wSelected_Coefficiets = select_levels_from_swt(wInitial_Coefficients)
+    wNodeCoefficients = select_node_levels_from_swt(wInitial_Coefficients)      #something terribly wrong here, yet the rest works!
+
+#    plt.figure()
+#    for coeff in wSelected_Coefficiets:
+#        plt.plot(coeff)
+#    plt.figure()
+#    for coeff in wNodeCoefficients:
+#        plt.plot(coeff)
+#    plt.show()
+
+#--------------- modification -------------------#
+    r = R()
+
+    wNewCoefficients = [0] * len(wSelected_Coefficiets)
+    for index in range(0, len(wSelected_Coefficiets)):
+        r.i_data = wSelected_Coefficiets[index]
+
+        r('hw <- HoltWinters( ts(i_data, frequency = 12), gamma = TRUE )')
+        r('pred <- predict(hw, 50, prediction.interval = TRUE)')
+
+        wNewCoefficients[index] = append(wSelected_Coefficiets[index], r.pred[:,0])
+        index += 1
+
+    wNewNodeCoefficients = [0] * len(wNodeCoefficients)
+    for index in range(0, len(wNodeCoefficients)):
+        r.i_data = wNodeCoefficients[index]
+
+        r('hw <- HoltWinters( ts(i_data, frequency = 12), gamma = TRUE )')
+        r('pred <- predict(hw, 50, prediction.interval = TRUE)')
+
+        wNewNodeCoefficients[index] = append(wNodeCoefficients[index], r.pred[:,0])
+        index += 1
+#----
+
+#    plt.figure()
+#    for coeff in wNewCoefficients:
+#        plt.plot(coeff)
+#    plt.figure()
+#    for coeff in wNewNodeCoefficients:
+#        plt.plot(coeff)
+#    plt.show()
+
+#--------------- reconstruction  -------------------#
+#    wInitialwithUpdated_Nodes = update_node_levels_swt(wInitial_Coefficients, wNewNodeCoefficients)
+
+#    plot_initial_updated(wInitial_Coefficients, wNewNodeCoefficients, True)
+#    plot_initial_updated(wInitial_Coefficients, wInitialwithUpdated_Nodes) (!)
+
+#    plt.figure()
+#    for dyad in wInitialwithUpdated_Nodes:
+#        plt.plot(dyad[0])
+#        plt.plot(dyad[1])
+#
+#    plt.figure()
+#    for dyad in wInitial_Coefficients:
+#        plt.plot(dyad[0])
+#        plt.plot(dyad[1])
+#
+#    plt.show()
+
+#    wUpdated_Coefficients = update_selected_levels_swt(wInitial_Coefficients, wSelected_Coefficiets)
+#    wUpdated_Coefficients = update_selected_levels_swt(wInitial_Coefficients, wNewCoefficients)
+
+
+#----
+#    wUpdated_Coefficients = update_swt(wInitial_Coefficients, wSelected_Coefficiets, wNodeCoefficients)
+    wUpdated_Coefficients = update_swt(wInitial_Coefficients, wNewCoefficients, wNewNodeCoefficients)
+
+    plot_initial_updated(wInitial_Coefficients, wUpdated_Coefficients)
+
+    reconstructed_Stationary = iswt(wUpdated_Coefficients, selected_wavelet)
+
+    fig_sta_r = plt.figure()
+    fig_sta_r.canvas.manager.set_window_title('SWT reconstruction')
+    plt.plot(reconstructed_Stationary)
+    plt.show()
+
+
+def __modelling_cycle():
 
     initial_data = test_data
 

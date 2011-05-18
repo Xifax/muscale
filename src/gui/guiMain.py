@@ -192,7 +192,7 @@ class MuScaleMainDialog(QMainWindow):
         self.autoStep = QCheckBox('Auto next step')
         self.enableToolbar = QCheckBox('Show graph controls on hover')
         self.plotMultiline = QCheckBox('Plot wavelist as multiline graph')
-        self.autoBaseSWT = QCheckBox("Process 'basic' SWT levels")
+        self.autoBaseSWT = QCheckBox("Process node SWT levels")
         self.autoUpdateTools = QCheckBox('Append data to R workspace')
         self.showStacktrace = QCheckBox('Show exception stacktrace')
         self.saveLastFolder = QCheckBox('Remember last opened folder')
@@ -1664,14 +1664,14 @@ class MuScaleMainDialog(QMainWindow):
             if self.autoBaseSWT.isChecked():
                 def basicModels():
                     if label.isChecked():
-                        label.setText('Process basic levels using:')
+                        label.setText('Process node levels using:')
                         combo.show()
                     else:
-                        label.setText('Process basic levels')
+                        label.setText('Process node levels')
                         combo.hide()
 
                 basicLvlLayout = QHBoxLayout()
-                label = QCheckBox('Process basic levels')
+                label = QCheckBox('Process node levels')
                 label.clicked.connect(basicModels)
                 combo = QComboBox()
                 combo.addItems(

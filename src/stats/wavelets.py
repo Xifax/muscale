@@ -111,6 +111,25 @@ def iswt(coefficients, wavelet):
 
     return output
 
+## Selects node coefficients from initial SWT.
+#  @param coeffs SWT coefficients as list of (Aa, Ab), ... tuples.
+#  @return Node coefficients in matrix.
+def select_node_levels_from_swt(coeffs):
+    # rearrange coeffs tuples into matrix
+    by_rows = vstack(coeffs)
+    # pre-allocating rearranged matrix
+    nodes = zeros(shape = (len(by_rows)/2 + 1, len(by_rows[0])))
+    # selecting node coefficients (starting with 2nd node)
+    index = len(by_rows) - 2; r_index = 0
+    while True:
+        if index > 1:
+            nodes[r_index] = by_rows[index]
+            index -= 2
+        else: break
+        r_index += 1
+
+    return nodes
+
 ## Rearranges coefficients resulting from SWT for optimal use.
 #  @param coeffs SWT coefficients as list of (Aa, Ab), ... tuples.
 #  @return Selected coefficients in matrix.
@@ -150,24 +169,14 @@ def select_levels_from_swt(coeffs):
 ## Reconstructs coefficients list based on initial and updated data.
 #  @param inital_coeffs Data right after SWT.
 #  @param selected_coeffs Updated data in matrix.
-#  @retun All coefficients in list of tuples.
-def update_selected_levels_swt(inital_coeffs, selected_coeffs):
+#  @return All coefficients in list of tuples.
+def update_selected_levels_swt(initial_coeffs, selected_coeffs):
     '''Restores tree structure for further ISWT'''
     # resulting max dimension
-    try:
-        new_dimension = max(len(a) for a in selected_coeffs if not isinstance(a, int))
-    except Exception:
-        if len(selected_coeffs) > 0:
-            new_dimension = len(selected_coeffs)
-        else:
-            new_dimension = len(inital_coeffs[0][0])
-
-    old_dimension = len(inital_coeffs[0][0])    # first array in first tuple in list
-    if new_dimension < old_dimension:
-        new_dimension = old_dimension
+    new_dimension = calculate_new_dimension(initial_coeffs, selected_coeffs)
         
     # rearranging back to how it was
-    by_rows = vstack(copy(inital_coeffs))
+    by_rows = vstack(copy(initial_coeffs))
     by_rows.resize(len(by_rows), new_dimension, refcheck = False)
     new_coeffs = copy_non_uniform_shape(selected_coeffs)
     new_coeffs.resize(len(new_coeffs), new_dimension, refcheck = False)
@@ -184,10 +193,92 @@ def update_selected_levels_swt(inital_coeffs, selected_coeffs):
         s_index += 1
     # tupling and listing
     all_of_coeffs = []; element = 0
-    while element <= len(by_rows)/2 + 1:
+    while element <= len(by_rows) - 2:
         all_of_coeffs.append((copy(by_rows[element]),  copy(by_rows[element + 1])))
         element += 2
     return all_of_coeffs
+
+## Updates initial coefficients with new data from nodes only.
+#  @param inital_coeffs Data right after SWT.
+#  @param selected_coeffs Updated node coefficients in matrix.
+#  @return All coefficients in list of tuples.
+def update_node_levels_swt(initial_coeffs, node_coeffs):
+    new_dimension = calculate_new_dimension(initial_coeffs, node_coeffs)
+
+    # rearranging back to how it was
+    by_rows = vstack(copy(initial_coeffs))
+    by_rows.resize(len(by_rows), new_dimension, refcheck = False)
+    new_coeffs = copy_non_uniform_shape(node_coeffs)
+    new_coeffs.resize(len(new_coeffs), new_dimension, refcheck = False)
+
+    index = len(by_rows) - 2; s_index = 0
+    while True:
+        if index > 1:
+            by_rows[index] = new_coeffs[s_index]
+            index -= 2
+        else: break
+        s_index += 1
+    # tupling and listing
+    all_of_coeffs = []; element = 0
+    while element <= len(by_rows) - 2:
+        all_of_coeffs.append((copy(by_rows[element]),  copy(by_rows[element + 1])))
+        element += 2
+    return all_of_coeffs
+
+## Reconstructs coefficients list based on initial data, selected coefficients plus updated nodes
+def update_swt(initial_coeffs, selected_coeffs, updated_nodes):
+    new_dimension = calculate_new_dimension(initial_coeffs, selected_coeffs)
+
+    by_rows = vstack(copy(initial_coeffs))  #TODO: mayhap, it's better to create new matrix(?)
+    by_rows.resize(len(by_rows), new_dimension, refcheck = False)
+
+    new_coeffs = copy_non_uniform_shape(selected_coeffs)
+    new_coeffs.resize(len(selected_coeffs), new_dimension, refcheck = False)
+
+    new_nodes = copy_non_uniform_shape(updated_nodes)
+    new_nodes.resize(len(updated_nodes), new_dimension, refcheck = False)
+
+    index = len(by_rows) - 1; sel_index = 0; nodes_index = 0
+    while True:
+        if index > 1:
+            by_rows[index] = new_coeffs[sel_index]
+            index -= 1
+            by_rows[index] = new_nodes[nodes_index]
+            index -= 1
+            sel_index += 1
+            nodes_index += 1
+        elif index >= 0:
+            by_rows[index] = new_coeffs[sel_index]
+            sel_index += 1
+            index -= 1
+        else: break
+
+    all_of_the_coeffs = []; element = 0
+    # total items (in dyads) count - 1 (first in dyad) - 1 (counting from zero)
+    while element <= len(by_rows) - 2:
+        all_of_the_coeffs.append((copy(by_rows[element]),  copy(by_rows[element + 1])))
+        element += 2
+    return all_of_the_coeffs
+
+## Calculates new horizontal dimension for resulting data.
+#  @param initial_data Source data.
+#  @param new_data Partially updated data.
+#  @return Appropriate horizontal matrix/array dimension.
+def calculate_new_dimension(initial_data, new_data):
+    # resulting max dimension
+    try:
+        new_dimension = max(len(a) for a in new_data if not isinstance(a, int))
+    except Exception:
+        if len(new_data) > 0:
+            new_dimension = len(new_data)
+        else:
+            new_dimension = len(initial_data[0][0])
+
+    old_dimension = len(initial_data[0][0])    # first array in first tuple in list
+    if new_dimension < old_dimension:
+        new_dimension = old_dimension
+
+    return new_dimension
 
 ## Copies list of arrays reshaping it to maximum possible dimension.
 #  @param coeffs Values in list of arrays.
