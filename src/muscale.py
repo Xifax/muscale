@@ -55,14 +55,13 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: wizard template
-#TODO: fix DWT reconstruction
-#TODO: implement parse template
-#TODO: implement data criterion
+#TODO: wizard template (of some sorts)
 #TODO: show fit/forecast accuracy, error
-#TODO: add estimation/helpers for models (ARIMA, etc)
-#TODO: implement some kind of automatic resize mechanism
-#TODO: write a couple of unit tests for ISWT and levels rearrangement (sic!)
+#TODO: update parser with extended template cases
+#TODO: complete auto model GUI template and backend
+#TODO: add estimation/helpers for models (ARIMA, etc) [...]
+#TODO: fix DWT reconstruction (reshape approximation arrays)
+#TODO: implement some kind of automatic resize mechanism [...]
 
 ####################################
 #            Dependencies          #

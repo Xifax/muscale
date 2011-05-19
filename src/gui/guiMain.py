@@ -296,7 +296,8 @@ class MuScaleMainDialog(QMainWindow):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowIcon(QIcon(RES + ICONS + LOGO))
 
-        self.setStyleSheet('QToolTip { background-color: black; color: white; border: 1px solid white; border-radius: 2px; }')
+        self.setStyleSheet('QToolTip { background-color: black; color: white;\
+                                        border: 1px solid white; border-radius: 2px; }')
 
     def initComponents(self):
         # load data items #
@@ -380,12 +381,16 @@ class MuScaleMainDialog(QMainWindow):
                                             QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QCheckBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                            QGroupBox::title {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                            QTextEdit {font-family: ' + edit_font + '; font-size: ' + str(edit_size) + 'px;}\
-                                            QToolTip {font-family: ' + font_tooltip + '; font-size: ' + str(tooltip_size) + 'px;}')
+                                            QGroupBox::title {font-family: ' + font + '; \
+                                                                            font-size: ' + str(size) + 'px;}\
+                                            QTextEdit {font-family: ' + edit_font + '; \
+                                                                            font-size: ' + str(edit_size) + 'px;}\
+                                            QToolTip {font-family: ' + font_tooltip + '; \
+                                                                            font-size: ' + str(tooltip_size) + 'px;}')
 
         self.toolBar.setStyleSheet('QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                    QToolTip {font-family: ' + font_tooltip + '; font-size: ' + str(tooltip_size) + 'px;}')
+                                    QToolTip {font-family: ' + font_tooltip + '; font-size: ' +
+                                   str(tooltip_size) + 'px;}')
 
         self.menuBar.setStyleSheet('QMenu {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
 
@@ -599,7 +604,8 @@ class MuScaleMainDialog(QMainWindow):
         if self.y() + self.height() + M_INTERVAL > desktop.height() - BOTTOM_SPACE:
             pass
         else:
-            self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width()) / 2, self.y() + self.height() + M_INTERVAL)
+            self.messageInfo.move(self.x() + (self.width() - self.messageInfo.width()) / 2,
+                                  self.y() + self.height() + M_INTERVAL)
 
     def updateInfoPosition(self):
         if not self.infoDialog.detach.isChecked():
@@ -806,14 +812,16 @@ class MuScaleMainDialog(QMainWindow):
     def updateMaxDLevel(self):
         current_max = 10
         if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
-            current_max = pywt.dwt_max_level(len(self.currentDataSet[0]), pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1
+            current_max = pywt.dwt_max_level(len(self.currentDataSet[0]),
+                                             pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1
             self.comboDecomposition.setToolTip(Tooltips['dwt'])
         elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
             current_max = pywt.swt_max_level(len(self.currentDataSet[0])) + 1
             self.comboDecomposition.setToolTip(Tooltips['swt'])
 
         if self.lockMaxLevel.isChecked(): self.spinLevels.setMaximum(current_max)
-        self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) + ' <b>' + str(current_max) + '</b>')
+        self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) +
+                                   ' <b>' + str(current_max) + '</b>')
         self.spinLevels.setValue(current_max/2 + 1)
 
     def waveletTransform(self):
@@ -882,7 +890,8 @@ class MuScaleMainDialog(QMainWindow):
                 self.toolsFrame.updateLog(['performed SWT'])
             else:
                 self.toolsFrame.updateLog(['performed DWT'])
-            self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' + self.wavelet.name + ' wavelet'])
+            self.toolsFrame.updateLog(['decomposed to ' + str(w_level + 1) + ' levels using ' +
+                                       self.wavelet.name + ' wavelet'])
 
             if self.autoStep.isChecked():
                 self.statTools.setCurrentIndex(int(Tabs.Model))
@@ -1156,7 +1165,8 @@ class MuScaleMainDialog(QMainWindow):
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
 
-            self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' + prettifyNames([self.multiModel[model]._enumname])[0] +
+            self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' +
+                                       prettifyNames([self.multiModel[model]._enumname])[0] +
                                         ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
 
         def resetModel():
@@ -1197,17 +1207,21 @@ class MuScaleMainDialog(QMainWindow):
                     self.wUpdatedNodeCoefficients = [0] * len(self.wNodeCoefficients)
                     index = 0
 
-                    for coeff in self.wNodeCoefficients:
-                        self.wUpdatedNodeCoefficients[index] = calculateForecast(node_model,
-                                                                              coeff,
-                                                                              self.R,
-                                                                              forecastSteps.value(),
-                                                                              compileOptions(optMod))
-                        index += 1
+                    try:
+                        for coeff in self.wNodeCoefficients:
+                            self.wUpdatedNodeCoefficients[index] = calculateForecast(node_model,
+                                                                                  coeff,
+                                                                                  self.R,
+                                                                                  forecastSteps.value(),
+                                                                                  compileOptions(optMod))
+                            index += 1
 
-                    self.toolsFrame.updateLog(['basic nodes processed using ' + prettifyNames([node_model._enumname])[0] +
-                                ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
-                    self.nodesProcessed = True
+                        self.toolsFrame.updateLog(['basic nodes processed using ' +
+                                                   prettifyNames([node_model._enumname])[0] +
+                                    ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+                        self.nodesProcessed = True
+                    except Exception:
+                        pass
 
             self.messageInfo.showInfo('Simulation completed')
 
@@ -1753,7 +1767,8 @@ class MuScaleMainDialog(QMainWindow):
                                                    label='Simulation', color='r')
                 # draw forecast boundary
                 if 'bound' not in [line._label for line in self.resultingGraph.canvas.ax.get_lines()]:
-                    self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m', linestyle='dashed', label='bound')
+                    self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m',
+                                                          linestyle='dashed', label='bound')
                 self.resultingGraph.show()
 
                 self.toolsFrame.updateLog(['reconstruction complete [' + str(len(self.processedWCoeffs)) + ' levels]'])
@@ -1817,7 +1832,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
                           'Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
                           '\nQtCore:\t' + PYQT_VERSION_STR +
                           '\nR:\t' + self.R.ver.split()[2] +
-                          '\n' + '-' * 22 + # mmm, magic number!
+                          '\n' + '  ' + '-' * 22 + # mmm, magic number!
                             '\nPlatform:\t' + platform.system() + ' ' + platform.release() +
                             '\nAuthor:\t' + 'Artiom Basenko')
 

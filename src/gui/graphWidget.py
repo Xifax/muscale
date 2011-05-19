@@ -302,22 +302,30 @@ class MplWidget(QtGui.QWidget):
 
     def toTable(self):
         try:
-            for line in self.canvas.ax.get_lines():
-                for action in self.selectLinesMenu.actions():
-                    if action.isChecked():
-                        if line._label == action.text():
-                            self.tool.updateTable(line._y, line._label)
+            if len(self.canvas.ax.get_lines()) > 1:
+                for line in self.canvas.ax.get_lines():
+                    for action in self.selectLinesMenu.actions():
+                        if action.isChecked():
+                            if line._label == action.text():
+                                self.tool.updateTable(line._y, line._label)
+            else:
+                line = self.canvas.ax.get_lines()[0]
+                self.tool.updateTable(line._y, line._label)
             self.getTopParent().messageInfo.showInfo('Copied to table')
         except Exception:
             pass
 
     def toGraphTool(self):
         try:
-            for line in self.canvas.ax.get_lines():
-                for action in self.selectLinesMenu.actions():
-                    if action.isChecked():
-                        if line._label == action.text():
-                            self.tool.updatePlot(line._y)
+            if len(self.canvas.ax.get_lines()) > 1:
+                for line in self.canvas.ax.get_lines():
+                    for action in self.selectLinesMenu.actions():
+                        if action.isChecked():
+                            if line._label == action.text():
+                                self.tool.updatePlot(line._y)
+            else:
+                line = self.canvas.ax.get_lines()[0]
+                self.tool.updatePlot(line._y)
             self.getTopParent().messageInfo.showInfo("Updated tool's graph")
         except Exception:
             pass

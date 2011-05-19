@@ -190,6 +190,20 @@ class ToolsFrame(QWidget):
 
         self.rConsole.setReadOnly(True)
         self.namesList.setHidden(True)
+        self.namesList.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.namesList.setAlternatingRowColors(True)
+        self.namesList.setStyleSheet('''QListView::item:selected:active {
+                 background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);
+            }
+            QListView::item {
+                border: 1px solid #d9d9d9;
+                border-top-color: transparent;
+                border-bottom-color: transparent;
+            }
+            QListView::item:hover {
+                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
+                 border: 1px solid #bfcde4;
+            }''')
 
         # table #
         self.tableWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
@@ -262,7 +276,11 @@ class ToolsFrame(QWidget):
         self.rInput.returnPressed.connect(self.rCommand)
         self.clearButton.clicked.connect(self.clearRConsole)
         self.namespaceButton.clicked.connect(self.viewNamespace)
-        self.namesList.itemClicked.connect(self.appendItemInline)
+        self.namesList.itemDoubleClicked.connect(self.appendItemInline)
+
+        self.namesList.addAction(QAction(QIcon(RES + ICONS + GRAPH), 'Plot selected object',
+                                         self, triggered=self.plotFromR))
+
         # dialog
         self.upScale.clicked.connect(self.changeScale)
 
@@ -275,21 +293,31 @@ class ToolsFrame(QWidget):
         self.logSearh.textChanged.connect(self.highlightSearch)
         self.logSearh.returnPressed.connect(self.logSearh.clear)
         self.logList.itemDoubleClicked.connect(self.copyToClipboard)
-        self.logList.addAction(QAction(QIcon(RES + ICONS + CONTROLS), 'Toggle controls', self, triggered=self.toggleLogControls))
+        self.logList.addAction(QAction(QIcon(RES + ICONS + CONTROLS), 'Toggle controls',
+                                       self, triggered=self.toggleLogControls))
 
         # table
-        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + CLEAR), 'Clear all', self, triggered=self.clearTable))
-        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + COPY), 'Copy selected columns(s)', self, triggered=self.copyColumns))
-        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + ELEMENTS), 'Copy selected item(s)', self, triggered=self.copyItems))
-        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + CUT), 'Remove selected columns(s)', self, triggered=self.removeColumns))
-        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + GRAPH), 'Plot selected items', self, triggered=self.plotItems))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + CLEAR), 'Clear all',
+                                           self, triggered=self.clearTable))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + COPY), 'Copy selected column(s)',
+                                           self, triggered=self.copyColumns))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + ELEMENTS), 'Copy selected item(s)',
+                                           self, triggered=self.copyItems))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + CUT), 'Remove selected column(s)',
+                                           self, triggered=self.removeColumns))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + GRAPH), 'Plot selected items',
+                                           self, triggered=self.plotItems))
 
         # export
         exportMenu = QMenu()
-        exportMenu.addAction(QAction('Portable Document Format (PDF)', self, triggered=self.exportToPdf))
-        exportMenu.addAction(QAction('Microsoft Excel Spreadsheet (XLS)', self, triggered=self.exportToXls))
-        exportMenu.addAction(QAction('Plain text (TXT) && PNG', self, triggered=self.exportToVarious))
-        exportMenu.addAction(QAction('Send to print', self, triggered=self.sendToPrint))
+        exportMenu.addAction(QAction('Portable Document Format (PDF)',
+                                     self, triggered=self.exportToPdf))
+        exportMenu.addAction(QAction('Microsoft Excel Spreadsheet (XLS)',
+                                     self, triggered=self.exportToXls))
+        exportMenu.addAction(QAction('Plain text (TXT) && PNG', self,
+                                     triggered=self.exportToVarious))
+        exportMenu.addAction(QAction('Send to print',
+                                     self, triggered=self.sendToPrint))
         self.exportButton.setMenu(exportMenu)
 
         self.exportForecast.stateChanged.connect(self.toggleExportOptions)
@@ -427,9 +455,14 @@ class ToolsFrame(QWidget):
         self.updateNamespace()
 
     def checkRequest(self, input):
-        if str(input).strip() == '': self.parentWidget().messageInfo.showInfo('Empty query! Use "help(topic)" for help.', True);  return None
-        elif checkParentheses(str(input)): return str(input)
-        else: self.parentWidget().messageInfo.showInfo('Incorrect input: check if brackets are evenly matched.', True);  return None
+        if str(input).strip() == '':
+            self.parentWidget().messageInfo.showInfo('Empty query! Use "help(topic)" for help.', True)
+            return None
+        elif checkParentheses(str(input)):
+            return str(input)
+        else:
+            self.parentWidget().messageInfo.showInfo('Incorrect input: check if brackets are evenly matched.', True)
+            return None
 
     def indicateInput(self):
         if not self.flash:
@@ -463,6 +496,14 @@ class ToolsFrame(QWidget):
 
     def appendItemInline(self):
         self.rInput.setText(self.rInput.text() + ' ' + self.namesList.selectedItems()[0].text())
+
+    def plotFromR(self):
+        variable = self.namesList.currentItem().text()
+        try:
+            self.updatePlot(self.R[str(variable)])
+            self.toolTabs.setCurrentIndex(2)
+        except Exception, e:
+            self.parentWidget().messageInfo.showInfo(str(e), True)
 
     #---------- Table -----------#
     def clearTable(self):

@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 # own #
 from stats.wavelets import iswt, \
     select_levels_from_swt, update_selected_levels_swt, \
-    select_node_levels_from_swt, update_node_levels_swt, update_swt
+    select_node_levels_from_swt, update_node_levels_swt, update_swt, \
+    measure_threshold, apply_threshold
 from stats.models import *
 from usr.test import test_data, test_data_one
 
@@ -66,6 +67,10 @@ def modelling_cycle():
     w_initial_coefficients = pywt.swt(initial_data, wavelet, level=decomposition_level)
     w_selected_coefficiets = select_levels_from_swt(w_initial_coefficients)
     w_node_coefficients = select_node_levels_from_swt(w_initial_coefficients)      #something terribly wrong here, yet the rest works!
+
+#------------------ threshold --------------------#
+
+    threshold = measure_threshold(w_initial_coefficients)
 
 #    plt.figure()
 #    for coeff in w_selected_coefficiets:
