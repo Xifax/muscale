@@ -57,6 +57,7 @@ Created on Mar 9, 2011
 
 #TODO: wizard template (of some sorts)
 #TODO: show fit/forecast accuracy, error
+#TODO: highlight level name on mouseover
 #TODO: update parser with extended template cases
 #TODO: complete auto model GUI template and backend
 #TODO: add estimation/helpers for models (ARIMA, etc) [...]

@@ -83,6 +83,8 @@ class MplWidget(QtGui.QWidget):
             self.installEventFilter(self.filter)
             # hide toolbar
             self.initComponents()
+        else:
+            self.toolbar = None
 
         # set the layout to th vertical box
         self.setLayout(self.layout)
@@ -100,15 +102,17 @@ class MplWidget(QtGui.QWidget):
 
     #-------------- initialization ---------------#
     def initComponents(self):
-        self.toolbar.hide()
-        self.newIcons()
+        if self.toolbar is not None:
+            self.toolbar.hide()
+            self.newIcons()
 
     def initActions(self):
         # toolbar
         self.toggleLegendAction = QtGui.QAction(QtGui.QIcon(RES + ICONS + LEGEND), 'Toggle legend',
                                      self, triggered=self.toggleLegend)
         self.toggleLegendAction.setCheckable(True)
-        self.toolbar.addAction(self.toggleLegendAction)
+        if self.toolbar is not None:
+            self.toolbar.addAction(self.toggleLegendAction)
 
         # context menu
         self.addAction(self.toggleLegendAction)
@@ -116,6 +120,8 @@ class MplWidget(QtGui.QWidget):
                                      self, triggered=self.toTable))
         self.addAction(QtGui.QAction(QtGui.QIcon(RES + ICONS + GRAPH),'Plot data in tools',
                                      self, triggered=self.toGraphTool))
+#        self.addAction(QtGui.QAction('Autoscale',
+#                                     self, triggered=self.updateScale))
 
         self.selectLinesMenu = QtGui.QMenu()
         self.selectLines = (QtGui.QAction('Plots', self))
@@ -342,6 +348,11 @@ class MplWidget(QtGui.QWidget):
         else:
             self.selectLines.setEnabled(False)
         pass
+
+    def updateScale(self):
+        self.canvas.ax.relim()
+        self.canvas.ax.autoscale_view(tight=None, scalex=False, scaley=True)
+        self.canvas.draw()
 
     #------------------ events -----------------#
     #TODO: add option
