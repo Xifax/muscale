@@ -1260,15 +1260,19 @@ class MuScaleMainDialog(QMainWindow):
         forecastSteps.setValue(DEFAULT_STEPS)
         forecastSteps.valueChanged.connect(forecastModel)
 
-        forecastAll = QPushButton('Simulate all levels')
-        forecastAll.clicked.connect(forecastAllLevels)
+        class TestHandle(object):
+            pass
+        self.testHandle = TestHandle()
+
+        self.testHandle.forecastAll = QPushButton('Simulate all levels')
+        self.testHandle.forecastAll.clicked.connect(forecastAllLevels)
         fitAll = QPushButton('Fit all')
         fitAll.clicked.connect(fitAllLevels)
         resetAll = QPushButton('Reset all')
         resetAll.clicked.connect(resetAllLevels)
 
         batchLayout = QHBoxLayout()
-        batchLayout.addWidget(forecastAll)
+        batchLayout.addWidget(self.testHandle.forecastAll)
         batchLayout.addWidget(fitAll)
         batchLayout.addWidget(resetAll)
 
@@ -1884,7 +1888,14 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.addAllLevelToModel()
         self.constructModel()
 
+        if hasattr(self, 'testHandle'):
+            if self.testHandle.forecastAll is not None:
+                self.testHandle.forecastAll.click()
+
+                self.reconTS.click()
+                self.plotInitial.click()
+
         self.toolsFrame.updateLog(['modelling cycle test complete'], NB=True)
         self.messageInfo.showInfo('Modelling cycle performed successfully')
         
-        self.statTools.setCurrentIndex(int(Tabs.Simulation))
+        self.statTools.setCurrentIndex(int(Tabs.Results))
