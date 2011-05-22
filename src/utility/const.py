@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -190,7 +190,6 @@ Tooltips = {# data input
 }
 
 #------ install url --------#
-#TODO: find static url for PyQt4
 URL_PYQT = 'http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.6-x86-gpl-4.8.4-1.exe'
 URL_R = 'http://cran.r-project.org/bin/windows/base/R-2.13.0-win.exe'
 URL_MATPLOTLIB = 'http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1.win32-py2.6.exe/download'
@@ -246,6 +245,7 @@ DATA_HIGH_LIMIT = 1000
 MAX_FORECAST = 500
 MIN_FORECAST = 2
 DEFAULT_STEPS = 20
+MAX_LVL_TRANSFORM = 10
 
 #---- preview generation ---#
 LINE_WITH = 0.9

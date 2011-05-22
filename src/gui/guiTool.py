@@ -582,6 +582,7 @@ class ToolsFrame(QWidget):
                 self.data = self.plotWidget.plot(data)
             else:
                 self.data.updateData(data)
+                self.plotWidget.updateMatrix()
         else:
             return self.plotWidget.plot(data)
 

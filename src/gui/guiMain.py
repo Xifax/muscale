@@ -16,8 +16,8 @@ from datetime import datetime
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer,\
-                PYQT_VERSION_STR, QPointF, QPoint, QObject
-from PyQt4.QtGui import *
+                PYQT_VERSION_STR, QPointF, QPoint, QObject, QEvent
+from PyQt4.QtGui import *       #TODO: fix imports to parsimonious ones!
 from stats.pyper import R
 import pywt
 
@@ -34,7 +34,7 @@ from utility.const import __name__,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
     FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS,\
-    R_BIN
+    R_BIN, MAX_LVL_TRANSFORM
 from utility.guiTweaks import unfillLayout, createSeparator,\
     walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
 from utility.tools import prettifyNames, clearFolderContents, uniqueModels
@@ -810,16 +810,21 @@ class MuScaleMainDialog(QMainWindow):
         self.updateMaxDLevel()
 
     def updateMaxDLevel(self):
-        current_max = 10
+        current_max = MAX_LVL_TRANSFORM
         if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
-            current_max = pywt.dwt_max_level(len(self.currentDataSet[0]),
+            new_max = pywt.dwt_max_level(len(self.currentDataSet[0]),
                                              pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1
             self.comboDecomposition.setToolTip(Tooltips['dwt'])
         elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
-            current_max = pywt.swt_max_level(len(self.currentDataSet[0])) + 1
+            new_max = pywt.swt_max_level(len(self.currentDataSet[0])) + 1
             self.comboDecomposition.setToolTip(Tooltips['swt'])
 
-        if self.lockMaxLevel.isChecked(): self.spinLevels.setMaximum(current_max)
+        if self.lockMaxLevel.isChecked():
+            current_max = new_max
+        else:
+            pass
+        
+        self.spinLevels.setMaximum(current_max)
         self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) +
                                    ' <b>' + str(current_max) + '</b>')
         self.spinLevels.setValue(current_max/2 + 1)
@@ -992,11 +997,15 @@ class MuScaleMainDialog(QMainWindow):
         self.modelLayout.addLayout(buttonsLayout, 0, 0, 1, 4)
         self.modelLayout.addWidget(createSeparator(), 1, 0, 1, 4)
 
+        self.filter = LabelFilter()
+
         i = 2
         for level in range(0, nLevels):
             labelModel = QLabel('Level <b>' + str(level) + '</b>')
             labelModel.setAlignment(Qt.AlignCenter)
             labelModel.setToolTip("<img src='" + RES + TEMP + str(level) + "'.png'>")
+            labelModel.setAttribute(Qt.WA_Hover)
+            labelModel.installEventFilter(self.filter)
 
             addModel = QToolButton()
             addModel.setText('+')
@@ -1378,7 +1387,7 @@ class MuScaleMainDialog(QMainWindow):
             periodLbl = QLabel('Estimated frequency:')
             periodLbl.setAlignment(Qt.AlignCenter)
             optMod.period = QSpinBox()
-            optMod.period.setMinimum(2)    #TODO: calculate max
+            optMod.period.setMinimum(2)
             optMod.period.setValue(12)
 
             hwLayout.addWidget(optMod.seasonal, 0, 0)
@@ -1756,6 +1765,10 @@ class MuScaleMainDialog(QMainWindow):
 
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(modelsListLayout)
+            walkNonGridLayoutShadow(modelOptionsLayout)
+            walkNonGridLayoutShadow(shiftLayout)
+            walkNonGridLayoutShadow(modelOptButtons)
+            walkNonGridLayoutShadow(batchLayout)
 
 #####################################################
 #-------------- resulting forecast -----------------#
@@ -1917,3 +1930,13 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.messageInfo.showInfo('Modelling cycle performed successfully')
         
         self.statTools.setCurrentIndex(int(Tabs.Results))
+
+
+class LabelFilter(QObject):
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.HoverEnter:
+            object.setStyleSheet('QLabel { color: SteelBlue; }')
+        if event.type() == QEvent.HoverLeave:
+            object.setStyleSheet('QLabel { color: black; }')
+
+        return False

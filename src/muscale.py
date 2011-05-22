@@ -82,7 +82,7 @@ Created on Mar 9, 2011
 # PyQtGraph                              http://goo.gl/hQjvW    (***)
 # PyCairo 1.8.1                          http://goo.gl/ScUvx
 # CairoPlot 1.1                          http://goo.gl/VjTUO
-# R plot engine1
+# R plot engine
 
 # additional statistical packages:
 # scikits.timeseries                     http://goo.gl/t6Hy8
