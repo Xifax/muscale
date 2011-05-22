@@ -199,3 +199,14 @@ def processModel(model, data, r, options=None):
 
 def calculateForecast(model, data, r, steps = steps_default, options=None):
     return model_predict_methods[model](data, r, steps, options)
+
+def entropy(data, r, simple=False):
+    if simple:
+        r('e <- entropy( %s )' % Str4R(data))
+        return r.e
+    else:
+        ent = []
+        for lvl in data:
+            r('e <- entropy( %s )' % Str4R(lvl[0]))
+            ent.append(r.e)
+    return min(ent)

@@ -48,7 +48,7 @@ from gui.guiMessage import SystemMessage
 from stats.models import processModel, calculateForecast, initRLibraries
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
                     normalize_dwt_dimensions, iswt,\
-                    select_node_levels_from_swt, update_swt
+                    select_node_levels_from_swt, update_swt, calculate_suitable_lvl
 from usr.test import test_data
 #from gui.flowLayout import FlowLayout
 
@@ -94,7 +94,7 @@ class MuScaleMainDialog(QMainWindow):
 
         self.loadFromFile = QPushButton('&Load from file')
         # manual
-        self.toggleManual = QPushButton('Manual &input')
+        self.toggleManual = QPushButton('Manual input')
         self.manualDataInput = QTextEdit()
         self.loadManualData = QPushButton('Parse')
         # results
@@ -124,6 +124,7 @@ class MuScaleMainDialog(QMainWindow):
         self.comboWavelet = QComboBox()
         self.comboWavelist = QComboBox()
         self.comboDecomposition = QComboBox()
+        self.computeLvls = QPushButton('Auto')
         self.spinLevels = QSpinBox()
         self.calculateButton = QPushButton('A&nalyze data')
         self.showWavelist = QPushButton('Show wavelist')
@@ -142,18 +143,19 @@ class MuScaleMainDialog(QMainWindow):
         self.decompLayout.addWidget(self.wvFamilyLbl, 0, 0)
         self.decompLayout.addWidget(self.wvTypeLbl, 0, 1)
         self.decompLayout.addWidget(self.wvDecompLbl, 0, 2)
-        self.decompLayout.addWidget(self.wvLevelLbl, 0, 3)
+        self.decompLayout.addWidget(self.wvLevelLbl, 0, 3, 1, 2)
         #---
         self.decompLayout.addWidget(self.comboWavelet, 1, 0)
         self.decompLayout.addWidget(self.comboWavelist, 1, 1)
         self.decompLayout.addWidget(self.comboDecomposition, 1, 2)
-        self.decompLayout.addWidget(self.spinLevels, 1, 3)
-        self.decompLayout.addWidget(self.calculateButton, 2, 0, 1, 4)
+        self.decompLayout.addWidget(self.computeLvls, 1, 3)
+        self.decompLayout.addWidget(self.spinLevels, 1, 4)
+        self.decompLayout.addWidget(self.calculateButton, 2, 0, 1, 5)
         self.decompLayout.addWidget(self.showWavelist, 3, 0)
-        self.decompLayout.addWidget(self.decompInfoLabel, 3, 1, 1, 2)
-        self.decompLayout.addWidget(self.showScalogram, 3, 3)
-        self.decompLayout.addWidget(self.wavelistGraph, 4, 0, 1, 4)
-        self.decompLayout.addWidget(self.scalogramGraph, 5, 0, 1, 4)
+        self.decompLayout.addWidget(self.decompInfoLabel, 3, 1, 1, 3)
+        self.decompLayout.addWidget(self.showScalogram, 3, 4)
+        self.decompLayout.addWidget(self.wavelistGraph, 4, 0, 1, 5)
+        self.decompLayout.addWidget(self.scalogramGraph, 5, 0, 1, 5)
 
         self.decompGroup.setLayout(self.decompLayout)
 
@@ -325,6 +327,8 @@ class MuScaleMainDialog(QMainWindow):
         self.showWavelist.setCheckable(True)
         self.decompInfoLabel.hide()
         self.decompInfoLabel.setAlignment(Qt.AlignCenter)
+        self.computeLvls.setMaximumHeight(20)
+        self.wvLevelLbl.setAlignment(Qt.AlignCenter)
 
         self.decompLayout.setAlignment(Qt.AlignCenter)
 
@@ -490,6 +494,7 @@ class MuScaleMainDialog(QMainWindow):
         self.comboDecomposition.currentIndexChanged.connect(self.updateMaxDLevel)
         self.comboWavelet.currentIndexChanged.connect(self.updateWavelist)
         self.comboWavelist.currentIndexChanged.connect(self.updateWaveletPreview)
+        self.computeLvls.clicked.connect(self.processLvls)
 
         # tooltips #
         self.statTools.currentChanged.connect(self.updateInfoTooltips)
@@ -800,6 +805,12 @@ class MuScaleMainDialog(QMainWindow):
 #####################################################
 #-------------- wavelet decomposition --------------#
 #####################################################
+    def processLvls(self):
+        lvl = calculate_suitable_lvl(self.currentDataSet[0],
+                                     pywt.Wavelet(unicode(self.comboWavelist.currentText())), self.R)
+        self.spinLevels.setValue(lvl + 1)
+        self.messageInfo.showInfo('Decomposition set at ' + str(lvl + 1) + ' level(s)')
+
     def updateWavelist(self):
         self.comboWavelist.clear()
         self.comboWavelist.addItems(pywt.wavelist(self.comboWavelet.currentText()))
@@ -943,11 +954,10 @@ class MuScaleMainDialog(QMainWindow):
                     if widget.isCheckable():
                         widget.click()
 
-    def autoModel(self):
-        #TODO: Implement automatic configuration
-        for index in range(0, len(self.wCoefficients)):
-            combo = self.modelLayout.itemAtPosition(index * 2 + 2, 1).widget()
-            combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
+#    def autoModel(self):
+#        for index in range(0, len(self.wCoefficients)):
+#            combo = self.modelLayout.itemAtPosition(index * 2 + 2, 1).widget()
+#            combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
 
     def showComponentPreview(self):
 
@@ -985,17 +995,36 @@ class MuScaleMainDialog(QMainWindow):
         previewAll.setCheckable(True)
         autoAll.setText('Auto model')
 
+        # auto model options
+        autoConfigGroup = QGroupBox('Auto model')
+        autoConfigLayout = QGridLayout()
+        autoConfigGroup.setLayout(autoConfigLayout)
+
+        def autoModel():
+            if autoAll.isChecked():
+                autoConfigGroup.show()
+            else:
+                autoConfigGroup.hide()
+
+        # buttons and layouts
         addAll.clicked.connect(self.addAllLevelToModel)
         previewAll.clicked.connect(self.previewAll)
-        autoAll.clicked.connect(self.autoModel)
+        autoAll.clicked.connect(autoModel)
+        autoAll.setCheckable(True)
 
         buttonsLayout = QHBoxLayout()
         buttonsLayout.addWidget(addAll)
         buttonsLayout.addWidget(autoAll)
         buttonsLayout.addWidget(previewAll)
 
-        self.modelLayout.addLayout(buttonsLayout, 0, 0, 1, 4)
+        modelSetupLayout = QVBoxLayout()
+        modelSetupLayout.addWidget(autoConfigGroup)
+        modelSetupLayout.addLayout(buttonsLayout)
+
+        self.modelLayout.addLayout(modelSetupLayout, 0, 0, 1, 4)
         self.modelLayout.addWidget(createSeparator(), 1, 0, 1, 4)
+
+        autoConfigGroup.hide()
 
         self.filter = LabelFilter()
 
@@ -1049,6 +1078,7 @@ class MuScaleMainDialog(QMainWindow):
 
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(buttonsLayout)
+            walkGridLayoutShadow(autoConfigLayout)
             walkGridLayoutShadow(self.modelLayout)
 
     def addModel(self):

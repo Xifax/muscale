@@ -241,7 +241,7 @@ CONFIG_DICT = {s_gui: [auto_step, shadows, style, tray, trace, folder, table],
 
 #---------- data -----------#
 DATA_LOW_LIMIT = 10 # values count
-DATA_HIGH_LIMIT = 1000
+DATA_HIGH_LIMIT = 3000
 MAX_FORECAST = 500
 MIN_FORECAST = 2
 DEFAULT_STEPS = 20

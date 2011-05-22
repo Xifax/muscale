@@ -576,7 +576,6 @@ class ToolsFrame(QWidget):
 
     #----------- graph -----------#
     def updatePlot(self, data, append=False):
-        #TODO: update axes and position
         if not append:
             if self.data is None:
                 self.data = self.plotWidget.plot(data)
@@ -628,3 +627,7 @@ class ToolsFrame(QWidget):
                     if self.inStack['index'] > -1:
                         self.inStack['index'] -= 1
                     self.rInput.setText(self.inStack['stack'][self.inStack['index']])
+
+    def hideEvent(self, QHideEvent):
+        if self.toolDetached.isChecked():
+            QHideEvent.ignore()

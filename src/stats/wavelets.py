@@ -13,6 +13,7 @@ from numpy import array, vstack, zeros, copy
 
 # own #
 from utility.const import RES, WV, LINE_WITH
+from stats.models import entropy
 
 def apply_threshold(output, scaler=1., input=None):
     """
@@ -341,5 +342,44 @@ def _plot_wavelet(wavelet, level=4, all=False):
     except Exception, e:
         print e, wavelet
 
+def calculate_suitable_lvl(data, wv, r, swt=True):
+    if swt:
+        max_lvl = pywt.swt_max_level(len(data))
+#        pre_e = entropy(data, r, True)
+        lvl = 1
+        pre_e = entropy(pywt.swt(data, wv, lvl), r)
+        lvl += 1
+        while True:
+            new_e = entropy(pywt.swt(data, wv, lvl), r)
+            if new_e <= pre_e:
+                if lvl < max_lvl:
+                    lvl += 1
+                else:
+                    break
+            elif lvl < max_lvl:
+                lvl += 1
+            else:
+                break
+    else:
+        lvl = pywt.dwt_max_level(len(data), wv)
+    return lvl
+
 if __name__ == '__main__':
+#    from stats.pyper import R
+#    from utility.const import R_BIN
+#    from usr.test import test_data
+#    from stats.models import initRLibraries
+#
+#    r = R('../' + R_BIN)
+#    initRLibraries(r)
+#
+#
+#    wavelet_families = pywt.families()
+#    wavelet_family = wavelet_families[1]
+#    selected_wavelet = pywt.wavelist(wavelet_family)[6]
+#    wavelet = pywt.Wavelet(selected_wavelet)
+#
+#    res = calculate_suitable_lvl(test_data, wavelet, r)
+#    pass
+
     _plot_wavelet_families(True)

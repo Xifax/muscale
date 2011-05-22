@@ -10,6 +10,7 @@ import string
 
 # own #
 from utility.log import log
+from utility.const import DATA_LOW_LIMIT, DATA_HIGH_LIMIT
 
 # external #
 from PyQt4.QtCore import QString
@@ -40,15 +41,13 @@ class DataParser():
 
     @staticmethod
     def getTimeSeriesFromTextData(data, template=' '):
-        #TODO: check input of negative values
-        #TODO: check parsed data length (> n)
         series = []
         parseErrors = 0
 
-        parsed = data.split(template)
-        
-        parsed = [el for el in parsed if el != template]
-        
+        parsed = DataParser.readDataByTemplate(data, template)
+        if len(parsed) < DATA_LOW_LIMIT:
+            parsed = DataParser.readDataByTemplate(data, '\n')
+
         for element in parsed:
             if element != '':
                 # QString (manual input)
@@ -66,5 +65,13 @@ class DataParser():
                  except Exception, e:
                     parseErrors += 1
                     log.exception(e)
+
+        if len(series) > DATA_HIGH_LIMIT:
+            series = series[:DATA_HIGH_LIMIT]
                     
         return series, parseErrors
+
+    @staticmethod
+    def readDataByTemplate(data, template):
+        parsed = data.split(template)
+        return [el for el in parsed if el != template]
