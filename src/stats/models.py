@@ -155,20 +155,6 @@ def qsplinePredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.spln['mean'])
 
-#def garchProcess(data, r, options):
-#    # order=c(1,0)
-#    r('g <- garch( %s )' % Str4R(data))
-##    return r.g['fitted.values'][:,0]
-#    return[]
-#
-#def garchPredict(data, r, steps=steps_default, options=None):
-#    garchProcess(data, r, options)
-#    r('pred <- predict( g, %s )' % steps)
-#    if options['append_fit']:
-#        return append(data, r.pred[:,0])
-#    else:
-#        return append(zeros(len(data)), r.pred[:,0])
-
 def stsProcess(data, r, options):
     r('sfit <- StructTS( %s, %s )' % (Str4R(data), Str4R(options['sts_type'])))
     return r.sfit['fitted']
@@ -186,12 +172,10 @@ model_process_methods = {Models.Holt_Winters: hwProcess,  Models.Least_Squares_F
                           Models.ARIMA: arimaProcess, Models.Harmonic_Regression: arProcess,
                           Models.ETS: etsProcess, Models.Cubic_Splines: qsplineProcess,
                           Models.StructTS: stsProcess}
-#                          Models.GARCH: garchProcess, Models.StructTS: stsProcess}
 model_predict_methods = {Models.Holt_Winters: hwPredict, Models.Least_Squares_Fit: lsfPredict,
                           Models.ARIMA: arimaPredict, Models.Harmonic_Regression: arPredict,
                           Models.ETS: etsPredict, Models.Cubic_Splines: qsplinePredict,
                           Models.StructTS: stsPredict}
-#                          Models.GARCH: garchPredict, Models.StructTS: stsPredict}
 
 # interface methods
 def processModel(model, data, r, options=None):
@@ -210,3 +194,11 @@ def entropy(data, r, simple=False):
             r('e <- entropy( %s )' % Str4R(lvl[0]))
             ent.append(r.e)
     return min(ent)
+
+def auto_model(data, r, options):
+    if options['fractal']:
+        pass
+    elif options['ljung']:
+        pass
+    elif options['complex']:
+        pass

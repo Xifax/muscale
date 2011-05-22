@@ -72,6 +72,10 @@ def modelling_cycle():
 
     threshold = measure_threshold(w_initial_coefficients)
 
+    w_threshold_coeff = w_initial_coefficients[:]
+    apply_threshold(w_threshold_coeff)
+    plot_initial_updated(w_initial_coefficients, w_threshold_coeff)
+
 #    plt.figure()
 #    for coeff in w_selected_coefficiets:
 #        plt.plot(coeff)

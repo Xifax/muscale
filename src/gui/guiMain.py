@@ -45,7 +45,7 @@ from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
-from stats.models import processModel, calculateForecast, initRLibraries
+from stats.models import processModel, calculateForecast, initRLibraries, auto_model
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
                     normalize_dwt_dimensions, iswt,\
                     select_node_levels_from_swt, update_swt, calculate_suitable_lvl
@@ -996,8 +996,34 @@ class MuScaleMainDialog(QMainWindow):
         autoAll.setText('Auto model')
 
         # auto model options
-        autoConfigGroup = QGroupBox('Auto model')
-        autoConfigLayout = QGridLayout()
+        autoConfigGroup = QGroupBox('Choose models')
+        autoConfigLayout = QVBoxLayout()
+        autoConfigLayout.setAlignment(Qt.AlignCenter)
+
+        def constructAuto():
+            options = {}
+            options['fractal'] = fractalDim.isChecked()
+            options['ljung'] = ljungBox.isChecked()
+            options['multi'] = fractalCompex.isChecked()
+
+            models = auto_model(self.wCoefficients, self.R, options)
+
+        applyAuto = QToolButton()
+        applyAuto.setText('Apply')
+        applyAuto.clicked.connect(constructAuto)
+        autoButtonLayout = QHBoxLayout()
+        autoButtonLayout.addWidget(applyAuto)
+        autoButtonLayout.setAlignment(Qt.AlignCenter)
+
+        fractalDim = QRadioButton('Using fractal dimension')
+        ljungBox = QRadioButton('Using Ljung-Box criterion')
+        fractalCompex = QRadioButton('Multiple properties')
+
+        autoConfigLayout.addLayout(autoButtonLayout)
+        autoConfigLayout.addWidget(fractalDim)
+        autoConfigLayout.addWidget(ljungBox)
+        autoConfigLayout.addWidget(fractalCompex)
+
         autoConfigGroup.setLayout(autoConfigLayout)
 
         def autoModel():
@@ -1078,7 +1104,7 @@ class MuScaleMainDialog(QMainWindow):
 
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(buttonsLayout)
-            walkGridLayoutShadow(autoConfigLayout)
+            walkNonGridLayoutShadow(autoConfigLayout)
             walkGridLayoutShadow(self.modelLayout)
 
     def addModel(self):
