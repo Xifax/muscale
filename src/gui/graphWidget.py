@@ -11,7 +11,7 @@ import os
 # own #
 from utility.const import RES, ICONS, TOOLBAR_ICONS,\
                         TEMP, LINE_WITH, ICO_GRAPH, LEGEND,\
-                        GRAPH, COPY
+                        GRAPH, COPY, SCALE
 from utility.tools import clearFolderContents
 
 # external #
@@ -99,6 +99,7 @@ class MplWidget(QtGui.QWidget):
             # setup context menu
             self.setContextMenuPolicy(Qt.ActionsContextMenu)
             self.initActions()
+            self.alwaysAutoScale.setChecked(True)
 
     #-------------- initialization ---------------#
     def initComponents(self):
@@ -120,8 +121,11 @@ class MplWidget(QtGui.QWidget):
                                      self, triggered=self.toTable))
         self.addAction(QtGui.QAction(QtGui.QIcon(RES + ICONS + GRAPH),'Plot data in tools',
                                      self, triggered=self.toGraphTool))
-#        self.addAction(QtGui.QAction('Autoscale',
-#                                     self, triggered=self.updateScale))
+        self.addAction(QtGui.QAction(QtGui.QIcon(RES + ICONS + SCALE), 'Autoscale',
+                                     self, triggered=self.updateScale))
+
+        self.alwaysAutoScale = QtGui.QAction('Scale on update', self)
+        self.alwaysAutoScale.setCheckable(True)
 
         self.selectLinesMenu = QtGui.QMenu()
         self.selectLines = (QtGui.QAction('Plots', self))
@@ -131,6 +135,7 @@ class MplWidget(QtGui.QWidget):
         aSep.setSeparator(True)
         self.addAction(aSep)
         self.addAction(self.selectLines)
+        self.addAction(self.alwaysAutoScale)
 
     def newIcons(self):
         for position in range(0, self.toolbar.layout().count()):
@@ -169,7 +174,6 @@ class MplWidget(QtGui.QWidget):
     #  @param style Line style (solid, dashed, dotted).
     #  @param color Line color.
     def updatePlot(self, data, line=0, label=None, style='solid', color=None):
-        #TODO: autoscale axes
         if not self.canvas.ax.has_data():
             if label is not None:
                 if color is not None:
@@ -204,6 +208,9 @@ class MplWidget(QtGui.QWidget):
 
         self.updateLegend()
         self.updateLinesSubmenu()
+
+        if self.alwaysAutoScale.isChecked():
+            self.updateScale()
 
     ## Plots scalogram for wavelet decomposition.
     #  @param data Wavelet coefficients in matrix.
@@ -350,14 +357,16 @@ class MplWidget(QtGui.QWidget):
         pass
 
     def updateScale(self):
-        self.canvas.ax.relim()
-        self.canvas.ax.autoscale_view(tight=None, scalex=False, scaley=True)
-        self.canvas.draw()
+        # get new max/min values
+        x_max = max([max(line._x) for line in self.canvas.ax.get_lines()])
+        x_min = min([min(line._x) for line in self.canvas.ax.get_lines()])
+        y_max = max([max(line._y) for line in self.canvas.ax.get_lines()])
+        y_min = min([min(line._y) for line in self.canvas.ax.get_lines()])
+        # update axes
+        self.canvas.ax.set_xlim(x_min, x_max)
+        self.canvas.ax.set_ylim(y_min, y_max)
 
-    #------------------ events -----------------#
-    #TODO: add option
-#    def showEvent(self, QShowEvent):
-#        self.canvas.setFixedHeight(self.canvas.height())
+        self.canvas.draw()
 
     #------------------ utils ------------------#
     ## Generates previews for specified data.

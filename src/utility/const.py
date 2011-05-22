@@ -63,13 +63,15 @@ ABOUT = 'about.png'
 QUIT = 'quit.png'
 SHOW = 'show.png'
 RESET = 'delete.png'
-# ~*~ #
+
+# phase icons #
 LOAD = 'load.png'
 DECOM = 'cog.png'
 LAYERS = 'layers.png'
 ANALYSIS = 'forecast.png'
 FIN = 'fin.png'
-# ~*~ #
+
+# tools icons #
 CONTROLS = 'ctrl.png'
 GRAPH = 'graph.png'
 CLEAR = 'clear.png'
@@ -78,11 +80,12 @@ ELEMENTS = 'elements.png'
 CUT = 'cut.png'
 SERIES = ['series0.png', 'series1.png', 'series2.png', 'series3.png']
 
-# toolbar icons #
+# toolbar/graph icons #
 TOOLBAR_ICONS = ['home.png', 'back.png', 'forward.png', '',
                  'pan.png', 'zoom.png', '',
                  'sub.png', 'edit.png', 'save.png']
 LEGEND = 'legend.png'
+SCALE = 'scale.png'
 
 ICO_SIZE = 32
 ICO_GRAPH = 16
