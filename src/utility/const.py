@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -208,7 +208,7 @@ R_BIN = R_PATH + 'bin/R'
 R_LIB = R_PATH + 'library/'
 R_COMPONENTS = '"main, i386"'
 
-r_packages = ['forecast', 'timsac', 'stats', 'fractaldim']
+r_packages = ['forecast', 'timsac', 'stats', 'fractaldim', 'entropy']
 
 #----- here be options -----#
 # sections

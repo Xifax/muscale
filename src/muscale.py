@@ -63,6 +63,8 @@ Created on Mar 9, 2011
 #TODO: add estimation/helpers for models (ARIMA, etc) [...]
 #TODO: fix DWT reconstruction (reshape approximation arrays)
 #TODO: implement some kind of automatic resize mechanism [...]
+#TODO: check max level option/update
+#TODO: check data shift in HoltWinters and such
 
 ####################################
 #            Dependencies          #

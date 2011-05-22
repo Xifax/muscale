@@ -1143,9 +1143,11 @@ class MuScaleMainDialog(QMainWindow):
         previousModel.clicked.connect(prevM)
 
         modelsListLayout.setAlignment(Qt.AlignCenter)
+        
+        extractLevel = lambda qcombo: int(str(qcombo.currentText()).split('.')[0])
 
         def constructModel():
-            model = modelsList.currentIndex()
+            model = extractLevel(modelsList)
             result = processModel(self.multiModel[model],
                                   self.wCoefficients[model],
                                   self.R,
@@ -1155,7 +1157,7 @@ class MuScaleMainDialog(QMainWindow):
             modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed', color='g')
 
         def forecastModel():
-            model = modelsList.currentIndex()
+            model = extractLevel(modelsList)
             result = calculateForecast(self.multiModel[model],
                                        self.wCoefficients[model],
                                        self.R,
@@ -1170,35 +1172,48 @@ class MuScaleMainDialog(QMainWindow):
                                         ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
 
         def resetModel():
-            model = modelsList.currentIndex()
+            model = extractLevel(modelsList)
             modelsStack.currentWidget().canvas.ax.clear()
             modelsStack.currentWidget().updatePlot(self.wCoefficients[model], label='Series' + str(model))
 
             self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] reset'])
 
+        def getModelIndexInStack(model, modelsList):
+            for index in range(0, modelsList.count()):
+                if model == int(str(modelsList.itemText(index)).split('.')[0]):
+                    return index
+
         def fitAllLevels():
             for model in self.multiModel:
-                self.processedWCoeffs[model] = processModel(self.multiModel[model],
-                                                            self.wCoefficients[model],
-                                                            self.R,
-                                                            compileOptions(optMod))
-                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
-                                                     label='Model fit', style='dashed', color='g')
+                try:
+                    self.processedWCoeffs[model] = processModel(self.multiModel[model],
+                                                                self.wCoefficients[model],
+                                                                self.R,
+                                                                compileOptions(optMod))
+                    index = getModelIndexInStack(model, modelsList)
+                    modelsStack.widget(index).updatePlot(self.processedWCoeffs[model],
+                                                         label='Model fit', style='dashed', color='g')
+                except Exception:
+                    pass
 
             self.messageInfo.showInfo('Performed models fit')
 
         def forecastAllLevels():
             for model in self.multiModel:
-                self.processedWCoeffs[model] = calculateForecast(self.multiModel[model],
-                                                                 self.wCoefficients[model],
-                                                                 self.R,
-                                                                 forecastSteps.value(),
-                                                                 compileOptions(optMod))
-                modelsStack.widget(model).updatePlot(self.processedWCoeffs[model],
-                                                     label='Forecast', style='dotted', color='r')
+                try:
+                    self.processedWCoeffs[model] = calculateForecast(self.multiModel[model],
+                                                                     self.wCoefficients[model],
+                                                                     self.R,
+                                                                     forecastSteps.value(),
+                                                                     compileOptions(optMod))
+                    index = getModelIndexInStack(model, modelsList)
+                    modelsStack.widget(index).updatePlot(self.processedWCoeffs[model],
+                                                         label='Forecast', style='dotted', color='r')
 
-                self.toolsFrame.updateLog(['model  ' + prettifyNames([self.multiModel[model]._enumname])[0] +
-                            ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+                    self.toolsFrame.updateLog(['model  ' + prettifyNames([self.multiModel[model]._enumname])[0] +
+                                ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+                except Exception:
+                    pass
 
             # forecast node levels
             if hasattr(optMod, 'node_label'):
@@ -1227,13 +1242,16 @@ class MuScaleMainDialog(QMainWindow):
 
         def resetAllLevels():
             for model in self.multiModel:
-                modelsStack.widget(model).canvas.ax.clear()
-                modelsStack.widget(model).updatePlot(self.wCoefficients[model], label='Series' + str(model))
-
-                self.toolsFrame.updateLog(['all models reset'], warning=True)
+                try:
+                    index = getModelIndexInStack(model, modelsList)
+                    modelsStack.widget(index).canvas.ax.clear()
+                    modelsStack.widget(index).updatePlot(self.wCoefficients[model], label='Series' + str(model))
+                except Exception:
+                    pass
 
             self.wUpdatedNodeCoefficients = [0] * len(self.wNodeCoefficients)
 
+            self.toolsFrame.updateLog(['all models reset'], warning=True)
             self.messageInfo.showInfo('All changes reverted')
 
         simulateButton = QPushButton('Simulate')
@@ -1752,7 +1770,7 @@ class MuScaleMainDialog(QMainWindow):
             try:
                 if not self.isSWT:
                     #TODO: reshape with zeros   (last array is double size of first array)
-                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet, correct_size=True),
+                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),
                                                    label='Simulation', color='r')
                 else:
                     if self.autoUpdateTable.isChecked():
