@@ -193,12 +193,59 @@ def entropy(data, r, simple=False):
         for lvl in data:
             r('e <- entropy( %s )' % Str4R(lvl[0]))
             ent.append(r.e)
-    return min(ent)
+#    return min(ent)
+    # average
+    return sum(ent, 0.0) / len(ent)
 
 def auto_model(data, r, options):
     if options['fractal']:
-        pass
+        dimensions = []
+        models = {}
+        for lvl in data:
+            r('d <- fd.estimate( %s )' % Str4R(lvl))
+            dimensions.append(r.d['fd'][0][0])
+
+        lvl_indices = dimensions[:]
+        while len(dimensions) > 1:
+            hires = max(dimensions)
+            trend = min(dimensions)
+            models[lvl_indices.index(hires)] = Models.Harmonic_Regression
+            models[lvl_indices.index(trend)] = Models.Holt_Winters
+
+            dimensions.remove(hires)
+            dimensions.remove(trend)
+
+        if dimensions:
+            models[lvl_indices.index(dimensions.pop())] = Models.ARIMA
+        del lvl_indices
+
+        return  models
+
     elif options['ljung']:
-        pass
-    elif options['complex']:
+        xsquared = []
+        models = {}
+        for lvl in data:
+            r('b <- Box.test( %s, type="Ljung" )' % Str4R(lvl))
+            xsquared.append(r.b['statistic'])
+
+        lvl_indices = xsquared[:]
+        while len(xsquared) > 1:
+            auto_correl = min(xsquared)
+            no_correl = max(xsquared)
+            models[lvl_indices.index(auto_correl)] = Models.Harmonic_Regression
+            models[lvl_indices.index(no_correl)] = Models.ARIMA
+
+            xsquared.remove(auto_correl)
+            xsquared.remove(no_correl)
+
+        if xsquared:
+            models[lvl_indices.index(xsquared.pop())] = Models.Least_Squares_Fit
+        del lvl_indices
+
+        return models
+
+    elif options['multi']:
+        # ~ dispersion: trend
+        # ~ fluctuation: trend/decomposition limit
+        # ~ hurst coeff: decomposition steps/ non-stationarity
         pass

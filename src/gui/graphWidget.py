@@ -357,16 +357,19 @@ class MplWidget(QtGui.QWidget):
         pass
 
     def updateScale(self):
-        # get new max/min values
-        x_max = max([max(line._x) for line in self.canvas.ax.get_lines()])
-        x_min = min([min(line._x) for line in self.canvas.ax.get_lines()])
-        y_max = max([max(line._y) for line in self.canvas.ax.get_lines()])
-        y_min = min([min(line._y) for line in self.canvas.ax.get_lines()])
-        # update axes
-        self.canvas.ax.set_xlim(x_min, x_max)
-        self.canvas.ax.set_ylim(y_min, y_max)
+        try:
+            # get new max/min values
+            x_max = max([max(line._x) for line in self.canvas.ax.get_lines()])
+            x_min = min([min(line._x) for line in self.canvas.ax.get_lines()])
+            y_max = max([max(line._y) for line in self.canvas.ax.get_lines()])
+            y_min = min([min(line._y) for line in self.canvas.ax.get_lines()])
+            # update axes
+            self.canvas.ax.set_xlim(x_min, x_max)
+            self.canvas.ax.set_ylim(y_min, y_max)
 
-        self.canvas.draw()
+            self.canvas.draw()
+        except Exception, e:
+            pass
 
     #------------------ utils ------------------#
     ## Generates previews for specified data.

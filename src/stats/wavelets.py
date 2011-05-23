@@ -230,7 +230,7 @@ def update_node_levels_swt(initial_coeffs, node_coeffs):
 def update_swt(initial_coeffs, selected_coeffs, updated_nodes):
     new_dimension = calculate_new_dimension(initial_coeffs, selected_coeffs)
 
-    by_rows = vstack(copy(initial_coeffs))  #TODO: mayhap, it's better to create new matrix(?)
+    by_rows = vstack(copy(initial_coeffs))
     by_rows.resize(len(by_rows), new_dimension, refcheck = False)
 
     new_coeffs = copy_non_uniform_shape(selected_coeffs)
@@ -346,22 +346,38 @@ def calculate_suitable_lvl(data, wv, r, swt=True):
     if swt:
         max_lvl = pywt.swt_max_level(len(data))
 #        pre_e = entropy(data, r, True)
+
         lvl = 1
+        ent = []
         pre_e = entropy(pywt.swt(data, wv, lvl), r)
+        ent.append(pre_e)
         lvl += 1
         while True:
             new_e = entropy(pywt.swt(data, wv, lvl), r)
-            if new_e <= pre_e:
-                if lvl < max_lvl:
-                    lvl += 1
-                else:
-                    break
-            elif lvl < max_lvl:
+            ent.append(new_e)
+            if lvl < max_lvl:
                 lvl += 1
             else:
                 break
+#            if new_e <= pre_e:
+#                if lvl < max_lvl:
+#                    lvl += 1
+#                else:
+#                    break
+#            elif lvl < max_lvl:
+#                lvl += 1
+#            else:
+#                break
     else:
         lvl = pywt.dwt_max_level(len(data), wv)
+
+    if lvl == max_lvl:
+        pass
+
+    e_sorted = sorted(ent[:])
+    median = e_sorted[len(e_sorted) / 2]
+    lvl = ent.index(median) + 1
+
     return lvl
 
 if __name__ == '__main__':

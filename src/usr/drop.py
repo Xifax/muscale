@@ -10,7 +10,6 @@ from getpass import getpass
 from simpledropbox import SimpleDropbox, SdFile
 
 def update():
-    #TODO: check if exists, if not - create
     local_path = './docs'
     remote_path = '/Public/Diploma'
     file_name = '/msts.docx'

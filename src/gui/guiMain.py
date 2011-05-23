@@ -262,6 +262,7 @@ class MuScaleMainDialog(QMainWindow):
         self.currentDataSet = []
         self.currentPlot = None
         self.multiModel = {}
+        self.tmpConfig = {}
 
         ### initialization ###
         self.initComposition()
@@ -954,11 +955,6 @@ class MuScaleMainDialog(QMainWindow):
                     if widget.isCheckable():
                         widget.click()
 
-#    def autoModel(self):
-#        for index in range(0, len(self.wCoefficients)):
-#            combo = self.modelLayout.itemAtPosition(index * 2 + 2, 1).widget()
-#            combo.setCurrentIndex(int(Models.Harmonic_Regression) - 1)
-
     def showComponentPreview(self):
 
         for row in range(0, self.modelLayout.rowCount()):
@@ -1007,9 +1003,13 @@ class MuScaleMainDialog(QMainWindow):
             options['multi'] = fractalCompex.isChecked()
 
             models = auto_model(self.wCoefficients, self.R, options)
+            for lvl, model in models.iteritems():
+                combo = self.modelLayout.itemAtPosition(lvl * 2 + 2, 1).widget()
+                combo.setCurrentIndex(int(model) - 1)
+            self.messageInfo.showInfo('Models set')
 
         applyAuto = QToolButton()
-        applyAuto.setText('Apply')
+        applyAuto.setText('Choose automatically')
         applyAuto.clicked.connect(constructAuto)
         autoButtonLayout = QHBoxLayout()
         autoButtonLayout.addWidget(applyAuto)
@@ -1018,6 +1018,7 @@ class MuScaleMainDialog(QMainWindow):
         fractalDim = QRadioButton('Using fractal dimension')
         ljungBox = QRadioButton('Using Ljung-Box criterion')
         fractalCompex = QRadioButton('Multiple properties')
+        fractalDim.setChecked(True)
 
         autoConfigLayout.addLayout(autoButtonLayout)
         autoConfigLayout.addWidget(fractalDim)
@@ -1106,6 +1107,9 @@ class MuScaleMainDialog(QMainWindow):
             walkNonGridLayoutShadow(buttonsLayout)
             walkNonGridLayoutShadow(autoConfigLayout)
             walkGridLayoutShadow(self.modelLayout)
+
+        if self.modelLayout.rowCount() - 9 > 2:
+            previewAll.setDisabled(True)
 
     def addModel(self):
         for row in range(0, self.modelLayout.rowCount()):
@@ -1236,6 +1240,8 @@ class MuScaleMainDialog(QMainWindow):
                                        prettifyNames([self.multiModel[model]._enumname])[0] +
                                         ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
 
+            self.tmpConfig['steps'] = forecastSteps.value()
+
         def resetModel():
             model = extractLevel(modelsList)
             modelsStack.currentWidget().canvas.ax.clear()
@@ -1279,6 +1285,8 @@ class MuScaleMainDialog(QMainWindow):
                                 ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
                 except Exception:
                     pass
+                
+            self.tmpConfig['steps'] = forecastSteps.value()
 
             # forecast node levels
             if hasattr(optMod, 'node_label'):
@@ -1340,7 +1348,10 @@ class MuScaleMainDialog(QMainWindow):
 
         forecastSteps = QSpinBox()
         forecastSteps.setRange(MIN_FORECAST, MAX_FORECAST)
-        forecastSteps.setValue(DEFAULT_STEPS)
+        try:
+            forecastSteps.setValue(self.tmpConfig['steps'])
+        except Exception:
+            forecastSteps.setValue(DEFAULT_STEPS)
         forecastSteps.valueChanged.connect(forecastModel)
 
         class TestHandle(object):
@@ -1480,7 +1491,6 @@ class MuScaleMainDialog(QMainWindow):
             ar_orderLbl.setAlignment(Qt.AlignCenter)
             optMod.ar_order = QSpinBox()
             optMod.ar_order.setMinimum(1)
-            # missing values fun?
 
             optMod.ar_useAIC.setChecked(True)
             arOrderShow()
@@ -1971,21 +1981,21 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.spinLevels.setValue(4)
         self.waveletTransform()
         # construct model
-        self.autoModel()
-        self.addAllLevelToModel()
-        self.constructModel()
-
-        if hasattr(self, 'testHandle'):
-            if self.testHandle.forecastAll is not None:
-                self.testHandle.forecastAll.click()
-
-                self.reconTS.click()
-                self.plotInitial.click()
-
-        self.toolsFrame.updateLog(['modelling cycle test complete'], NB=True)
-        self.messageInfo.showInfo('Modelling cycle performed successfully')
-        
-        self.statTools.setCurrentIndex(int(Tabs.Results))
+#        self.autoModel()
+#        self.addAllLevelToModel()
+#        self.constructModel()
+#
+#        if hasattr(self, 'testHandle'):
+#            if self.testHandle.forecastAll is not None:
+#                self.testHandle.forecastAll.click()
+#
+#                self.reconTS.click()
+#                self.plotInitial.click()
+#
+#        self.toolsFrame.updateLog(['modelling cycle test complete'], NB=True)
+#        self.messageInfo.showInfo('Modelling cycle performed successfully')
+#
+#        self.statTools.setCurrentIndex(int(Tabs.Results))
 
 
 class LabelFilter(QObject):
