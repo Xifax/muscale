@@ -6,8 +6,6 @@ Distributed under MIT/X11 license. See license.txt for more infomation.
 """
 
 from PyQt4 import QtCore, QtGui, QtOpenGL, QtSvg
-#from PySide import QtCore, QtGui, QtOpenGL, QtSvg
-#from PySide import QtSvg, QtOpenGL
 #from numpy import vstack
 #import time
 from Point import *

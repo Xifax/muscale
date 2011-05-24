@@ -6,6 +6,7 @@ Created on Mar 17, 2011
 '''
 # internal #
 import time
+import operator
 
 # external #
 from PyQt4.QtCore import Qt, QObject,QEvent, QTimer
@@ -148,6 +149,8 @@ class ToolsFrame(QWidget):
         self.rInput.setFocus()
         self.inStack = {'stack': [], 'index': -1}
         self.toggleLogControls()
+        self.rNewline = '\n'
+#        self.rNewline = self.R.newline  # glitches starting with R 2.13
 
     def initComposition(self):
         self.setWindowTitle('Tools')
@@ -436,8 +439,7 @@ class ToolsFrame(QWidget):
             if internalIn is None:
                 request = self.checkRequest(self.rInput.text())
                 if request is not None:
-                    # also possible: self.R.newline
-                    result = '\n'.join(self.R(request).split('\n')[1:])   #PyQt shenanigans
+                    result = '\n'.join(self.R(request).split(self.rNewline)[1:])   #PyQt shenanigans
                     self.updateStack(request)
                 else:
                     result = None
@@ -486,10 +488,10 @@ class ToolsFrame(QWidget):
 
     def updateNamespace(self):
         self.namesList.clear()
-        for object in self.R('objects()').split('\n')[1:]:
-            if object != self.R.newline:
+        for object in self.R('objects()').split(self.rNewline)[1:]:
+            if object != self.rNewline:
                 for e in object.split(' '):
-                    if e != '[1]' and e != '':
+                    if not e.startswith('[') and e != '' and e != 'character(0)':
                         item = QListWidgetItem(e.strip('"'))
                         item.setTextAlignment(Qt.AlignCenter)
                         self.namesList.addItem(item)
@@ -560,11 +562,22 @@ class ToolsFrame(QWidget):
         clipboard.setText(copy)
         self.parentWidget().messageInfo.showInfo('Copied ' + str(len(self.tableWidget.selectedItems())) + ' item(s)')
 
+    def sortRanges(self, ranges):
+        rangesByLeftColumn = [(r.leftColumn(), r) for r in ranges]
+        map(operator.itemgetter(0), rangesByLeftColumn)
+        map(operator.itemgetter(1), rangesByLeftColumn)
+        return [tpl[1] for tpl in sorted(rangesByLeftColumn, key=operator.itemgetter(0))]
+
     def removeColumns(self):
         if self.tableWidget.selectedIndexes():
-            for the_range in self.tableWidget.selectedRanges():
+            deleted = 0
+            for the_range in self.sortRanges(self.tableWidget.selectedRanges()):
                 for column in range(the_range.leftColumn(), the_range.rightColumn() + 1):
-                    self.tableWidget.removeColumn(column)
+                    index = column - deleted
+                    if index < 0:
+                        index = 0
+                    self.tableWidget.removeColumn(index)
+                    deleted += 1
 
     def plotItems(self):
         data = []

@@ -55,7 +55,6 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: fix R namespace parser
 #TODO: wizard template (of some sorts)
 #TODO: show fit/forecast accuracy, error
 #TODO: add estimation/helpers for models (ARIMA, etc) [...]
