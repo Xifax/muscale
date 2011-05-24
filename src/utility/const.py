@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -252,11 +252,11 @@ LINE_WITH = 0.9
 
 #-------- typefaces --------#
 # application (typeface, format, size)
-#FONTS_DICT = {'main': ('Anonymous', 'ttf', 10),
 FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
               'info': ('Droid Sans', 'ttf', 9),
               'message': ('Consolas', 'ttf', 9),
               'log': ('Droid Serif', 'ttf', 9),
               'splash': ('GreyscaleBasic', 'ttf', 10),
-              'table': ('Dekar', 'otf', 12)
+              'table': ('Dekar', 'otf', 12),
+              'warn': ('Anonymous', 'ttf', 9),
             }

@@ -56,8 +56,6 @@ Created on Mar 9, 2011
 ####################################
 
 #TODO: wizard template (of some sorts)
-#TODO: show fit/forecast accuracy, error
-#TODO: add estimation/helpers for models (ARIMA, etc) [...]
 #TODO: fix DWT reconstruction (reshape approximation arrays)
 
 ####################################

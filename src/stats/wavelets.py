@@ -310,6 +310,9 @@ def normalize_dwt_dimensions(coeffs):
         by_rows[i] = new_element; i += 1
     return copy(by_rows)
 
+def update_dwt():
+    pass
+
 ## Saves wavelet approximations to /res/wv folder.
 #  @param all Plot every possible wavelet.
 def _plot_wavelet_families(all=False):
@@ -342,10 +345,15 @@ def _plot_wavelet(wavelet, level=4, all=False):
     except Exception, e:
         print e, wavelet
 
+## Gets optimal decomposition level.
+#  @param data Time series array.
+#  @param wv Wavelet type.
+#  @param r PypeR reference.
+#  @param swt Use SWT decomposition.
+#  @return Number of decomposition levels.
 def calculate_suitable_lvl(data, wv, r, swt=True):
     if swt:
         max_lvl = pywt.swt_max_level(len(data))
-#        pre_e = entropy(data, r, True)
 
         lvl = 1
         ent = []
@@ -359,15 +367,6 @@ def calculate_suitable_lvl(data, wv, r, swt=True):
                 lvl += 1
             else:
                 break
-#            if new_e <= pre_e:
-#                if lvl < max_lvl:
-#                    lvl += 1
-#                else:
-#                    break
-#            elif lvl < max_lvl:
-#                lvl += 1
-#            else:
-#                break
     else:
         lvl = pywt.dwt_max_level(len(data), wv)
 
@@ -381,21 +380,4 @@ def calculate_suitable_lvl(data, wv, r, swt=True):
     return lvl
 
 if __name__ == '__main__':
-#    from stats.pyper import R
-#    from utility.const import R_BIN
-#    from usr.test import test_data
-#    from stats.models import initRLibraries
-#
-#    r = R('../' + R_BIN)
-#    initRLibraries(r)
-#
-#
-#    wavelet_families = pywt.families()
-#    wavelet_family = wavelet_families[1]
-#    selected_wavelet = pywt.wavelist(wavelet_family)[6]
-#    wavelet = pywt.Wavelet(selected_wavelet)
-#
-#    res = calculate_suitable_lvl(test_data, wavelet, r)
-#    pass
-
     _plot_wavelet_families(True)

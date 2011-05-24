@@ -1944,7 +1944,8 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
                           'Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
                           '\nQtCore:\t' + PYQT_VERSION_STR +
                           '\nR:\t' + self.R.ver.split()[2] +
-                          '\n' + '  ' + '-' * 22 + # mmm, magic number!
+#                          '\n' + '  ' + '-' * 22 + # mmm, magic number!
+                          '\n' + '  ' * 10 + '***'
                             '\nPlatform:\t' + platform.system() + ' ' + platform.release() +
                             '\nAuthor:\t' + 'Artiom Basenko')
 

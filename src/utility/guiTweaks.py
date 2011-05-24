@@ -83,3 +83,12 @@ def walkGridLayoutShadow(layout):
             if widget is not None:
                 if not isinstance(widget.widget(), QFrame):
                     if widget.widget() is not None: widget.widget().setGraphicsEffect(createShadow())
+
+def getTopmostParentWidget(widget, widgetClass=None):
+    '''Returns reference to topmost parent widget'''
+    current = widget.parentWidget()
+    while True:
+        if current.parentWidget() is widgetClass:
+            return current
+        else:
+            current = current.parentWidget()

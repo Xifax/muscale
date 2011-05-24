@@ -20,7 +20,7 @@ class InfoFilter(QObject):
             object.dockButtonUp.setVisible(True)
             object.dockButtonDown.setVisible(True)
             object.adjustSize()
-            object.updateCornersMask()
+#            object.updateCornersMask()
         if event.type() == QEvent.HoverLeave:
             object.dockButtonUp.setHidden(True)
             object.dockButtonDown.setHidden(True)

@@ -22,7 +22,6 @@ from utility.const import LABEL_VISIBLE, FLASH_LABEL,\
 from utility.log import log
 
 class StatusFilter(QObject):
-    """Status message mouse click filter"""
     def eventFilter(self, object, event):
         if event.type() == QEvent.HoverEnter:
             object.parent().upScale.setVisible(True)
@@ -35,6 +34,22 @@ class StatusFilter(QObject):
                 object.parent().fixSize.setHidden(True)
                 object.parent().toolDetached.setHidden(True)
             QTimer.singleShot(LABEL_VISIBLE, hideButton)
+
+        return False
+
+class RFilter(QObject):
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.HoverEnter:
+            object.setText('''<html>Click to enable R console at your own risk!<br/>
+<i>Be aware though, it may spontaneously combust.</i></html>''')
+            object.setStyleSheet('QLabel { border: 1px solid SteelBlue; color: SteelBlue; }')
+
+        if event.type() == QEvent.HoverLeave:
+            object.setText('R console is for testing purposes only, and by default is disabled.')
+            object.setStyleSheet('QLabel { border: none; color: gray; }')
+
+        if event.type() == QEvent.MouseButtonPress:
+            object.parent().parent().parent().parent().showRConsole()
 
         return False
 
@@ -68,6 +83,7 @@ class ToolsFrame(QWidget):
         self.rConsoleGroup = QGroupBox()
         self.rConsoleLayout = QGridLayout()
 
+        self.rEnable = QLabel('R console is for testing purposes only, and by default is disabled.')
         self.rConsole = QTextEdit()
         self.rInput = QLineEdit()
         self.enterButton = QToolButton()
@@ -81,6 +97,7 @@ class ToolsFrame(QWidget):
         self.rConsoleLayout.addWidget(self.clearButton, 1, 3, 1, 1)
         self.rConsoleLayout.addWidget(self.namespaceButton, 1, 4, 1, 1)
         self.rConsoleLayout.addWidget(self.namesList, 2, 0, 1, 5)
+        self.rConsoleLayout.addWidget(self.rEnable, 3, 0, 1, 5)
 
         self.rConsoleGroup.setLayout(self.rConsoleLayout)
         self.toolTabs.addTab(self.rConsoleGroup, '&R')
@@ -191,6 +208,11 @@ class ToolsFrame(QWidget):
         self.namespaceButton.setText('..')
         self.namespaceButton.setCheckable(True)
 
+        self.rEnable.setAlignment(Qt.AlignCenter)
+        self.rEnable.setWordWrap(True)
+        self.rEnable.setFont(QFont(FONTS_DICT['warn'][0], FONTS_DICT['warn'][2]))
+        self.rEnable.setStyleSheet('QLabel { border: none; color: gray; }')
+
         self.rConsole.setReadOnly(True)
         self.namesList.setHidden(True)
         self.namesList.setContextMenuPolicy(Qt.ActionsContextMenu)
@@ -207,6 +229,14 @@ class ToolsFrame(QWidget):
                  background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
                  border: 1px solid #bfcde4;
             }''')
+
+        # hide r components
+        self.enterButton.hide()
+        self.clearButton.hide()
+        self.namespaceButton.hide()
+        self.namesList.hide()
+        self.rInput.hide()
+        self.rConsole.hide()
 
         # table #
         self.tableWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
@@ -280,6 +310,10 @@ class ToolsFrame(QWidget):
         self.clearButton.clicked.connect(self.clearRConsole)
         self.namespaceButton.clicked.connect(self.viewNamespace)
         self.namesList.itemDoubleClicked.connect(self.appendItemInline)
+
+        self.rFilter = RFilter()
+        self.rEnable.setAttribute(Qt.WA_Hover, True)
+        self.rEnable.installEventFilter(self.rFilter)
 
         self.namesList.addAction(QAction(QIcon(RES + ICONS + GRAPH), 'Plot selected object',
                                          self, triggered=self.plotFromR))
@@ -431,6 +465,17 @@ class ToolsFrame(QWidget):
         clipboard.setText(item.text())
 
     #----------- R -------------#
+    def showRConsole(self):
+        self.rEnable.hide()
+        
+        self.enterButton.show()
+        self.clearButton.show()
+        self.namespaceButton.show()
+        self.namesList.show()
+        self.rInput.show()
+        self.rConsole.show()
+        
+    
     def updateStack(self, request):
         if request not in self.inStack['stack']:
             self.inStack['stack'].append(request)
