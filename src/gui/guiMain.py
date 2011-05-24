@@ -45,7 +45,7 @@ from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
-from stats.models import processModel, calculateForecast, initRLibraries, auto_model
+from stats.models import processModel, calculateForecast, initRLibraries, auto_model, model_error
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
                     normalize_dwt_dimensions, iswt,\
                     select_node_levels_from_swt, update_swt, calculate_suitable_lvl
@@ -1011,11 +1011,11 @@ class MuScaleMainDialog(QMainWindow):
                 combo.setCurrentIndex(int(model) - 1)
             self.messageInfo.showInfo('Models set')
 
-        applyAuto = QToolButton()
-        applyAuto.setText('Choose using:')
-        applyAuto.clicked.connect(constructAuto)
+        self.applyAuto = QToolButton()
+        self.applyAuto.setText('Choose using:')
+        self.applyAuto.clicked.connect(constructAuto)
         autoButtonLayout = QHBoxLayout()
-        autoButtonLayout.addWidget(applyAuto)
+        autoButtonLayout.addWidget(self.applyAuto)
         autoButtonLayout.setAlignment(Qt.AlignCenter)
 
         fractalDim = QRadioButton('Fractal dimension')
@@ -1239,11 +1239,19 @@ class MuScaleMainDialog(QMainWindow):
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
 
+            self.tmpConfig['steps'] = forecastSteps.value()
+
+            errors = model_error(self.wCoefficients[model], result, self.R)
+            self.messageInfo.showInfo('Resulting errors ~ <i>SSE</i>: ' + str(errors['sse']) +
+                                      ' <i>MSE</i>: ' + str(errors['mse']))
+
             self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' +
                                        prettifyNames([self.multiModel[model]._enumname])[0] +
                                         ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
 
-            self.tmpConfig['steps'] = forecastSteps.value()
+            self.toolsFrame.updateLog(['SSE: ' + str(errors['sse']) +
+                                      ' MSE: ' + str(errors['mse'])
+                                        ])
 
         def resetModel():
             model = extractLevel(modelsList)
@@ -1984,21 +1992,21 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.spinLevels.setValue(4)
         self.waveletTransform()
         # construct model
-#        self.autoModel()
-#        self.addAllLevelToModel()
-#        self.constructModel()
-#
-#        if hasattr(self, 'testHandle'):
-#            if self.testHandle.forecastAll is not None:
-#                self.testHandle.forecastAll.click()
-#
-#                self.reconTS.click()
-#                self.plotInitial.click()
-#
-#        self.toolsFrame.updateLog(['modelling cycle test complete'], NB=True)
-#        self.messageInfo.showInfo('Modelling cycle performed successfully')
-#
-#        self.statTools.setCurrentIndex(int(Tabs.Results))
+        self.applyAuto.click()
+        self.addAllLevelToModel()
+        self.constructModel()
+
+        if hasattr(self, 'testHandle'):
+            if self.testHandle.forecastAll is not None:
+                self.testHandle.forecastAll.click()
+
+                self.reconTS.click()
+                self.plotInitial.click()
+
+        self.toolsFrame.updateLog(['modelling cycle test complete'], NB=True)
+        self.messageInfo.showInfo('Modelling cycle performed successfully')
+
+        self.statTools.setCurrentIndex(int(Tabs.Results))
 
     def reInitR(self):
         self.R = R(R_BIN)

@@ -28,10 +28,8 @@ def hwProcess(data, r, options):
             Str4R(options['hw_gamma'])))
     except Exception:
         nonSeasonalHw(data, gamma)
-#    print r.hw['SSE']   # <- do something with it
     diff = abs(len(r.hw['fitted']) - len(data))
     r('fit <- c( array(0, %s), %s )' % (Str4R(diff), Str4R(r.hw['fitted'][:,0])))
-#    return r.hw['fitted'][:,0]
     return r.fit
 
 def hwPredict(data, r, steps=steps_default, options=None):
@@ -296,3 +294,19 @@ def auto_model(data, r, options, ts=None):
                 models[arrayIndex(data, lvl)] = Models.StructTS
 
         return models
+
+# calculate model error
+def model_error(data, new_data, r):
+    errors = {}
+
+#    r('diff <- abs( length(%s) - length(%s) )' % (Str4R(data), Str4R(new_data)))
+#    r('e <- c( %s, array(0, diff) ) - c( array(0, diff), %s )' % (Str4R(data), Str4R(new_data)))
+    r('len <- length( %s )' % Str4R(data))
+    r('e <- %s - %s[1:len]' % (Str4R(data), Str4R(new_data)))
+
+    r('mse <- sum((e - mean(e)) ^ 2) / length(e)')
+    r('sse <- sum(e ^ 2)')
+    
+    errors['mse'] = r.mse
+    errors['sse'] = r.sse
+    return errors

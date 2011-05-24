@@ -59,7 +59,6 @@ Created on Mar 9, 2011
 #TODO: show fit/forecast accuracy, error
 #TODO: add estimation/helpers for models (ARIMA, etc) [...]
 #TODO: fix DWT reconstruction (reshape approximation arrays)
-#TODO: check data shift in HoltWinters and such
 
 ####################################
 #            Dependencies          #
