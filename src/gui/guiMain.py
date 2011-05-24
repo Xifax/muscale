@@ -47,7 +47,7 @@ from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from stats.models import processModel, calculateForecast, initRLibraries, auto_model, model_error
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
-                    normalize_dwt_dimensions, iswt,\
+                    normalize_dwt_dimensions, iswt, update_dwt,\
                     select_node_levels_from_swt, update_swt, calculate_suitable_lvl
 from usr.test import test_data
 #from gui.flowLayout import FlowLayout
@@ -1860,7 +1860,9 @@ class MuScaleMainDialog(QMainWindow):
             try:
                 if not self.isSWT:
                     #TODO: reshape with zeros   (last array is double size of first array)
-                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),
+#                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),
+                    self.resultingGraph.updatePlot(pywt.waverec(
+                                        update_dwt(self.processedWCoeffs, self.wInitialCoefficients), self.wavelet),
                                                    label='Simulation', color='r')
                 else:
                     if self.autoUpdateTable.isChecked():
@@ -2011,7 +2013,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 
     def reInitR(self):
         self.R = R(R_BIN)
-
+        return self.R
 
 class LabelFilter(QObject):
     def eventFilter(self, object, event):

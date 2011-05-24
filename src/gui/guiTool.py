@@ -42,7 +42,7 @@ class RFilter(QObject):
         if event.type() == QEvent.HoverEnter:
             object.setText('''<html>Click to enable R console at your own risk!<br/>
 <i>Be aware though, it may spontaneously combust.</i></html>''')
-            object.setStyleSheet('QLabel { border: 1px solid SteelBlue; color: SteelBlue; }')
+            object.setStyleSheet('QLabel { border: 1px solid SteelBlue; color: SteelBlue; border-radius: 4px; }')
 
         if event.type() == QEvent.HoverLeave:
             object.setText('R console is for testing purposes only, and by default is disabled.')
@@ -250,7 +250,7 @@ class ToolsFrame(QWidget):
         self.logList.setAlternatingRowColors(True)
         self.logList.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.logList.setWordWrap(True)
-        self.logList.setToolTip('Doubleclick on item to copy')
+        self.logList.setToolTip('Doubleclick to copy')
 
         self.logClear.setText('Clear')
         self.logStats.setAlignment(Qt.AlignCenter)
@@ -497,7 +497,7 @@ class ToolsFrame(QWidget):
         except Exception:
                 self.parentWidget().messageInfo.showInfo('Sudden PypeR combustion!', True)
                 log.error('R interpreter crush')
-                self.parentWidget().reInitR()
+                self.R = self.parentWidget().reInitR()
         if self.enterButton.isChecked():
             self.rInput.clear()
 

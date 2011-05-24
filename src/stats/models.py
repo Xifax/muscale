@@ -252,8 +252,9 @@ def auto_model(data, r, options, ts=None):
         # ~ dispersion: trend
         dispersion = []
         for lvl in data:
-            r('d <- mean(dispersion( %s )$sd[1:7])' % Str4R(lvl))
-            dispersion.append(r.d)
+            if len(lvl) >= 32:
+                r('d <- mean(dispersion( %s )$sd[1:7])' % Str4R(lvl))
+                dispersion.append(r.d)
 
         trend_lvl = dispersion.index(max(dispersion))
 
@@ -266,7 +267,6 @@ def auto_model(data, r, options, ts=None):
             else:
                 models[trend_lvl] = Models.Holt_Winters
         tmp_lvls.pop(trend_lvl)
-
 
         # ~ fluctuation: outliers, trend/decomposition limit
         fluctuation = []

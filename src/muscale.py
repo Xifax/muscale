@@ -56,7 +56,8 @@ Created on Mar 9, 2011
 ####################################
 
 #TODO: wizard template (of some sorts)
-#TODO: fix DWT reconstruction (reshape approximation arrays)
+#TODO: add TS conversion to models
+#TODO: implement DWT optimal decomposition
 
 ####################################
 #            Dependencies          #

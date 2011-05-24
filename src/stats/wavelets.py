@@ -310,8 +310,56 @@ def normalize_dwt_dimensions(coeffs):
         by_rows[i] = new_element; i += 1
     return copy(by_rows)
 
-def update_dwt():
-    pass
+## Restores dwt coefficients structure.
+def update_dwt(coeffs, initial):
+    new_coeffs = [0] * len(coeffs)
+    index = 0
+    coeff_copy = copy([float(e) for e in coeffs[index]])
+    new_coeffs[index] = coeff_copy
+    index += 1
+
+    while index < len(coeffs):
+        cur_size = len(coeffs[index])
+        prev_size = len(new_coeffs[index - 1])
+
+        if prev_size == cur_size:
+            new_size = cur_size
+        else:
+            new_size = prev_size * 2
+
+        coeff_copy = copy([float(e) for e in coeffs[index]])
+        coeff_copy.resize(new_size, refcheck = False)
+        new_coeffs[index] = coeff_copy
+
+        index += 1
+
+#    index = len(coeffs) - 1
+#    while index >= 0:
+#        if index == 0:
+#            coeff_copy = copy([float(e) for e in coeffs[index]])
+#            new_coeffs[index] = coeff_copy
+#            break
+#        else:
+#            prev_size = len(coeffs[index - 1])
+#            cur_size = len(coeffs[index])
+#
+#            if prev_size == cur_size:
+#                new_size = cur_size
+#            else:
+#                # odd
+#                if prev_size % 2 == 1:
+#                    new_size = prev_size * 2 - 1
+#                # even
+#                else:
+#                    new_size = prev_size * 2
+#
+#            coeff_copy = copy([float(e) for e in coeffs[index]])
+#            coeff_copy.resize(new_size, refcheck = False)
+#            new_coeffs[index] = coeff_copy
+#
+#            index -= 1
+
+    return new_coeffs
 
 ## Saves wavelet approximations to /res/wv folder.
 #  @param all Plot every possible wavelet.
