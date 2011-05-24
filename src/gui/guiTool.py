@@ -18,7 +18,7 @@ from utility.const import T_WIDTH, T_HEIGHT, FONTS_DICT
 from utility.tools import checkParentheses
 from utility.const import LABEL_VISIBLE, FLASH_LABEL,\
                         RES, ICONS, CLEAR, GRAPH, COPY, CONTROLS,\
-                        ELEMENTS, CUT, SERIES
+                        ELEMENTS, CUT, SERIES, SCALE
 from utility.log import log
 
 class StatusFilter(QObject):
@@ -310,6 +310,8 @@ class ToolsFrame(QWidget):
                                            self, triggered=self.removeColumns))
         self.tableWidget.addAction(QAction(QIcon(RES + ICONS + GRAPH), 'Plot selected items',
                                            self, triggered=self.plotItems))
+        self.tableWidget.addAction(QAction(QIcon(RES + ICONS + SCALE), 'Resize to contents',
+                                           self, triggered=self.resizeTableToFit))
 
         # export
         exportMenu = QMenu()
@@ -578,6 +580,11 @@ class ToolsFrame(QWidget):
                         index = 0
                     self.tableWidget.removeColumn(index)
                     deleted += 1
+
+    def resizeTableToFit(self):
+        if self.tableWidget.columnCount() > 0:
+            new_width = self.tableWidget.columnWidth(0) * self.tableWidget.columnCount()
+            self.resize(new_width + 75, self.height())  # self.width() - self.tableWidget.width() yields wrong results
 
     def plotItems(self):
         data = []
