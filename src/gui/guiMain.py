@@ -330,6 +330,9 @@ class MuScaleMainDialog(QMainWindow):
         self.decompInfoLabel.setAlignment(Qt.AlignCenter)
         self.computeLvls.setMaximumHeight(20)
         self.wvLevelLbl.setAlignment(Qt.AlignCenter)
+        self.wvFamilyLbl.setAlignment(Qt.AlignCenter)
+        self.wvTypeLbl.setAlignment(Qt.AlignCenter)
+        self.wvDecompLbl.setAlignment(Qt.AlignCenter)
 
         self.decompLayout.setAlignment(Qt.AlignCenter)
 
@@ -992,7 +995,7 @@ class MuScaleMainDialog(QMainWindow):
         autoAll.setText('Auto model')
 
         # auto model options
-        autoConfigGroup = QGroupBox('Choose models')
+        autoConfigGroup = QGroupBox('Active models')
         autoConfigLayout = QVBoxLayout()
         autoConfigLayout.setAlignment(Qt.AlignCenter)
 
@@ -1017,7 +1020,7 @@ class MuScaleMainDialog(QMainWindow):
 
         fractalDim = QRadioButton('Using fractal dimension')
         ljungBox = QRadioButton('Using Ljung-Box criterion')
-        fractalCompex = QRadioButton('Multiple properties')
+        fractalCompex = QRadioButton('Using multiple t/s properties')
         fractalDim.setChecked(True)
 
         autoConfigLayout.addLayout(autoButtonLayout)

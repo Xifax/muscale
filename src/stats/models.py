@@ -28,7 +28,10 @@ def hwProcess(data, r, options):
     except Exception:
         nonSeasonalHw(data, gamma)
 #    print r.hw['SSE']   # <- do something with it
-    return r.hw['fitted'][:,0]
+    diff = abs(len(r.hw['fitted']) - len(data))
+    r('fit <- c( array(0, %s), %s )' % (Str4R(diff), Str4R(r.hw['fitted'][:,0])))
+#    return r.hw['fitted'][:,0]
+    return r.fit
 
 def hwPredict(data, r, steps=steps_default, options=None):
     hwProcess(data, r, options)

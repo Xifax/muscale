@@ -343,6 +343,21 @@ class MplWidget(QtGui.QWidget):
         except Exception:
             pass
 
+    def selectAllSublines(self):
+        for action in self.selectLinesMenu.actions():
+            if action.isCheckable():
+                action.setChecked(True)
+
+    def selectNoneSublines(self):
+        for action in self.selectLinesMenu.actions():
+            if action.isCheckable():
+                action.setChecked(False)
+
+    def selectInverseSublines(self):
+        for action in self.selectLinesMenu.actions():
+            if action.isCheckable():
+                action.setChecked(not action.isChecked())
+
     def updateLinesSubmenu(self):
         if len(self.canvas.ax.get_lines()) > 1:
             self.selectLines.setEnabled(True)
@@ -352,9 +367,14 @@ class MplWidget(QtGui.QWidget):
                 lineSelectAction.setCheckable(True)
                 self.selectLinesMenu.addAction(lineSelectAction)
             self.selectLinesMenu.actions()[0].setChecked(True)
+
+            # additional methods
+            self.selectLinesMenu.addSeparator()
+            self.selectLinesMenu.addAction(QtGui.QAction('All', self, triggered=self.selectAllSublines))
+            self.selectLinesMenu.addAction(QtGui.QAction('None', self, triggered=self.selectNoneSublines))
+            self.selectLinesMenu.addAction(QtGui.QAction('Inverse', self, triggered=self.selectInverseSublines))
         else:
             self.selectLines.setEnabled(False)
-        pass
 
     def updateScale(self):
         try:
