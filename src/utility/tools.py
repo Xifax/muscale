@@ -9,6 +9,9 @@ import collections
 # own #
 from utility.const import LR_PRNTH_MAPPINGS, L_PRNTH, R_PRNTH
 
+# external #
+from numpy import array_equal
+
 class RepeatTimer(Thread):
     '''Timer with custom number of iterations'''
     def __init__(self, interval, function, iterations=0, args=None, kwargs=None):
@@ -66,3 +69,13 @@ reverseSearch = lambda dic, value : [k for k, lst in dic.iteritems() if value in
 
 '''Select unique models'''
 uniqueModels = lambda models : list(set(models))
+
+def arrayIndex(list, array):
+    index = 0
+    size = len(list)
+    while index != size and not array_equal(list[index], array):
+        index += 1
+    if index != size:
+        return index
+    else:
+        return 0

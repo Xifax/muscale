@@ -1005,22 +1005,22 @@ class MuScaleMainDialog(QMainWindow):
             options['ljung'] = ljungBox.isChecked()
             options['multi'] = fractalCompex.isChecked()
 
-            models = auto_model(self.wCoefficients, self.R, options)
+            models = auto_model(self.wCoefficients, self.R, options, self.currentDataSet[0])
             for lvl, model in models.iteritems():
                 combo = self.modelLayout.itemAtPosition(lvl * 2 + 2, 1).widget()
                 combo.setCurrentIndex(int(model) - 1)
             self.messageInfo.showInfo('Models set')
 
         applyAuto = QToolButton()
-        applyAuto.setText('Choose automatically')
+        applyAuto.setText('Choose using:')
         applyAuto.clicked.connect(constructAuto)
         autoButtonLayout = QHBoxLayout()
         autoButtonLayout.addWidget(applyAuto)
         autoButtonLayout.setAlignment(Qt.AlignCenter)
 
-        fractalDim = QRadioButton('Using fractal dimension')
-        ljungBox = QRadioButton('Using Ljung-Box criterion')
-        fractalCompex = QRadioButton('Using multiple t/s properties')
+        fractalDim = QRadioButton('Fractal dimension')
+        ljungBox = QRadioButton('Ljung-Box criterion')
+        fractalCompex = QRadioButton('Multiple t/s properties')
         fractalDim.setChecked(True)
 
         autoConfigLayout.addLayout(autoButtonLayout)
@@ -1999,6 +1999,9 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 #        self.messageInfo.showInfo('Modelling cycle performed successfully')
 #
 #        self.statTools.setCurrentIndex(int(Tabs.Results))
+
+    def reInitR(self):
+        self.R = R(R_BIN)
 
 
 class LabelFilter(QObject):

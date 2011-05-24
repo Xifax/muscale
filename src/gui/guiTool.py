@@ -452,6 +452,7 @@ class ToolsFrame(QWidget):
         except Exception:
                 self.parentWidget().messageInfo.showInfo('Sudden PypeR combustion!', True)
                 log.error('R interpreter crush')
+                self.parentWidget().reInitR()
         if self.enterButton.isChecked():
             self.rInput.clear()
 

@@ -2,11 +2,12 @@
 __author__ = 'Yadavito'
 
 # external #
-from stats.pyper import R, Str4R
-from numpy import append, array, zeros
+from stats.pyper import Str4R
+from numpy import append, zeros, delete
 
 # own #
 from utility.const import Models, r_packages
+from utility.tools import arrayIndex
 
 # forecast iterations
 steps_default = 20
@@ -187,6 +188,7 @@ def processModel(model, data, r, options=None):
 def calculateForecast(model, data, r, steps = steps_default, options=None):
     return model_predict_methods[model](data, r, steps, options)
 
+# optimal decomposition
 def entropy(data, r, simple=False):
     if simple:
         r('e <- entropy( %s )' % Str4R(data))
@@ -196,14 +198,14 @@ def entropy(data, r, simple=False):
         for lvl in data:
             r('e <- entropy( %s )' % Str4R(lvl[0]))
             ent.append(r.e)
-#    return min(ent)
-    # average
+    # average entropy
     return sum(ent, 0.0) / len(ent)
 
-def auto_model(data, r, options):
+# model classification
+def auto_model(data, r, options, ts=None):
+    models = {}
     if options['fractal']:
         dimensions = []
-        models = {}
         for lvl in data:
             r('d <- fd.estimate( %s )' % Str4R(lvl))
             dimensions.append(r.d['fd'][0][0])
@@ -226,7 +228,6 @@ def auto_model(data, r, options):
 
     elif options['ljung']:
         xsquared = []
-        models = {}
         for lvl in data:
             r('b <- Box.test( %s, type="Ljung" )' % Str4R(lvl))
             xsquared.append(r.b['statistic'])
@@ -248,7 +249,50 @@ def auto_model(data, r, options):
         return models
 
     elif options['multi']:
+        tmp_lvls = list(data[:])
+
         # ~ dispersion: trend
-        # ~ fluctuation: trend/decomposition limit
-        # ~ hurst coeff: decomposition steps/ non-stationarity
-        pass
+        dispersion = []
+        for lvl in data:
+            r('d <- mean(dispersion( %s )$sd[1:7])' % Str4R(lvl))
+            dispersion.append(r.d)
+
+        trend_lvl = dispersion.index(max(dispersion))
+
+        # ~ Hurst Coefficient (spectral density): non-stationarity
+        if data is not None:
+            r('hc_ts <- FDWhittle( %s )' % Str4R(ts))
+            r('hc_lvl <- FDWhittle( %s )' % Str4R(data[trend_lvl]))
+            if r.hc_ts > r.hc_lvl:
+                models[trend_lvl] = Models.ETS
+            else:
+                models[trend_lvl] = Models.Holt_Winters
+        tmp_lvls.pop(trend_lvl)
+
+
+        # ~ fluctuation: outliers, trend/decomposition limit
+        fluctuation = []
+        for lvl in data:
+            r.lvl = lvl
+            r('h <- DFA( lvl )')
+            fluctuation.append(r.h)
+
+        # ~ time lag
+        hires_lvl = fluctuation.index(min(fluctuation))
+        r('tl <- timeLag( %s )[1]' % Str4R(data[hires_lvl]))
+        if r.tl > 2:
+            models[hires_lvl] = Models.Least_Squares_Fit
+        else:
+            models[hires_lvl] = Models.Harmonic_Regression
+        tmp_lvls.pop(hires_lvl)
+
+        # ~ autocorrelation
+        r('bts <- Box.test( %s, type="Ljung" )$statistic' % Str4R(ts))
+        for lvl in tmp_lvls:
+            r('lb <- Box.test( %s, type="Ljung" )$statistic' % Str4R(lvl))
+            if r.lb < r.bts:
+                models[arrayIndex(data, lvl)] = Models.ARIMA
+            else:
+                models[arrayIndex(data, lvl)] = Models.StructTS
+
+        return models
