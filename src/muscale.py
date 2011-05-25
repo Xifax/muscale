@@ -56,7 +56,6 @@ Created on Mar 9, 2011
 ####################################
 
 #TODO: wizard template (of some sorts)
-#TODO: implement separate thread
 
 ####################################
 #            Dependencies          #

@@ -83,18 +83,18 @@ class SystemMessage(QFrame):
             else:
                 self.info.setText(message)
                 self.updateAndShow(adjust)
-        else:
-            if isinstance(message, int):
-                tip = infoTips(message)
-                if tip is not None:
-                    self.info.setText(tip)
-            else:
-                self.info.setText(message)
-
-            self.updateStyle(error)
-            if adjust:
-                self.adjustSize()
-            self.updatePosition()
+#        else:
+#            if isinstance(message, int):
+#                tip = infoTips(message)
+#                if tip is not None:
+#                    self.info.setText(tip)
+#            else:
+#                self.info.setText(message)
+#
+#            self.updateStyle(error)
+#            if adjust:
+#                self.adjustSize()
+#            self.updatePosition()
 
     def updateAndShow(self, adjust):
         if self.info.text() != '':

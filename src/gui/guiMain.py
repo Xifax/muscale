@@ -16,10 +16,12 @@ from datetime import datetime
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer,\
-                PYQT_VERSION_STR, QPointF, QPoint, QObject, QEvent
+                PYQT_VERSION_STR, QPointF, QPoint, QObject, QEvent, \
+                pyqtSignal, QThread
 from PyQt4.QtGui import *       #TODO: fix imports to parsimonious ones!
 from stats.pyper import R
 import pywt
+from numpy import ndarray
 
 # own #
 from utility.log import log
@@ -249,7 +251,10 @@ class MuScaleMainDialog(QMainWindow):
         self.toolBar = QToolBar()
         self.statusBar = QStatusBar()
 
+        self.progressBar = QProgressBar()
+
         self.mainLayout = QVBoxLayout(self.centralWidget)
+        self.mainLayout.addWidget(self.progressBar)
         self.mainLayout.addWidget(self.optionsGroup)
         self.mainLayout.addWidget(self.statTools)
 
@@ -360,7 +365,19 @@ class MuScaleMainDialog(QMainWindow):
 
         # etc #
         self.toolBar.setIconSize(QSize(ICO_SIZE, ICO_SIZE))
+        self.progressBar.setRange(0, 0)
+        self.progressBar.hide()
+        self.progressBar.setMaximumHeight(10)
+        self.progressBar.setStyleSheet('''QProgressBar {
+                                             border: 1px solid grey;
+                                             border-radius: 4px;
+                                         }
 
+                                         QProgressBar::chunk {
+                                             background-color: black;
+                                             width: 10px;
+                                             margin: 0.5px;
+                                         }''')
         # results #
         self.resultingGraph.hide()
 
@@ -1191,6 +1208,7 @@ class MuScaleMainDialog(QMainWindow):
     def readyModelsStack(self):
         self.processedWCoeffs = [0] * len(self.wCoefficients)
         self.nodesProcessed = False
+        self.inProgress = False
 
         unfillLayout(self.implementLayout)
 
@@ -1251,13 +1269,7 @@ class MuScaleMainDialog(QMainWindow):
 
             modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed', color='g')
 
-        def forecastModel():
-            model = extractLevel(modelsList)
-            result = calculateForecast(self.multiModel[model],
-                                       self.wCoefficients[model],
-                                       self.R,
-                                       forecastSteps.value(),
-                                       compileOptions(optMod))
+        def forecastFinished(result, model):
             self.processedWCoeffs[model] = result
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
@@ -1275,6 +1287,22 @@ class MuScaleMainDialog(QMainWindow):
             self.toolsFrame.updateLog(['SSE: ' + str(errors['sse']) +
                                       ' MSE: ' + str(errors['mse'])
                                         ])
+            self.progressBar.hide()
+            self.inProgress = False
+
+        def forecastModel():
+            if not self.inProgress:
+                model = extractLevel(modelsList)
+                self.model_thread = ModelThread(self.multiModel[model],
+                                           self.wCoefficients[model],
+                                           self.R,
+                                           forecastSteps.value(),
+                                           compileOptions(optMod),
+                                           model)
+                self.model_thread.done.connect(forecastFinished)
+                self.model_thread.start()
+                self.inProgress = True
+                self.progressBar.show()
 
         def resetModel():
             model = extractLevel(modelsList)
@@ -1306,6 +1334,7 @@ class MuScaleMainDialog(QMainWindow):
         def forecastAllLevels():
             for model in self.multiModel:
                 try:
+                    #TODO: move to thread
                     self.processedWCoeffs[model] = calculateForecast(self.multiModel[model],
                                                                      self.wCoefficients[model],
                                                                      self.R,
@@ -1725,7 +1754,6 @@ class MuScaleMainDialog(QMainWindow):
             optMod.stsGroup.setCheckable(True)
             stsLayout = QHBoxLayout()
 
-            #TODO: should add frequency, perchance
             sts_typeLbl = QLabel('Structural model type:')
             optMod.sts_type = QComboBox()
             optMod.sts_type.addItems(['level', 'trend', 'BSM'])
@@ -2045,3 +2073,20 @@ class LabelFilter(QObject):
             object.setStyleSheet('QLabel { color: black; }')
 
         return False
+
+class ModelThread(QThread):
+    done = pyqtSignal(ndarray, int)
+
+    def __init__(self, model, data, r, steps, options, index, parent=None):
+        super(ModelThread, self).__init__(parent)
+        self.model = model
+        self.data = data
+        self.r = r
+        self.steps = steps
+        self.options = options
+        self.index = index
+
+    def run(self):
+        self.result = calculateForecast(self.model, self.data,
+                                        self.r, self.steps, self.options)
+        self.done.emit(self.result, self.index)

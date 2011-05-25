@@ -255,7 +255,6 @@ def auto_model(data, r, options, ts=None):
             if len(lvl) >= 32:
                 r('sd <- dispersion( %s )$sd' % Str4R(lvl))
                 r('d <- mean(sd[1:length(sd) - 1])')
-#                r('d <- mean(dispersion( %s )$sd[1:7])' % Str4R(lvl))
                 dispersion.append(r.d)
 
         trend_lvl = dispersion.index(max(dispersion))
