@@ -187,7 +187,7 @@ def calculateForecast(model, data, r, steps = steps_default, options=None):
     return model_predict_methods[model](data, r, steps, options)
 
 # optimal decomposition
-def entropy(data, r, simple=False):
+def entropy(data, r, simple=False, dwt=False):
     if simple:
         r('e <- entropy( %s )' % Str4R(data))
         return r.e
@@ -306,7 +306,10 @@ def model_error(data, new_data, r):
 
     r('mse <- sum((e - mean(e)) ^ 2) / length(e)')
     r('sse <- sum(e ^ 2)')
-    
-    errors['mse'] = r.mse
-    errors['sse'] = r.sse
+
+    try:
+        errors['mse'] = r.mse
+        errors['sse'] = r.sse
+    except Exception:
+        pass
     return errors

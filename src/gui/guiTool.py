@@ -471,11 +471,9 @@ class ToolsFrame(QWidget):
         self.enterButton.show()
         self.clearButton.show()
         self.namespaceButton.show()
-        self.namesList.show()
         self.rInput.show()
         self.rConsole.show()
         
-    
     def updateStack(self, request):
         if request not in self.inStack['stack']:
             self.inStack['stack'].append(request)
@@ -490,8 +488,7 @@ class ToolsFrame(QWidget):
                     self.updateStack(request)
                 else:
                     result = None
-            else:
-                result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
+            else:                result = '\n'.join(self.R(str(self.internalIn)).split(self.R.newline)[1:])
             if result != self.R.newline and result is not None:
                 self.rConsole.append(result)
         except Exception:

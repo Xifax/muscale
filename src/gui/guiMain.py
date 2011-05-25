@@ -819,8 +819,12 @@ class MuScaleMainDialog(QMainWindow):
 #-------------- wavelet decomposition --------------#
 #####################################################
     def processLvls(self):
+        if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
+            swt = False
+        else:
+            swt = True
         lvl = calculate_suitable_lvl(self.currentDataSet[0],
-                                     pywt.Wavelet(unicode(self.comboWavelist.currentText())), self.R)
+                                     pywt.Wavelet(unicode(self.comboWavelist.currentText())), self.R, swt)
         self.spinLevels.setValue(lvl + 1)
         self.messageInfo.showInfo('Decomposition set at ' + str(lvl + 1) + ' level(s)')
 

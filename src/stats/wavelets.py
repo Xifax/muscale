@@ -370,6 +370,7 @@ def _plot_wavelet(wavelet, level=4, all=False):
 #  @param swt Use SWT decomposition.
 #  @return Number of decomposition levels.
 def calculate_suitable_lvl(data, wv, r, swt=True):
+    # stationary
     if swt:
         max_lvl = pywt.swt_max_level(len(data))
 
@@ -385,15 +386,27 @@ def calculate_suitable_lvl(data, wv, r, swt=True):
                 lvl += 1
             else:
                 break
+
+        e_sorted = sorted(ent[:])
+        median = e_sorted[len(e_sorted) / 2]
+        lvl = ent.index(median) + 1
+    # discrete
     else:
-        lvl = pywt.dwt_max_level(len(data), wv)
+        lvl = 1
+        data_e = entropy(data, r, True)
+        max_lvl = pywt.dwt_max_level(len(data), wv)
+
+        while True:
+            new_e = entropy(pywt.dwt(data, wv, lvl)[lvl - 1], r, True)
+            if new_e > data_e:
+                break
+            elif lvl == max_lvl:
+                break
+            else:
+                lvl += 1
 
     if lvl == max_lvl:
         pass
-
-    e_sorted = sorted(ent[:])
-    median = e_sorted[len(e_sorted) / 2]
-    lvl = ent.index(median) + 1
 
     return lvl
 
