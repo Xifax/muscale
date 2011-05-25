@@ -253,7 +253,9 @@ def auto_model(data, r, options, ts=None):
         dispersion = []
         for lvl in data:
             if len(lvl) >= 32:
-                r('d <- mean(dispersion( %s )$sd[1:7])' % Str4R(lvl))
+                r('sd <- dispersion( %s )$sd' % Str4R(lvl))
+                r('d <- mean(sd[1:length(sd) - 1])')
+#                r('d <- mean(dispersion( %s )$sd[1:7])' % Str4R(lvl))
                 dispersion.append(r.d)
 
         trend_lvl = dispersion.index(max(dispersion))
@@ -266,7 +268,6 @@ def auto_model(data, r, options, ts=None):
                 models[trend_lvl] = Models.ETS
             else:
                 models[trend_lvl] = Models.Holt_Winters
-        tmp_lvls.pop(trend_lvl)
 
         # ~ fluctuation: outliers, trend/decomposition limit
         fluctuation = []
@@ -282,7 +283,12 @@ def auto_model(data, r, options, ts=None):
             models[hires_lvl] = Models.Least_Squares_Fit
         else:
             models[hires_lvl] = Models.Harmonic_Regression
-        tmp_lvls.pop(hires_lvl)
+
+        tmp_lvls.pop(trend_lvl)
+        if hires_lvl != 0:
+            tmp_lvls.pop(hires_lvl - 1)
+        else:
+            tmp_lvls.pop(hires_lvl - 1)
 
         # ~ autocorrelation
         r('bts <- Box.test( %s, type="Ljung" )$statistic' % Str4R(ts))
