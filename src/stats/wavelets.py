@@ -311,27 +311,45 @@ def normalize_dwt_dimensions(coeffs):
     return copy(by_rows)
 
 ## Restores dwt coefficients structure.
-def update_dwt(coeffs, initial):
+def update_dwt(coeffs, wavelet, mode='sym'):
     new_coeffs = [0] * len(coeffs)
-    index = 0
-    coeff_copy = copy([float(e) for e in coeffs[index]])
-    new_coeffs[index] = coeff_copy
-    index += 1
+#    resized_coeffs = [0] * (len(coeffs) - 1)
+    resized_coeffs = []
 
-    while index < len(coeffs):
-        cur_size = len(coeffs[index])
-        prev_size = len(new_coeffs[index - 1])
+#    index = 0
+#    coeff_copy = copy([float(e) for e in coeffs[index]])
+#    new_coeffs[index] = coeff_copy
+#    index += 1
+    # parse coeffs into approximation and details
+    a, ds = coeffs[0], coeffs[1:]
 
-        if prev_size == cur_size:
-            new_size = cur_size
-        else:
-            new_size = prev_size * 2
+    for d in ds:
+        d_copy = copy([float(e) for e in d])
+        if len(a) != len(d):
+            d_copy.resize(len(a), refcheck = False)
 
-        coeff_copy = copy([float(e) for e in coeffs[index]])
-        coeff_copy.resize(new_size, refcheck = False)
-        new_coeffs[index] = coeff_copy
+        a = pywt.idwt(a, d_copy, wavelet, mode, 1)
+        resized_coeffs.append(d_copy)
 
-        index += 1
+    new_coeffs[0] = coeffs[0]
+    new_coeffs[1:] = resized_coeffs
+
+#    while index < len(coeffs):
+#        cur_size = len(coeffs[index])
+#        prev_size = len(new_coeffs[index - 1])
+#
+#        if prev_size == cur_size:
+#            new_size = cur_size
+#        else:
+#            scale = float(len(initial[index])) / float(len(initial[index - 1]))
+##            new_size = prev_size * 2
+#            new_size = int(prev_size * scale)
+#
+#        coeff_copy = copy([float(e) for e in coeffs[index]])
+#        coeff_copy.resize(new_size, refcheck = False)
+#        new_coeffs[index] = coeff_copy
+#
+#        index += 1_
 
 #    index = len(coeffs) - 1
 #    while index >= 0:

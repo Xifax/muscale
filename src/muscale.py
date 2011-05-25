@@ -58,6 +58,8 @@ Created on Mar 9, 2011
 #TODO: wizard template (of some sorts)
 #TODO: add TS conversion to models
 #TODO: implement DWT optimal decomposition
+#TODO: implement separate thread
+#TODO: implement signal extension (for DWT)
 
 ####################################
 #            Dependencies          #

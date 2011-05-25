@@ -822,7 +822,10 @@ class MuScaleMainDialog(QMainWindow):
 
     def updateWaveletPreview(self):
         self.comboWavelist.setToolTip("<img src='" + RES + WV + self.comboWavelist.currentText() + "'.png'>")
-        self.updateMaxDLevel()
+        try:
+            self.updateMaxDLevel()
+        except Exception:
+            pass
 
     def updateMaxDLevel(self):
         current_max = MAX_LVL_TRANSFORM
@@ -853,7 +856,8 @@ class MuScaleMainDialog(QMainWindow):
             w_level = self.spinLevels.value() - 1
             # discrete
             if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
-                self.wInitialCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet, level=w_level)
+                self.wInitialCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet,
+                                                         level=w_level)#, mode=pywt.MODES.sp1)
                 self.wCoefficients = self.wInitialCoefficients
             # stationary
             elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
@@ -1859,11 +1863,14 @@ class MuScaleMainDialog(QMainWindow):
         else:
             try:
                 if not self.isSWT:
-                    #TODO: reshape with zeros   (last array is double size of first array)
-#                    self.resultingGraph.updatePlot(pywt.waverec(self.processedWCoeffs, self.wavelet),
                     self.resultingGraph.updatePlot(pywt.waverec(
-                                        update_dwt(self.processedWCoeffs, self.wInitialCoefficients), self.wavelet),
+                                        update_dwt(self.processedWCoeffs, self.wavelet),
+                                        self.wavelet),#, pywt.MODES.sp1),
                                                    label='Simulation', color='r')
+#                    self.resultingGraph.updatePlot(pywt.waverec(
+#                                        self.processedWCoeffs,
+#                                        self.wavelet, pywt.MODES.sp1),
+#                                                   label='Simulation', color='r')
                 else:
                     if self.autoUpdateTable.isChecked():
                         pass
