@@ -140,6 +140,9 @@ class MuScaleMainDialog(QMainWindow):
         self.wvDecompLbl = QLabel("<font style='color: gray'>Decomposition method</font>")
         self.wvLevelLbl = QLabel("<font style='color: gray'>Decomposition level</font>")
 
+        self.wvSignalEx = QLabel("<font style='color: gray'>Signal extension model: </font>")
+        self.comboSignalEx = QComboBox()
+
         self.decompLayout.addWidget(self.wvFamilyLbl, 0, 0)
         self.decompLayout.addWidget(self.wvTypeLbl, 0, 1)
         self.decompLayout.addWidget(self.wvDecompLbl, 0, 2)
@@ -150,12 +153,15 @@ class MuScaleMainDialog(QMainWindow):
         self.decompLayout.addWidget(self.comboDecomposition, 1, 2)
         self.decompLayout.addWidget(self.computeLvls, 1, 3)
         self.decompLayout.addWidget(self.spinLevels, 1, 4)
-        self.decompLayout.addWidget(self.calculateButton, 2, 0, 1, 5)
-        self.decompLayout.addWidget(self.showWavelist, 3, 0)
-        self.decompLayout.addWidget(self.decompInfoLabel, 3, 1, 1, 3)
-        self.decompLayout.addWidget(self.showScalogram, 3, 4)
-        self.decompLayout.addWidget(self.wavelistGraph, 4, 0, 1, 5)
-        self.decompLayout.addWidget(self.scalogramGraph, 5, 0, 1, 5)
+        self.decompLayout.addWidget(self.wvSignalEx, 2, 0, 1, 3)
+        self.decompLayout.addWidget(self.comboSignalEx, 2, 3, 1, 2)
+        #---
+        self.decompLayout.addWidget(self.calculateButton, 3, 0, 1, 5)
+        self.decompLayout.addWidget(self.showWavelist, 4, 0)
+        self.decompLayout.addWidget(self.decompInfoLabel, 4, 1, 1, 3)
+        self.decompLayout.addWidget(self.showScalogram, 4, 4)
+        self.decompLayout.addWidget(self.wavelistGraph, 5, 0, 1, 5)
+        self.decompLayout.addWidget(self.scalogramGraph, 6, 0, 1, 5)
 
         self.decompGroup.setLayout(self.decompLayout)
 
@@ -333,6 +339,9 @@ class MuScaleMainDialog(QMainWindow):
         self.wvFamilyLbl.setAlignment(Qt.AlignCenter)
         self.wvTypeLbl.setAlignment(Qt.AlignCenter)
         self.wvDecompLbl.setAlignment(Qt.AlignCenter)
+        
+        self.comboSignalEx.addItems(pywt.MODES.modes)
+        self.wvSignalEx.setAlignment(Qt.AlignCenter)
 
         self.decompLayout.setAlignment(Qt.AlignCenter)
 
@@ -833,10 +842,15 @@ class MuScaleMainDialog(QMainWindow):
             new_max = pywt.dwt_max_level(len(self.currentDataSet[0]),
                                              pywt.Wavelet(unicode(self.comboWavelist.currentText()))) + 1
             self.comboDecomposition.setToolTip(Tooltips['dwt'])
+
+            self.wvSignalEx.show()
+            self.comboSignalEx.show()
         elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
             new_max = pywt.swt_max_level(len(self.currentDataSet[0])) + 1
             self.comboDecomposition.setToolTip(Tooltips['swt'])
 
+            self.wvSignalEx.hide()
+            self.comboSignalEx.hide()
         if self.lockMaxLevel.isChecked():
             current_max = new_max
         else:
@@ -856,8 +870,9 @@ class MuScaleMainDialog(QMainWindow):
             w_level = self.spinLevels.value() - 1
             # discrete
             if self.comboDecomposition.currentIndex() is int(WT.DiscreteWT) - 1:
+                self.signalEx = unicode(self.comboSignalEx.currentText())
                 self.wInitialCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet,
-                                                         level=w_level)#, mode=pywt.MODES.sp1)
+                                                         level=w_level, mode=self.signalEx)
                 self.wCoefficients = self.wInitialCoefficients
             # stationary
             elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
@@ -1865,12 +1880,8 @@ class MuScaleMainDialog(QMainWindow):
                 if not self.isSWT:
                     self.resultingGraph.updatePlot(pywt.waverec(
                                         update_dwt(self.processedWCoeffs, self.wavelet),
-                                        self.wavelet),#, pywt.MODES.sp1),
+                                        self.wavelet, mode=self.signalEx),
                                                    label='Simulation', color='r')
-#                    self.resultingGraph.updatePlot(pywt.waverec(
-#                                        self.processedWCoeffs,
-#                                        self.wavelet, pywt.MODES.sp1),
-#                                                   label='Simulation', color='r')
                 else:
                     if self.autoUpdateTable.isChecked():
                         pass
