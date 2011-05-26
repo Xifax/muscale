@@ -1269,6 +1269,12 @@ class MuScaleMainDialog(QMainWindow):
             modelsStack.currentWidget().updatePlot(result, label='Model fit', style='dashed', color='g')
 
         def forecastFinished(result, model):
+            for index in range(0, len(result)):
+                try:
+                    result[index] = float(result[index])
+                except Exception:
+                    result[index] = float(result[index].split('e')[0])
+
             self.processedWCoeffs[model] = result
 
             modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
@@ -1340,8 +1346,15 @@ class MuScaleMainDialog(QMainWindow):
         def multiForecastFinished(results):
             try:
                 for model, data in results:
-                    index = getModelIndexInStack(model, modelsList)
+                    for i in range(0, len(data)):
+                        try:
+                            data[i] = float(data[i])
+                        except Exception:
+                            data[i] = float(data[i].split('e')[0])
+
                     self.processedWCoeffs[model] = data
+                    index = getModelIndexInStack(model, modelsList)
+
                     modelsStack.widget(index).updatePlot(self.processedWCoeffs[model],
                                                              label='Forecast', style='dotted', color='r')
 
