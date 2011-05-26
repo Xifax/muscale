@@ -12,6 +12,7 @@ import operator
 from PyQt4.QtCore import Qt, QObject,QEvent, QTimer
 from PyQt4.QtGui import *
 from pyqtgraph.PlotWidget import PlotWidget
+from xlwt import Workbook, Alignment, XFStyle, Font, Borders
 
 # own #
 from utility.const import T_WIDTH, T_HEIGHT, FONTS_DICT
@@ -349,10 +350,10 @@ class ToolsFrame(QWidget):
 
         # export
         exportMenu = QMenu()
-        exportMenu.addAction(QAction('Portable Document Format (PDF)',
-                                     self, triggered=self.exportToPdf))
         exportMenu.addAction(QAction('Microsoft Excel Spreadsheet (XLS)',
                                      self, triggered=self.exportToXls))
+        exportMenu.addAction(QAction('Portable Document Format (PDF)',
+                                     self, triggered=self.exportToPdf))
         exportMenu.addAction(QAction('Plain text (TXT) && PNG', self,
                                      triggered=self.exportToVarious))
         exportMenu.addAction(QAction('Send to print',
@@ -411,9 +412,118 @@ class ToolsFrame(QWidget):
 #        http://goo.gl/K5zg4
         pass
     def exportToXls(self):
-#        http://goo.gl/xalIt
-#        http://goo.gl/K9cjx
-        pass
+        # opening file dialog
+        fileName = QFileDialog.getSaveFileName(self,
+            'Save as', RES, 'Microsoft Excel Spreadsheet (*.xls)')
+
+        if fileName.count() > 0:
+            COLUMN_WIDTH = 3000
+
+            alignment = Alignment()
+            alignment.horizontal = Alignment.HORZ_CENTER
+            alignment.vertical = Alignment.VERT_CENTER
+
+            borders = Borders()
+            borders.left = Borders.THIN
+            borders.right = Borders.THIN
+            borders.top = Borders.THIN
+            borders.bottom = Borders.THIN
+
+            style = XFStyle()
+            style.alignment = alignment
+            style.borders = borders
+
+            font = Font()
+            font.bold = True
+            headerStyle = XFStyle()
+            headerStyle.font = font
+
+            separate = Borders()
+            separate.left = Borders.THIN
+            separate.right = Borders.DOUBLE
+            separate.top = Borders.THIN
+            separate.bottom = Borders.THIN
+            separateStyle = XFStyle()
+            separateStyle.borders = separate
+
+            book = Workbook(encoding='utf-8')
+
+            # modelling data
+            if self.exportStepByStep.isChecked():
+                dec_sheet = book.add_sheet('Data decomposition')
+
+                # decomposition data
+                if self.exportData.isChecked():
+                    # initial data
+                    column = 0
+                    row = 0
+                    dec_sheet.write(row, column, 'Time series', headerStyle)
+                    dec_sheet.col(column).width = COLUMN_WIDTH
+                    row += 1
+                    for item in self.parentWidget().currentDataSet[0]:
+                        dec_sheet.write(row, column, item, separateStyle)
+                        row += 1
+
+                    # decomposition
+                    for lvl in self.parentWidget().wCoefficients:
+                        row = 0
+                        column += 1
+                        dec_sheet.write(row, column, 'Level' + str(column - 1), headerStyle)
+                        dec_sheet.col(column).width = COLUMN_WIDTH
+                        row += 1
+                        for item in lvl:
+                            dec_sheet.write(row, column, item, style)
+                            row += 1
+
+                # decomposition graphs
+                if self.exportGraph.isChecked():
+                    pass
+
+                levels_sheet = book.add_sheet('Multiscale forecast')
+
+                # levels data
+                if self.exportData.isChecked():
+                    column = 0
+                    for lvl in self.parentWidget().processedWCoeffs:
+                        row = 0
+                        levels_sheet.write(row, column, 'Level' + str(column), headerStyle)
+                        levels_sheet.col(column).width = COLUMN_WIDTH
+                        row += 1
+                        for item in lvl:
+                            levels_sheet.write(row, column, float(item), style)
+                            row += 1
+                        column += 1
+
+            if self.exportForecast.isChecked():
+                result_sheet = book.add_sheet('Results')
+
+                # initial
+                column = 0
+                row = 0
+                result_sheet.write(row, column, 'Initial data', headerStyle)
+                result_sheet.col(column).width = COLUMN_WIDTH
+                row += 1
+                for item in self.parentWidget().currentDataSet[0]:
+                    result_sheet.write(row, column, item, separateStyle)
+                    row += 1
+
+                # forecast
+                row = 0
+                column += 1
+                result_sheet.write(row, column, 'Forecast', headerStyle)
+                result_sheet.col(column).width = COLUMN_WIDTH
+                row += 1
+                for item in self.parentWidget().resultingForecast:
+                    result_sheet.write(row, column, item, style)
+                    row += 1
+
+            # saving xls
+            try:
+                book.save(unicode(fileName))
+                self.parentWidget().messageInfo.showInfo('Saved as ' + unicode(fileName))
+            except Exception:
+                self.parentWidget().messageInfo.showInfo('Could not save as ' + unicode(fileName), True)
+
     def exportToVarious(self):
         pass
     def sendToPrint(self):
@@ -537,7 +647,7 @@ class ToolsFrame(QWidget):
             if object != self.rNewline:
                 for e in object.split(' '):
                     if not e.startswith('[') and e != '' and e != 'character(0)':
-                        item = QListWidgetItem(e.strip('"'))
+                        item = QListWidgetItem(e.strip().strip('"'))
                         item.setTextAlignment(Qt.AlignCenter)
                         self.namesList.addItem(item)
 

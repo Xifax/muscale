@@ -1930,14 +1930,11 @@ class MuScaleMainDialog(QMainWindow):
         else:
             try:
                 if not self.isSWT:
-                    self.resultingGraph.updatePlot(pywt.waverec(
+                    self.resultingForecast = pywt.waverec(
                                         update_dwt(self.processedWCoeffs, self.wavelet),
-                                        self.wavelet, mode=self.signalEx),
-                                                   label='Simulation', color='r')
+                                        self.wavelet, mode=self.signalEx)
+                    self.resultingGraph.updatePlot(self.resultingForecast, label='Simulation', color='r')
                 else:
-                    if self.autoUpdateTable.isChecked():
-                        pass
-                    
                     if self.nodesProcessed:
                              self.resultingGraph.updatePlot(iswt(update_swt(self.wInitialCoefficients,
                                                                             self.processedWCoeffs,
@@ -1945,10 +1942,16 @@ class MuScaleMainDialog(QMainWindow):
                                                                  self.wavelet),
                                                        label='Simulation', color='r')
                     else:
-                        self.resultingGraph.updatePlot(iswt(update_selected_levels_swt(self.wInitialCoefficients,
+                        self.resultingForecast = iswt(update_selected_levels_swt(self.wInitialCoefficients,
                                                                                        self.processedWCoeffs),
-                                                            self.wavelet),
-                                                   label='Simulation', color='r')
+                                                                                self.wavelet)
+                        self.resultingGraph.updatePlot(self.resultingForecast, label='Simulation', color='r')
+                if self.autoUpdateTable.isChecked():
+                    try:
+                        self.toolsFrame.updateTable(self.resultingForecast, 'Forecast')
+                    except Exception:
+                        pass
+
                 # draw forecast boundary
                 if 'bound' not in [line._label for line in self.resultingGraph.canvas.ax.get_lines()]:
                     self.resultingGraph.canvas.ax.axvline(x=len(self.currentDataSet[0]) - 1, color='m',
