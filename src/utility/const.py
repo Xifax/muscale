@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -198,7 +198,7 @@ URL_SCIPY = 'http://sourceforge.net/projects/scipy/files/scipy/0.9.0/scipy-0.9.0
 URL_SETUPTOOLS = 'http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11.win32-py2.6.exe'
 
 #---- required packages ----#
-easy_packages = ['PyWavelets', 'flufl.enum', 'userconfig', 'simpledropbox', 'pep8', 'xlwt']
+easy_packages = ['PyWavelets', 'flufl.enum', 'userconfig', 'simpledropbox', 'pep8', 'xlwt', 'PIL']
 downloadable_packages = {'PyQt4': URL_PYQT, 'matplotlib': URL_MATPLOTLIB,
                          'numpy': URL_NUMPY, 'scipy': URL_SCIPY}
 

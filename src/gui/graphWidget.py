@@ -7,6 +7,7 @@ Created on Mar 10, 2011
 
 # internal #
 import os
+import Image
 
 # own #
 from utility.const import RES, ICONS, TOOLBAR_ICONS,\
@@ -390,6 +391,20 @@ class MplWidget(QtGui.QWidget):
             self.canvas.draw()
         except Exception, e:
             pass
+
+    def saveFigure(self, name='figure', format='png', transparency=False):
+        if format == 'bmp':
+            self.canvas.fig.savefig(RES + TEMP + name + '.png', transparent=transparency)
+
+            img = Image.open(RES + TEMP + name + '.png')
+            img.load()
+            if len(img.split()) == 4:
+                r, g, b, a = img.split()
+                img = Image.merge('RGB', (r, g, b))
+            img.save(RES + TEMP + name + '.bmp')
+            os.unlink(RES + TEMP + name + '.png')
+        else:
+            self.canvas.fig.savefig(RES + TEMP + name + '.' + format, transparent=transparency)
 
     #------------------ utils ------------------#
     ## Generates previews for specified data.

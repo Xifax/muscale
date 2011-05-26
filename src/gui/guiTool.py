@@ -19,7 +19,7 @@ from utility.const import T_WIDTH, T_HEIGHT, FONTS_DICT
 from utility.tools import checkParentheses
 from utility.const import LABEL_VISIBLE, FLASH_LABEL,\
                         RES, ICONS, CLEAR, GRAPH, COPY, CONTROLS,\
-                        ELEMENTS, CUT, SERIES, SCALE
+                        ELEMENTS, CUT, SERIES, SCALE, TEMP
 from utility.log import log
 
 class StatusFilter(QObject):
@@ -497,25 +497,33 @@ class ToolsFrame(QWidget):
             if self.exportForecast.isChecked():
                 result_sheet = book.add_sheet('Results')
 
-                # initial
-                column = 0
-                row = 0
-                result_sheet.write(row, column, 'Initial data', headerStyle)
-                result_sheet.col(column).width = COLUMN_WIDTH
-                row += 1
-                for item in self.parentWidget().currentDataSet[0]:
-                    result_sheet.write(row, column, item, separateStyle)
+                if self.exportData.isChecked():
+                    # initial
+                    column = 0
+                    row = 0
+                    result_sheet.write(row, column, 'Initial data', headerStyle)
+                    result_sheet.col(column).width = COLUMN_WIDTH
                     row += 1
+                    for item in self.parentWidget().currentDataSet[0]:
+                        result_sheet.write(row, column, item, separateStyle)
+                        row += 1
 
-                # forecast
-                row = 0
-                column += 1
-                result_sheet.write(row, column, 'Forecast', headerStyle)
-                result_sheet.col(column).width = COLUMN_WIDTH
-                row += 1
-                for item in self.parentWidget().resultingForecast:
-                    result_sheet.write(row, column, item, style)
+                    # forecast
+                    row = 0
+                    column += 1
+                    result_sheet.write(row, column, 'Forecast', headerStyle)
+                    result_sheet.col(column).width = COLUMN_WIDTH
                     row += 1
+                    for item in self.parentWidget().resultingForecast:
+                        result_sheet.write(row, column, item, style)
+                        row += 1
+
+                if self.exportGraph.isChecked():
+                    row = 0
+                    column = 2
+                    self.parentWidget().resultingGraph.saveFigure('forecast', format='bmp')
+
+                    result_sheet.insert_bitmap(RES + TEMP + 'forecast.bmp', row, column)
 
             # saving xls
             try:
