@@ -371,13 +371,12 @@ class MuScaleMainDialog(QMainWindow):
         self.progressBar.setStyleSheet('''QProgressBar {
                                              border: 1px solid grey;
                                              border-radius: 4px;
-                                         }
-
-                                         QProgressBar::chunk {
-                                             background-color: black;
-                                             width: 10px;
-                                             margin: 0.5px;
                                          }''')
+#                                         QProgressBar::chunk {
+#                                             background-color: black;
+#                                             width: 10px;
+#                                             margin: 0.5px;
+#                                         }''')
         # results #
         self.resultingGraph.hide()
 
@@ -1277,18 +1276,24 @@ class MuScaleMainDialog(QMainWindow):
             self.tmpConfig['steps'] = forecastSteps.value()
 
             errors = model_error(self.wCoefficients[model], result, self.R)
-            self.messageInfo.showInfo('Resulting errors ~ <i>SSE</i>: ' + str(errors['sse']) +
-                                      ' <i>MSE</i>: ' + str(errors['mse']))
 
-            self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' +
-                                       prettifyNames([self.multiModel[model]._enumname])[0] +
-                                        ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+            try:
+                self.messageInfo.showInfo('Resulting errors ~ <i>SSE</i>: ' + str(errors['sse']) +
+                                          ' <i>MSE</i>: ' + str(errors['mse']))
 
-            self.toolsFrame.updateLog(['SSE: ' + str(errors['sse']) +
-                                      ' MSE: ' + str(errors['mse'])
-                                        ])
-            self.progressBar.hide()
-            self.inProgress = False
+                self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' +
+                                           prettifyNames([self.multiModel[model]._enumname])[0] +
+                                            ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+
+                self.toolsFrame.updateLog(['SSE: ' + str(errors['sse']) +
+                                          ' MSE: ' + str(errors['mse'])
+                                            ])
+            except Exception:
+                pass
+            finally:
+                self.progressBar.hide()
+                self.inProgress = False
+                self.statusBar.showMessage('Forecast complete.')
 
         def forecastModel():
             if not self.inProgress:
@@ -1303,6 +1308,7 @@ class MuScaleMainDialog(QMainWindow):
                 self.model_thread.start()
                 self.inProgress = True
                 self.progressBar.show()
+                self.statusBar.showMessage('Forecasting...')
 
         def resetModel():
             model = extractLevel(modelsList)
@@ -1331,50 +1337,64 @@ class MuScaleMainDialog(QMainWindow):
 
             self.messageInfo.showInfo('Performed models fit')
 
-        def forecastAllLevels():
-            for model in self.multiModel:
-                try:
-                    #TODO: move to thread
-                    self.processedWCoeffs[model] = calculateForecast(self.multiModel[model],
-                                                                     self.wCoefficients[model],
-                                                                     self.R,
-                                                                     forecastSteps.value(),
-                                                                     compileOptions(optMod))
+        def multiForecastFinished(results):
+            try:
+                for model, data in results:
                     index = getModelIndexInStack(model, modelsList)
+                    self.processedWCoeffs[model] = data
                     modelsStack.widget(index).updatePlot(self.processedWCoeffs[model],
-                                                         label='Forecast', style='dotted', color='r')
+                                                             label='Forecast', style='dotted', color='r')
 
                     self.toolsFrame.updateLog(['model  ' + prettifyNames([self.multiModel[model]._enumname])[0] +
-                                ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
-                except Exception:
-                    pass
-                
-            self.tmpConfig['steps'] = forecastSteps.value()
-
-            # forecast node levels
-            if hasattr(optMod, 'node_label'):
-                if optMod.node_label.isChecked():
-                    node_model = Models(optMod.node_combo.currentIndex() + 1)
-                    self.wUpdatedNodeCoefficients = [0] * len(self.wNodeCoefficients)
-                    index = 0
-
-                    try:
-                        for coeff in self.wNodeCoefficients:
-                            self.wUpdatedNodeCoefficients[index] = calculateForecast(node_model,
-                                                                                  coeff,
-                                                                                  self.R,
-                                                                                  forecastSteps.value(),
-                                                                                  compileOptions(optMod))
-                            index += 1
-
-                        self.toolsFrame.updateLog(['basic nodes processed using ' +
-                                                   prettifyNames([node_model._enumname])[0] +
                                     ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
-                        self.nodesProcessed = True
-                    except Exception:
-                        pass
+            except Exception:
+                pass
+            finally:
+                self.messageInfo.showInfo('Simulation completed')
+                self.progressBar.hide()
+                self.inProgress = False
+                self.statusBar.showMessage('Forecast complete.')
 
-            self.messageInfo.showInfo('Simulation completed')
+        def forecastAllLevels():
+            if not self.inProgress:
+
+                self.multi_model_thread = MultiModelThread(self.multiModel,
+                                                           self.wCoefficients,
+                                                           self.R,
+                                                           forecastSteps.value(),
+                                                            compileOptions(optMod),)
+                self.multi_model_thread.done.connect(multiForecastFinished)
+                self.multi_model_thread.start()
+                self.inProgress = True
+                self.progressBar.show()
+                self.statusBar.showMessage('Forecasting...')
+                
+                self.tmpConfig['steps'] = forecastSteps.value()
+
+#            # forecast node levels
+#            if hasattr(optMod, 'node_label'):
+#                if optMod.node_label.isChecked():
+#                    node_model = Models(optMod.node_combo.currentIndex() + 1)
+#                    self.wUpdatedNodeCoefficients = [0] * len(self.wNodeCoefficients)
+#                    index = 0
+#
+#                    try:
+#                        for coeff in self.wNodeCoefficients:
+#                            self.wUpdatedNodeCoefficients[index] = calculateForecast(node_model,
+#                                                                                  coeff,
+#                                                                                  self.R,
+#                                                                                  forecastSteps.value(),
+#                                                                                  compileOptions(optMod))
+#                            index += 1
+#
+#                        self.toolsFrame.updateLog(['basic nodes processed using ' +
+#                                                   prettifyNames([node_model._enumname])[0] +
+#                                    ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
+#                        self.nodesProcessed = True
+#                    except Exception:
+#                        pass
+#
+#            self.messageInfo.showInfo('Simulation completed')
 
         def resetAllLevels():
             for model in self.multiModel:
@@ -2065,6 +2085,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         self.R = R(R_BIN)
         return self.R
 
+## Hover event filter for level names.
 class LabelFilter(QObject):
     def eventFilter(self, object, event):
         if event.type() == QEvent.HoverEnter:
@@ -2074,6 +2095,7 @@ class LabelFilter(QObject):
 
         return False
 
+## Model forecasting thread.
 class ModelThread(QThread):
     done = pyqtSignal(ndarray, int)
 
@@ -2090,3 +2112,25 @@ class ModelThread(QThread):
         self.result = calculateForecast(self.model, self.data,
                                         self.r, self.steps, self.options)
         self.done.emit(self.result, self.index)
+
+## Multi-model forecasting thread.
+class MultiModelThread(QThread):
+    done = pyqtSignal(list)
+
+    def __init__(self, models, data, r, steps, options, parent=None):
+        super(MultiModelThread, self).__init__(parent)
+        self.models = models
+        self.data = data
+        self.r = r
+        self.steps = steps
+        self.options = options
+        self.results = []
+
+    def run(self):
+        for model in self.models:
+            self.results.append((model, 
+                                 calculateForecast(self.models[model],
+                                                          self.data[model],
+                                        self.r, self.steps, self.options)))
+
+        self.done.emit(self.results)

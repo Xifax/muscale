@@ -64,6 +64,7 @@ def lsfPredict(data, r, steps=steps_default, options=None):
 # ARIMA
 def arimaProcess(data, r, options=None):
     try:
+        #TODO: add conversion to ts()
         if options['arima_auto']:
             r('amafit <- auto.arima( %s )' % Str4R(data))
         elif options['arima_seas'] and options['arima_nons']:
