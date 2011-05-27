@@ -16,7 +16,7 @@ def initRLibraries(r):
     for package in r_packages:
         r('library( %s )' % package)
 
-# Holt-Winters
+## Holt-Winters.
 def hwProcess(data, r, options):
     gamma = False
     nonSeasonalHw = lambda data, gamma: \
@@ -42,7 +42,7 @@ def hwPredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.pred[:,0])
 
-# Least Squares Fit
+## Least Squares Fit.
 def lsfProcess(data, r, options):
     try:
         if options['lsf_aic']:
@@ -61,7 +61,7 @@ def lsfPredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.pred['pred'])
 
-# ARIMA
+## ARIMA.
 def arimaProcess(data, r, options=None):
     try:
         #TODO: add conversion to ts()
@@ -103,7 +103,7 @@ def arimaPredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.pred['pred'])
 
-# Harmonic Regression
+## Harmonic Regression.
 def arProcess(data, r, options):
     try:
         if options['ar_aic']:
@@ -124,6 +124,7 @@ def arPredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.pred['pred'])
 
+## ETS.
 def etsProcess(data, r, options):
     etsAuto = lambda data: \
         r('efit <- ets( %s )' % Str4R(data))
@@ -148,6 +149,7 @@ def etsPredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r['pred$mean'])
 
+## Cubic Splines.
 def qsplineProcess(data, r, options):
     return []
 
@@ -158,6 +160,7 @@ def qsplinePredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.spln['mean'])
 
+## StructTS.
 def stsProcess(data, r, options):
     r('sfit <- StructTS( %s, %s )' % (Str4R(data), Str4R(options['sts_type'])))
     return r.sfit['fitted']
@@ -170,7 +173,7 @@ def stsPredict(data, r, steps=steps_default, options=None):
     else:
         return append(zeros(len(data)), r.pred['mean'])
 
-# methods dicts
+## Methods for models.
 model_process_methods = {Models.Holt_Winters: hwProcess,  Models.Least_Squares_Fit: lsfProcess,
                           Models.ARIMA: arimaProcess, Models.Harmonic_Regression: arProcess,
                           Models.ETS: etsProcess, Models.Cubic_Splines: qsplineProcess,
@@ -180,14 +183,15 @@ model_predict_methods = {Models.Holt_Winters: hwPredict, Models.Least_Squares_Fi
                           Models.ETS: etsPredict, Models.Cubic_Splines: qsplinePredict,
                           Models.StructTS: stsPredict}
 
-# interface methods
+## Perform model fit using specified model.
 def processModel(model, data, r, options=None):
     return model_process_methods[model](data, r, options)
 
+## Perform forecast using specified model.
 def calculateForecast(model, data, r, steps = steps_default, options=None):
     return model_predict_methods[model](data, r, steps, options)
 
-# optimal decomposition
+## Calculate series entropy.
 def entropy(data, r, simple=False, dwt=False):
     if simple:
         r('e <- entropy( %s )' % Str4R(data))
@@ -200,7 +204,7 @@ def entropy(data, r, simple=False, dwt=False):
     # average entropy
     return sum(ent, 0.0) / len(ent)
 
-# model classification
+## Classify levels by models.
 def auto_model(data, r, options, ts=None):
     models = {}
     if options['fractal']:
@@ -301,7 +305,7 @@ def auto_model(data, r, options, ts=None):
 
         return models
 
-# calculate model error
+## Calculate model error.
 def model_error(data, new_data, r):
     errors = {}
 

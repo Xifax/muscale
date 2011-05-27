@@ -47,6 +47,7 @@ from gui.guiInfo import InfoFrame
 from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
+from gui.muWizard import MuWizard
 from stats.models import processModel, calculateForecast, initRLibraries, auto_model, model_error
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
                     normalize_dwt_dimensions, iswt, update_dwt,\
@@ -86,6 +87,7 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame = ToolsFrame(self.R, self)
         self.infoDialog = InfoFrame(self)
         self.messageInfo = SystemMessage(self)
+        self.wizard = MuWizard(self)
 
         # geometry #
         self.gem = None
@@ -1994,24 +1996,7 @@ class MuScaleMainDialog(QMainWindow):
 #------------- utilities and modules ---------------#
 #####################################################
     def showWizard(self):
-        self.wizard = QWizard()
-
-        page = QWizardPage()
-        page.setTitle("Introduction")
-        label = QLabel('Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.')
-
-        label.setWordWrap(True)
-        layout = QVBoxLayout()
-        layout.addWidget(label)
-        page.setLayout(layout)
-        #        page.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
-
-        self.wizard.addPage(page)
-        self.wizard.setWindowTitle("A Wizard")
-        self.wizard.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
+#        self.wizard = QWizard()
         self.wizard.show()
 
     def quitApplication(self):
@@ -2071,7 +2056,6 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 #####################################################
 
     def performModellingCycleGUI(self):
-        #TODO: add similar option to wizard
         self.toolsFrame.updateLog(['starting modelling cycle test...'], NB=True)
         # loading data
         self.manualDataInput.setText(' '.join([str(value) for value in test_data]))
