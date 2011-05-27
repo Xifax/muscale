@@ -1275,15 +1275,15 @@ class MuScaleMainDialog(QMainWindow):
                 except Exception:
                     result[index] = float(result[index].split('e')[0])
 
-            self.processedWCoeffs[model] = result
-
-            modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
-
-            self.tmpConfig['steps'] = forecastSteps.value()
-
-            errors = model_error(self.wCoefficients[model], result, self.R)
-
             try:
+                self.processedWCoeffs[model] = result
+
+                modelsStack.currentWidget().updatePlot(result, label='Forecast', style='dotted', color='r')
+
+                self.tmpConfig['steps'] = forecastSteps.value()
+
+                errors = model_error(self.wCoefficients[model], result, self.R)
+
                 self.messageInfo.showInfo('Resulting errors ~ <i>SSE</i>: ' + str(errors['sse']) +
                                           ' <i>MSE</i>: ' + str(errors['mse']))
 
@@ -1295,7 +1295,7 @@ class MuScaleMainDialog(QMainWindow):
                                           ' MSE: ' + str(errors['mse'])
                                             ])
             except Exception:
-                pass
+                self.toolsFrame.updateLog(['Unexpected error for model ' + str(model)])
             finally:
                 self.progressBar.hide()
                 self.inProgress = False
@@ -1361,7 +1361,7 @@ class MuScaleMainDialog(QMainWindow):
                     self.toolsFrame.updateLog(['model  ' + prettifyNames([self.multiModel[model]._enumname])[0] +
                                     ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
             except Exception:
-                pass
+                self.toolsFrame.updateLog(['Unexpected error for model ' + str(model)])
             finally:
                 self.messageInfo.showInfo('Simulation completed')
                 self.progressBar.hide()

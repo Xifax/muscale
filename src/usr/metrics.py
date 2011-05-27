@@ -70,6 +70,8 @@ def show_results():
     print 'Excluded modules: ' + ', '.join(ignore_list)
     print 'LOC (with blanks and comments): ', loc_result[1]
     print 'LOC (code only): ', loc_result[0]
+	
+    raw_input('\nAny key!')
 
 if __name__ == '__main__':
     show_results()

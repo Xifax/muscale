@@ -123,6 +123,7 @@ class ToolsFrame(QWidget):
         self.exportStepByStep = QCheckBox('Export modelling steps')
         self.exportGraph = QCheckBox('Export graphics')
         self.exportData = QCheckBox('Export data')
+        self.exportAll = QPushButton('Export all')
         self.exportButton = QPushButton('Export as')
         self.picLbl = QLabel()
 
@@ -131,7 +132,8 @@ class ToolsFrame(QWidget):
         self.exportLayout.addWidget(self.exportStepByStep, 1, 1)
         self.exportLayout.addWidget(self.exportData, 2, 0)
         self.exportLayout.addWidget(self.exportGraph, 2, 1)
-        self.exportLayout.addWidget(self.exportButton, 3, 0, 1, 2)
+        self.exportLayout.addWidget(self.exportAll, 3, 0)
+        self.exportLayout.addWidget(self.exportButton, 3, 1)
 
         self.exportGroup.setLayout(self.exportLayout)
         self.toolTabs.addTab(self.exportGroup, '&Export')
@@ -352,21 +354,38 @@ class ToolsFrame(QWidget):
         exportMenu = QMenu()
         exportMenu.addAction(QAction('Microsoft Excel Spreadsheet (XLS)',
                                      self, triggered=self.exportToXls))
-        exportMenu.addAction(QAction('Portable Document Format (PDF)',
-                                     self, triggered=self.exportToPdf))
-        exportMenu.addAction(QAction('Plain text (TXT) && PNG', self,
-                                     triggered=self.exportToVarious))
-        exportMenu.addAction(QAction('Send to print',
-                                     self, triggered=self.sendToPrint))
+        toPDF = QAction('Portable Document Format (PDF)',
+                                     self, triggered=self.exportToPdf)
+        toTXT = QAction('Plain text (TXT) && PNG',
+                                     self, triggered=self.exportToVarious)
+        toPrint = QAction('Send to print',
+                                     self, triggered=self.sendToPrint)
+        exportMenu.addAction(toPrint)
+        exportMenu.addAction(toTXT)
+        exportMenu.addAction(toPDF)
+
+        toTXT.setDisabled(True)
+        toPDF.setDisabled(True)
+        toPrint.setDisabled(True)
         self.exportButton.setMenu(exportMenu)
 
         self.exportForecast.stateChanged.connect(self.toggleExportOptions)
         self.exportStepByStep.stateChanged.connect(self.toggleExportOptions)
         self.exportGraph.stateChanged.connect(self.updatePix)
+        self.exportAll.clicked.connect(self.exportAllXls)
 
 #--------- actions ---------#
 
     #-------- export ----------#
+    def exportAllXls(self):
+        self.exportForecast.setChecked(True)
+        self.exportStepByStep.setChecked(True)
+        self.exportData.setChecked(True)
+        self.exportGraph.setChecked(True)
+
+        self.toggleExportOptions()
+        self.exportToXls()
+
     def toggleExportOptions(self):
         if self.exportForecast.isChecked() or\
             self.exportStepByStep.isChecked():
@@ -417,120 +436,125 @@ class ToolsFrame(QWidget):
             'Save as', RES, 'Microsoft Excel Spreadsheet (*.xls)')
 
         if fileName.count() > 0:
-            COLUMN_WIDTH = 3000
+            try:
+                COLUMN_WIDTH = 3000
 
-            alignment = Alignment()
-            alignment.horizontal = Alignment.HORZ_CENTER
-            alignment.vertical = Alignment.VERT_CENTER
+                alignment = Alignment()
+                alignment.horizontal = Alignment.HORZ_CENTER
+                alignment.vertical = Alignment.VERT_CENTER
 
-            borders = Borders()
-            borders.left = Borders.THIN
-            borders.right = Borders.THIN
-            borders.top = Borders.THIN
-            borders.bottom = Borders.THIN
+                borders = Borders()
+                borders.left = Borders.THIN
+                borders.right = Borders.THIN
+                borders.top = Borders.THIN
+                borders.bottom = Borders.THIN
 
-            style = XFStyle()
-            style.alignment = alignment
-            style.borders = borders
+                style = XFStyle()
+                style.alignment = alignment
+                style.borders = borders
 
-            font = Font()
-            font.bold = True
-            headerStyle = XFStyle()
-            headerStyle.font = font
+                font = Font()
+                font.bold = True
+                headerStyle = XFStyle()
+                headerStyle.font = font
 
-            separate = Borders()
-            separate.left = Borders.THIN
-            separate.right = Borders.DOUBLE
-            separate.top = Borders.THIN
-            separate.bottom = Borders.THIN
-            separateStyle = XFStyle()
-            separateStyle.borders = separate
+                separate = Borders()
+                separate.left = Borders.THIN
+                separate.right = Borders.DOUBLE
+                separate.top = Borders.THIN
+                separate.bottom = Borders.THIN
+                separateStyle = XFStyle()
+                separateStyle.borders = separate
 
-            book = Workbook(encoding='utf-8')
+                book = Workbook(encoding='utf-8')
 
-            # modelling data
-            if self.exportStepByStep.isChecked():
-                dec_sheet = book.add_sheet('Data decomposition')
+                # modelling data
+                if self.exportStepByStep.isChecked():
+                    dec_sheet = book.add_sheet('Data decomposition')
 
-                # decomposition data
-                if self.exportData.isChecked():
-                    # initial data
-                    column = 0
-                    row = 0
-                    dec_sheet.write(row, column, 'Time series', headerStyle)
-                    dec_sheet.col(column).width = COLUMN_WIDTH
-                    row += 1
-                    for item in self.parentWidget().currentDataSet[0]:
-                        dec_sheet.write(row, column, item, separateStyle)
-                        row += 1
-
-                    # decomposition
-                    for lvl in self.parentWidget().wCoefficients:
+                    # decomposition data
+                    if self.exportData.isChecked():
+                        # initial data
+                        column = 0
                         row = 0
-                        column += 1
-                        dec_sheet.write(row, column, 'Level' + str(column - 1), headerStyle)
+                        dec_sheet.write(row, column, 'Time series', headerStyle)
                         dec_sheet.col(column).width = COLUMN_WIDTH
                         row += 1
-                        for item in lvl:
-                            dec_sheet.write(row, column, item, style)
+                        for item in self.parentWidget().currentDataSet[0]:
+                            dec_sheet.write(row, column, item, separateStyle)
                             row += 1
 
-                # decomposition graphs
-                if self.exportGraph.isChecked():
-                    pass
+                        # decomposition
+                        for lvl in self.parentWidget().wCoefficients:
+                            row = 0
+                            column += 1
+                            dec_sheet.write(row, column, 'Level' + str(column - 1), headerStyle)
+                            dec_sheet.col(column).width = COLUMN_WIDTH
+                            row += 1
+                            for item in lvl:
+                                dec_sheet.write(row, column, item, style)
+                                row += 1
 
-                levels_sheet = book.add_sheet('Multiscale forecast')
+                    # decomposition graphs
+                    if self.exportGraph.isChecked():
+                        pass
 
-                # levels data
-                if self.exportData.isChecked():
-                    column = 0
-                    for lvl in self.parentWidget().processedWCoeffs:
+                    levels_sheet = book.add_sheet('Multiscale forecast')
+
+                    # levels data
+                    if self.exportData.isChecked():
+                        column = 0
+                        for lvl in self.parentWidget().processedWCoeffs:
+                            row = 0
+                            levels_sheet.write(row, column, 'Level' + str(column), headerStyle)
+                            levels_sheet.col(column).width = COLUMN_WIDTH
+                            row += 1
+                            for item in lvl:
+                                levels_sheet.write(row, column, float(item), style)
+                                row += 1
+                            column += 1
+
+                if self.exportForecast.isChecked():
+                    result_sheet = book.add_sheet('Results')
+
+                    if self.exportData.isChecked():
+                        # initial
+                        column = 0
                         row = 0
-                        levels_sheet.write(row, column, 'Level' + str(column), headerStyle)
-                        levels_sheet.col(column).width = COLUMN_WIDTH
+                        result_sheet.write(row, column, 'Initial data', headerStyle)
+                        result_sheet.col(column).width = COLUMN_WIDTH
                         row += 1
-                        for item in lvl:
-                            levels_sheet.write(row, column, float(item), style)
+                        for item in self.parentWidget().currentDataSet[0]:
+                            result_sheet.write(row, column, item, separateStyle)
                             row += 1
+
+                        # forecast
+                        row = 0
                         column += 1
-
-            if self.exportForecast.isChecked():
-                result_sheet = book.add_sheet('Results')
-
-                if self.exportData.isChecked():
-                    # initial
-                    column = 0
-                    row = 0
-                    result_sheet.write(row, column, 'Initial data', headerStyle)
-                    result_sheet.col(column).width = COLUMN_WIDTH
-                    row += 1
-                    for item in self.parentWidget().currentDataSet[0]:
-                        result_sheet.write(row, column, item, separateStyle)
+                        result_sheet.write(row, column, 'Forecast', headerStyle)
+                        result_sheet.col(column).width = COLUMN_WIDTH
                         row += 1
+                        for item in self.parentWidget().resultingForecast:
+                            result_sheet.write(row, column, item, style)
+                            row += 1
 
-                    # forecast
-                    row = 0
-                    column += 1
-                    result_sheet.write(row, column, 'Forecast', headerStyle)
-                    result_sheet.col(column).width = COLUMN_WIDTH
-                    row += 1
-                    for item in self.parentWidget().resultingForecast:
-                        result_sheet.write(row, column, item, style)
-                        row += 1
+                    if self.exportGraph.isChecked():
+                        row = 0
+                        column = 2
+                        self.parentWidget().resultingGraph.saveFigure('forecast', format='bmp')
 
-                if self.exportGraph.isChecked():
-                    row = 0
-                    column = 2
-                    self.parentWidget().resultingGraph.saveFigure('forecast', format='bmp')
+                        result_sheet.insert_bitmap(RES + TEMP + 'forecast.bmp', row, column)
 
-                    result_sheet.insert_bitmap(RES + TEMP + 'forecast.bmp', row, column)
+                # saving xls
+                try:
+                    book.save(unicode(fileName))
+                    self.parentWidget().messageInfo.showInfo('Saved as ' + unicode(fileName))
+                except Exception:
+                    self.parentWidget().messageInfo.showInfo('Could not save as ' + unicode(fileName), True)
 
-            # saving xls
-            try:
-                book.save(unicode(fileName))
-                self.parentWidget().messageInfo.showInfo('Saved as ' + unicode(fileName))
-            except Exception:
-                self.parentWidget().messageInfo.showInfo('Could not save as ' + unicode(fileName), True)
+            except Exception, e:
+                self.parentWidget().messageInfo.showInfo('Not enough data.', True)
+
 
     def exportToVarious(self):
         pass
