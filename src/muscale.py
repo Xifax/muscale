@@ -55,8 +55,6 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: wizard template (of some sorts)
-
 ####################################
 #            Dependencies          #
 ####################################

@@ -87,7 +87,7 @@ class MuScaleMainDialog(QMainWindow):
         self.toolsFrame = ToolsFrame(self.R, self)
         self.infoDialog = InfoFrame(self)
         self.messageInfo = SystemMessage(self)
-        self.wizard = MuWizard(self)
+        self.wizard = MuWizard(self.R, self)
 
         # geometry #
         self.gem = None
@@ -895,7 +895,8 @@ class MuScaleMainDialog(QMainWindow):
                 self.signalEx = unicode(self.comboSignalEx.currentText())
                 self.wInitialCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet,
                                                          level=w_level, mode=self.signalEx)
-                self.wCoefficients = self.wInitialCoefficients
+                #TODO: check
+                self.wCoefficients = self.wInitialCoefficients[:]
             # stationary
             elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
                 self.wInitialCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
@@ -1996,7 +1997,6 @@ class MuScaleMainDialog(QMainWindow):
 #------------- utilities and modules ---------------#
 #####################################################
     def showWizard(self):
-#        self.wizard = MuWizard(self)
         self.wizard.show()
 
     def quitApplication(self):

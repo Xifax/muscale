@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -86,6 +86,9 @@ TOOLBAR_ICONS = ['home.png', 'back.png', 'forward.png', '',
                  'sub.png', 'edit.png', 'save.png']
 LEGEND = 'legend.png'
 SCALE = 'scale.png'
+
+# wizard #
+PROGRESS = 'progress.gif'
 
 ICO_SIZE = 32
 ICO_GRAPH = 16

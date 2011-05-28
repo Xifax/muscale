@@ -7,5 +7,7 @@
 *.log
 *.txt
 *.tar.gz
+*.xls
+*.xlsx
 tmp/
 R/
