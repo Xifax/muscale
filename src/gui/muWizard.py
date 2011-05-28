@@ -7,8 +7,9 @@ from PyQt4.QtGui import QWizard, QWizardPage, \
                         QLabel, QVBoxLayout, QPixmap, QPushButton, \
                         QLineEdit, QToolButton, QGridLayout, QFileDialog, \
                         QCheckBox, QDialog, QListWidget, QListWidgetItem, QAction, \
-                        QAbstractItemView, QSpinBox, QMovie, QComboBox
+                        QAbstractItemView, QSpinBox, QMovie, QComboBox, QHBoxLayout
 import pywt
+from xlwt import Workbook, Alignment, XFStyle, Font, Borders
 
 # own #
 from utility.const import RES, ICONS, LOGO, DATA_LOW_LIMIT, FONTS_DICT, \
@@ -27,6 +28,18 @@ class Filter(QObject):
             object.setText(str(object.text()).split('</b>')[0].replace('Preview:', 'Preview:</b>'))
         if event.type() == QEvent.MouseButtonPress:
             object.parent().previewSeries.show()
+
+        return False
+
+class ResFilter(QObject):
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.HoverEnter:
+            object.setStyleSheet('QLabel { color: black; }')
+        if event.type() == QEvent.HoverLeave:
+            object.setStyleSheet('QLabel { color: gray; }')
+        if event.type() == QEvent.MouseButtonPress:
+            if str(object.text()).split('>')[1].split('<')[0] == 'Export':
+                object.parent().parent().parent().parent().exportToXls()
 
         return False
 
@@ -110,6 +123,7 @@ Now you're ready to forecast some time series!
 
     def modelsPage(self):
         models = WizardPageEx('modelCheck')
+        models.setTitle('Forecast')
 
         lbl = QLabel("<font style='color: gray'>Forecast horizon:</font>")
         self.steps = QSpinBox()
@@ -149,6 +163,30 @@ Now you're ready to forecast some time series!
     def resultsPage(self):
         results = QWizardPage()
         results.setFinalPage(True)
+        results.setTitle('Results')
+
+        export = QLabel("<font style='font-size: 16px;'>Plot</font>")
+        graph = QLabel("<font style='font-size: 16px;'>Export</font>")
+        data = QLabel("<font style='font-size: 16px;'>Data</font>")
+
+        self.resFilter = ResFilter()
+
+        layout = QVBoxLayout()
+        layout.addWidget(export)
+        layout.addWidget(graph)
+        layout.addWidget(data)
+
+        for index in range(0, layout.count()):
+            layout.itemAt(index).widget().setAlignment(Qt.AlignCenter)
+            layout.itemAt(index).widget().setStyleSheet('QLabel { color: gray; }')
+            layout.itemAt(index).widget().setAttribute(Qt.WA_Hover)
+            layout.itemAt(index).widget().installEventFilter(self.resFilter)
+
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setSpacing(50)
+
+        results.setLayout(layout)
+
         return results
 
     #---- actions ----#
@@ -174,10 +212,10 @@ Now you're ready to forecast some time series!
                     self.preview.show()
                     self.loadCheck.setChecked(True)
                 else:
-                    self.resultLbl.setText('Not enough values to form data series.')
+                    self.resultLbl.setText("<font style='color: gray'>Not enough values to form data series.</font>")
                     self.resultLbl.show()
             else:
-                self.resultLbl.setText('Specified file is binary file!')
+                self.resultLbl.setText("<font style='color: gray'>Specified file is binary file!</font>")
                 self.resultLbl.show()
 
     def modelling(self):
@@ -262,6 +300,126 @@ Now you're ready to forecast some time series!
         self.status.setText('<br/>'.join(str(self.status.text()).split('<br/>')[:-1]) +
                             '<br/>Forecast complete.')
         self.modelCheck.setChecked(True)
+
+    def exportToXls(self):
+        # opening file dialog
+        fileName = QFileDialog.getSaveFileName(self,
+            'Save as', RES, 'Microsoft Excel Spreadsheet (*.xls)')
+
+        if fileName.count() > 0:
+            try:
+                COLUMN_WIDTH = 3000
+
+                alignment = Alignment()
+                alignment.horizontal = Alignment.HORZ_CENTER
+                alignment.vertical = Alignment.VERT_CENTER
+
+                borders = Borders()
+                borders.left = Borders.THIN
+                borders.right = Borders.THIN
+                borders.top = Borders.THIN
+                borders.bottom = Borders.THIN
+
+                style = XFStyle()
+                style.alignment = alignment
+                style.borders = borders
+
+                font = Font()
+                font.bold = True
+                headerStyle = XFStyle()
+                headerStyle.font = font
+
+                separate = Borders()
+                separate.left = Borders.THIN
+                separate.right = Borders.DOUBLE
+                separate.top = Borders.THIN
+                separate.bottom = Borders.THIN
+                separateStyle = XFStyle()
+                separateStyle.borders = separate
+
+                book = Workbook(encoding='utf-8')
+
+                # modelling data
+                dec_sheet = book.add_sheet('Data decomposition')
+
+                # decomposition data
+                # initial data
+                column = 0
+                row = 0
+                dec_sheet.write(row, column, 'Time series', headerStyle)
+                dec_sheet.col(column).width = COLUMN_WIDTH
+                row += 1
+                for item in self.data[0]:
+                    dec_sheet.write(row, column, item, separateStyle)
+                    row += 1
+
+                # decomposition
+                for lvl in self.wCoefficients:
+                    row = 0
+                    column += 1
+                    dec_sheet.write(row, column, 'Level' + str(column - 1), headerStyle)
+                    dec_sheet.col(column).width = COLUMN_WIDTH
+                    row += 1
+                    for item in lvl:
+                        dec_sheet.write(row, column, item, style)
+                        row += 1
+
+                # decomposition graphs
+                pass
+
+                levels_sheet = book.add_sheet('Multiscale forecast')
+
+                # levels data
+                column = 0
+                for lvl in self.forecast:
+                    row = 0
+                    levels_sheet.write(row, column, 'Level' + str(column), headerStyle)
+                    levels_sheet.col(column).width = COLUMN_WIDTH
+                    row += 1
+                    for item in lvl[1]:
+                        levels_sheet.write(row, column, float(item), style)
+                        row += 1
+                    column += 1
+
+                result_sheet = book.add_sheet('Results')
+
+                # initial
+                column = 0
+                row = 0
+                result_sheet.write(row, column, 'Initial data', headerStyle)
+                result_sheet.col(column).width = COLUMN_WIDTH
+                row += 1
+                for item in self.data[0]:
+                    result_sheet.write(row, column, item, separateStyle)
+                    row += 1
+
+                # forecast
+#                row = 0
+#                column += 1
+#                result_sheet.write(row, column, 'Forecast', headerStyle)
+#                result_sheet.col(column).width = COLUMN_WIDTH
+#                row += 1
+#                for item in self.parentWidget().resultingForecast:
+#                    result_sheet.write(row, column, item, style)
+#                    row += 1
+#
+#                row = 0
+#                column = 2
+#                self.parentWidget().resultingGraph.saveFigure('forecast', format='bmp')
+#
+#                result_sheet.insert_bitmap(RES + TEMP + 'forecast.bmp', row, column)
+
+                # saving xls
+                try:
+                    book.save(unicode(fileName))
+#                    self.parentWidget().messageInfo.showInfo('Saved as ' + unicode(fileName))
+                except Exception:
+                    pass
+#                    self.parentWidget().messageInfo.showInfo('Could not save as ' + unicode(fileName), True)
+
+            except Exception, e:
+                pass
+#                self.parentWidget().messageInfo.showInfo('Not enough data.', True)
 
     def checkData(self):
         if self.data is None:
@@ -383,10 +541,10 @@ class CustomOption(QDialog):
         self.options = {}
 
         self.enable = QCheckBox('Enable custom settings')
-        self.lblFamily = QLabel("<font style='color: gray'>Family:</font>")
-        self.lblWavelet = QLabel("<font style='color: gray'>Wavelet:</font>")
-        self.lblSignal = QLabel("<font style='color: gray'>Extension:</font>")
-        self.lblLvls = QLabel("<font style='color: gray'>Levels:</font>")
+        self.lblFamily = QLabel('Family:')
+        self.lblWavelet = QLabel('Wavelet:')
+        self.lblSignal = QLabel('Extension:')
+        self.lblLvls = QLabel('Levels:')
         self.waveletFamily = QComboBox()
         self.wavelet = QComboBox()
         self.signalEx = QComboBox()
@@ -422,6 +580,7 @@ class CustomOption(QDialog):
         self.initActions()
 
         self.updateWavelet()
+        self.enableDisable()
 
      def initComponents(self):
         self.setWindowFlags(Qt.CustomizeWindowHint)
