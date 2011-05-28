@@ -1996,7 +1996,7 @@ class MuScaleMainDialog(QMainWindow):
 #------------- utilities and modules ---------------#
 #####################################################
     def showWizard(self):
-#        self.wizard = QWizard()
+#        self.wizard = MuWizard(self)
         self.wizard.show()
 
     def quitApplication(self):
