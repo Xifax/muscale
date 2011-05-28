@@ -7,7 +7,7 @@ from PyQt4.QtGui import QWizard, QWizardPage, \
                         QLabel, QVBoxLayout, QPixmap, QPushButton, \
                         QLineEdit, QToolButton, QGridLayout, QFileDialog, \
                         QCheckBox, QDialog, QListWidget, QListWidgetItem, QAction, \
-                        QAbstractItemView, QSpinBox, QMovie
+                        QAbstractItemView, QSpinBox, QMovie, QComboBox
 import pywt
 
 # own #
@@ -64,7 +64,7 @@ Now you're ready to forecast some time series!
         return intro
 
     def loadPage(self):
-        load = WizardPageEx()
+        load = WizardPageEx('loadCheck')
 
         load.setTitle('Initial data')
         pathLbl = QLabel("<font style='color: gray'>Specify the file with time series to forecast:</font>")
@@ -109,14 +109,15 @@ Now you're ready to forecast some time series!
         return load
 
     def modelsPage(self):
-        models = QWizardPage()
+        models = WizardPageEx('modelCheck')
 
         lbl = QLabel("<font style='color: gray'>Forecast horizon:</font>")
         self.steps = QSpinBox()
         self.steps.setRange(MIN_FORECAST, MAX_FORECAST)
         self.steps.setValue(10)
-        self.start = QPushButton('Start!')
+        self.start = QPushButton('Forecast')
         self.start.clicked.connect(self.modelling)
+        self.custom = QPushButton('Advanced')
         self.processing = QLabel()
 
         self.gifLoading = QMovie(RES + ICONS + PROGRESS, QByteArray(), self)
@@ -127,15 +128,21 @@ Now you're ready to forecast some time series!
         self.processing.hide()
 
         self.status = QLabel()
+        self.status.setAlignment(Qt.AlignCenter)
         self.status.hide()
-        
+
         layout = QGridLayout()
         layout.addWidget(lbl, 0, 0)
         layout.addWidget(self.steps, 0, 1)
         layout.addWidget(self.start, 0, 2)
-        layout.addWidget(self.status, 1, 0, 1, 3)
-        layout.addWidget(self.processing, 2, 0, 1, 3)
+        layout.addWidget(self.custom, 0, 3)
+        layout.addWidget(self.status, 1, 0, 1, 4)
+        layout.addWidget(self.processing, 2, 0, 1, 4)
         models.setLayout(layout)
+
+        self.customOpt = CustomOption()
+        self.custom.clicked.connect(self.customOpt.show)
+        self.modelCheck = models.check
 
         return models
 
@@ -176,25 +183,37 @@ Now you're ready to forecast some time series!
     def modelling(self):
         self.processing.show()
         self.gifLoading.start()
-#        self.status.show()
+        self.status.setText('')
 
-        # wavelet
-        # decomposition
-        # models
-        # params
-        statusText = u''
-
+        statusText = u"<font style='color: gray'>"
 
         # decomposition #
-        self.signalEx = pywt.MODES.sp1
-        self.wavelet = pywt.Wavelet(pywt.wavelist(pywt.families()[1])[6])
-#        maxLevel = pywt.dwt_max_level(len(self.data[0]), self.wavelet)
+        if self.customOpt.options['enable']:
+            self.signalEx = self.customOpt.options['signal']
+            self.wavelet = pywt.Wavelet(self.customOpt.options['wavelet'])
+            wLevel = self.customOpt.options['lvls'] - 1
+            maxLevel = pywt.dwt_max_level(len(self.data[0]), self.wavelet)
 
-        wLevel = calculate_suitable_lvl(self.data[0],
-                                     self.wavelet, self.R, swt=False)
-        self.wInitialCoefficients = pywt.wavedec(self.data[0], self.wavelet,
-                                                 level=wLevel, mode=self.signalEx)
-        self.wCoefficients = self.wInitialCoefficients
+            if wLevel > maxLevel:
+                wLevel = maxLevel
+
+            self.wInitialCoefficients = pywt.wavedec(self.data[0], self.wavelet,
+                                                       level=wLevel, mode=self.signalEx)
+            self.wCoefficients = self.wInitialCoefficients
+        else:
+            self.signalEx = pywt.MODES.sp1
+            self.wavelet = pywt.Wavelet(pywt.wavelist(pywt.families()[1])[6])
+
+            wLevel = calculate_suitable_lvl(self.data[0],
+                                         self.wavelet, self.R, swt=False)
+            self.wInitialCoefficients = pywt.wavedec(self.data[0], self.wavelet,
+                                                     level=wLevel, mode=self.signalEx)
+            self.wCoefficients = self.wInitialCoefficients
+
+        statusText += 'Wavelet: <b>' + self.wavelet.family_name + \
+                      '</b> (' + self.wavelet.name + ', ' + self.wavelet.symmetry + ')<br/>'
+
+        statusText += 'Discrete Wavelet Transfom: <b>' + str(wLevel + 1) + ' levels</b><br/>'
 
         # models #
         options = {}
@@ -202,6 +221,10 @@ Now you're ready to forecast some time series!
         options['fractal'] = False
         options['ljung'] = False
         self.models = auto_model(self.wCoefficients, self.R, options, self.data[0])
+
+        statusText += '<br/>Selected models:<br/>'
+        for lvl, model in self.models.iteritems():
+            statusText += str(lvl) + '. <b>' + model.enumname.replace('_', ' ') + '</b><br/>'
 
         # forecasting #
         frequency = 10
@@ -226,12 +249,19 @@ Now you're ready to forecast some time series!
         self.multi_model_thread.done.connect(self.multiForecastFinished)
         self.multi_model_thread.start()
 
-        # results #
+        statusText += '<br/>Forecasting...'
+
+        self.status.setText(statusText)
+        self.status.show()
 
     def multiForecastFinished(self, results):
         self.forecast = results
         self.gifLoading.stop()
         self.processing.hide()
+
+        self.status.setText('<br/>'.join(str(self.status.text()).split('<br/>')[:-1]) +
+                            '<br/>Forecast complete.')
+        self.modelCheck.setChecked(True)
 
     def checkData(self):
         if self.data is None:
@@ -242,23 +272,32 @@ Now you're ready to forecast some time series!
             except Exception:
                 pass
 
+    def checkModel(self):
+        if self.result is None:
+            pass
+        else:
+            try:
+                self.modelCheck.setChecked(True)
+            except Exception:
+                pass
+
     def initializePage(self, p_int):
         nop = lambda: None
 
         {0: nop,
          1: self.checkData,
-         2: nop,
+         2: self.checkModel,
          3: nop,
         }[p_int]()
 
 class WizardPageEx(QWizardPage):
 
-    def __init__(self, parent=None):
+    def __init__(self, field='check', parent=None):
         QWizardPage.__init__(self, parent)
 
         self.check = QCheckBox()
         self.check.setVisible(False)
-        self.registerField('check*', self.check)
+        self.registerField(field + '*', self.check)
         self.check.setChecked(False)
 
     def initializePage(self):
@@ -335,6 +374,104 @@ class SeriesPreview(QDialog):
         for item in self.list.selectedItems():
             self.workingSet.remove(float(item.text()))
             self.list.takeItem(self.list.indexFromItem(item).row())
+
+class CustomOption(QDialog):
+
+     def __init__(self, parent=None):
+        super(CustomOption, self).__init__(parent)
+
+        self.options = {}
+
+        self.enable = QCheckBox('Enable custom settings')
+        self.lblFamily = QLabel("<font style='color: gray'>Family:</font>")
+        self.lblWavelet = QLabel("<font style='color: gray'>Wavelet:</font>")
+        self.lblSignal = QLabel("<font style='color: gray'>Extension:</font>")
+        self.lblLvls = QLabel("<font style='color: gray'>Levels:</font>")
+        self.waveletFamily = QComboBox()
+        self.wavelet = QComboBox()
+        self.signalEx = QComboBox()
+        self.lvls = QSpinBox()
+        self.lvls.setRange(2, 10)
+
+        self.periodic = QCheckBox('Frequency')
+        self.frequency = QSpinBox()
+        self.frequency.setMinimum(2)
+        self.frequency.hide()
+
+        self.apply = QPushButton('Apply')
+        self.cancel = QPushButton('Cancel')
+
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.enable, 0, 0, 1, 2)
+        self.layout.addWidget(self.lblFamily, 1, 0)
+        self.layout.addWidget(self.waveletFamily, 1, 1)
+        self.layout.addWidget(self.lblWavelet, 2, 0)
+        self.layout.addWidget(self.wavelet, 2, 1)
+        self.layout.addWidget(self.lblSignal, 3, 0)
+        self.layout.addWidget(self.signalEx, 3, 1)
+        self.layout.addWidget(self.lblLvls, 4, 0)
+        self.layout.addWidget(self.lvls, 4, 1)
+        self.layout.addWidget(self.periodic, 5, 0)
+        self.layout.addWidget(self.frequency, 5, 1)
+        self.layout.addWidget(self.apply, 6, 0)
+        self.layout.addWidget(self.cancel, 6, 1)
+        self.layout.setAlignment(Qt.AlignCenter)
+        self.setLayout(self.layout)
+
+        self.initComponents()
+        self.initActions()
+
+        self.updateWavelet()
+
+     def initComponents(self):
+        self.setWindowFlags(Qt.CustomizeWindowHint)
+        self.waveletFamily.addItems(pywt.families())
+        self.signalEx.addItems(pywt.MODES.modes)
+        self.periodic.clicked.connect(self.showFrequency)
+        self.options['enable'] = False
+
+     def initActions(self):
+        self.apply.clicked.connect(self.saveOptions)
+        self.cancel.clicked.connect(self.close)
+        self.waveletFamily.currentIndexChanged.connect(self.updateWavelet)
+        self.enable.clicked.connect(self.enableDisable)
+
+     def saveOptions(self):
+        self.options['enable'] = self.enable.isChecked()
+#        self.options['family'] = self.waveletFamily.currentIndex()
+        self.options['wavelet'] = unicode(self.wavelet.currentText())
+        self.options['signal'] = unicode(self.signalEx.currentText())
+        self.options['lvls'] = self.lvls.value()
+        if self.periodic.isChecked():
+            self.options['frequency'] = self.frequency.value()
+            
+        self.close()
+
+     def updateWavelet(self):
+         self.wavelet.clear()
+         self.wavelet.addItems(pywt.wavelist(self.waveletFamily.currentText()))
+
+     def showFrequency(self):
+         if self.periodic.isChecked():
+             self.frequency.show()
+         else:
+             self.frequency.hide()
+
+     def enableDisable(self):
+         if self.enable.isChecked():
+            self.waveletFamily.setEnabled(True)
+            self.wavelet.setEnabled(True)
+            self.lvls.setEnabled(True)
+            self.signalEx.setEnabled(True)
+            self.periodic.setEnabled(True)
+            self.frequency.setEnabled(True)
+         else:
+            self.waveletFamily.setEnabled(False)
+            self.wavelet.setEnabled(False)
+            self.lvls.setEnabled(False)
+            self.signalEx.setEnabled(False)
+            self.periodic.setEnabled(False)
+            self.frequency.setEnabled(False)
 
 ## Multi-model forecasting thread.
 class MultiModelThread(QThread):
