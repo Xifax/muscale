@@ -55,6 +55,10 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
+#TODO: finish wizard
+#TODO: complete methodical specification
+#TODO: tweaks and fixes (todos in all the modules): forecast info, tooltips, ts conversion
+
 ####################################
 #            Dependencies          #
 ####################################

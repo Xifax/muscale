@@ -28,3 +28,4 @@ Additional info
         python install.py
 
 * setup.py and build.py do not work yet
+* R zip packages are automatically deleted after install

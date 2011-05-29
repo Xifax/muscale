@@ -188,13 +188,20 @@ class MuScaleMainDialog(QMainWindow):
         self.reconTS = QPushButton('Plot constructed model')
         self.plotInitial = QPushButton('Plot initial data')
         self.clearResult = QPushButton('Clear')
+        self.infoResult = QPushButton('Info')
         self.resultingGraph = MplWidget(self.toolsFrame,
-                                       toolbar=self.toolbarEnable)
+                                        toolbar=self.toolbarEnable)
 
-        self.reconsLayout.addWidget(self.reconTS, 0, 0)
-        self.reconsLayout.addWidget(self.clearResult, 0, 1)
-        self.reconsLayout.addWidget(self.plotInitial, 0, 2)
-        self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 3)
+#        self.reconsLayout.addWidget(self.reconTS, 0, 0)
+#        self.reconsLayout.addWidget(self.clearResult, 0, 1)
+#        self.reconsLayout.addWidget(self.infoResult, 0, 2)
+#        self.reconsLayout.addWidget(self.plotInitial, 0, 3)
+        self.reconsLayout.addWidget(self.reconTS, 0, 0, 1, 2)
+        self.reconsLayout.addWidget(self.clearResult, 1, 0)
+        self.reconsLayout.addWidget(self.infoResult, 1, 1)
+        self.reconsLayout.addWidget(self.plotInitial, 2, 0, 1, 2)
+#        self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 4)
+        self.reconsLayout.addWidget(self.resultingGraph, 3, 0, 1, 2)
 
         self.reconsGroup.setLayout(self.reconsLayout)
 
@@ -381,6 +388,14 @@ class MuScaleMainDialog(QMainWindow):
 #                                         }''')
         # results #
         self.resultingGraph.hide()
+        constraint = 18
+        self.reconTS.setMaximumHeight(constraint)
+        self.infoResult.setMaximumHeight(constraint)
+        self.clearResult.setMaximumHeight(constraint)
+        self.plotInitial.setMaximumHeight(constraint)
+        self.reconsLayout.setSpacing(2)
+        self.reconsLayout.setMargin(5)
+#        self.reconsLayout.setAlignment(Qt.AlignCenter)
 
         # tooltips #
         self.setCustomTooltips()
@@ -1151,6 +1166,7 @@ class MuScaleMainDialog(QMainWindow):
         if self.toggleShadows.isChecked():
             walkNonGridLayoutShadow(buttonsLayout)
             walkNonGridLayoutShadow(autoConfigLayout)
+            walkNonGridLayoutShadow(autoButtonLayout)
             walkGridLayoutShadow(self.modelLayout)
 
         if self.modelLayout.rowCount() - 9 > 2:
