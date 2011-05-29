@@ -16,7 +16,7 @@ from datetime import datetime
 
 # external #
 from PyQt4.QtCore import Qt, QRect, QSize, QTimer,\
-                PYQT_VERSION_STR, QPointF, QPoint, QObject, QEvent, \
+                PYQT_VERSION_STR, QPointF, QPoint, QObject, QEvent, QByteArray,\
                 pyqtSignal, QThread
 from PyQt4.QtGui import *       #TODO: fix imports to parsimonious ones!
 from stats.pyper import R
@@ -36,7 +36,7 @@ from utility.const import __name__,\
     LOAD, LAYERS, DECOM, ANALYSIS, FIN,\
     infoTipsDict, infoWavelets, WT, WV, Models, Tabs, Tooltips, BOTTOM_SPACE,\
     FONTS_DICT, MIN_FORECAST, MAX_FORECAST, DEFAULT_STEPS,\
-    R_BIN, MAX_LVL_TRANSFORM
+    R_BIN, MAX_LVL_TRANSFORM, ARROW_DOWN, GRADIENT,WV_MAX, WV_MIN, PROGRESS
 from utility.guiTweaks import unfillLayout, createSeparator,\
     walkNonGridLayoutShadow, walkGridLayoutShadow, createVerticalSeparator
 from utility.tools import prettifyNames, clearFolderContents, uniqueModels
@@ -88,6 +88,7 @@ class MuScaleMainDialog(QMainWindow):
         self.infoDialog = InfoFrame(self)
         self.messageInfo = SystemMessage(self)
         self.wizard = MuWizard(self.R, self)
+        self.aboutBox = QMessageBox(self)
 
         # geometry #
         self.gem = None
@@ -192,15 +193,10 @@ class MuScaleMainDialog(QMainWindow):
         self.resultingGraph = MplWidget(self.toolsFrame,
                                         toolbar=self.toolbarEnable)
 
-#        self.reconsLayout.addWidget(self.reconTS, 0, 0)
-#        self.reconsLayout.addWidget(self.clearResult, 0, 1)
-#        self.reconsLayout.addWidget(self.infoResult, 0, 2)
-#        self.reconsLayout.addWidget(self.plotInitial, 0, 3)
         self.reconsLayout.addWidget(self.reconTS, 0, 0, 1, 2)
         self.reconsLayout.addWidget(self.clearResult, 1, 0)
         self.reconsLayout.addWidget(self.infoResult, 1, 1)
         self.reconsLayout.addWidget(self.plotInitial, 2, 0, 1, 2)
-#        self.reconsLayout.addWidget(self.resultingGraph, 1, 0, 1, 4)
         self.reconsLayout.addWidget(self.resultingGraph, 3, 0, 1, 2)
 
         self.reconsGroup.setLayout(self.reconsLayout)
@@ -260,7 +256,10 @@ class MuScaleMainDialog(QMainWindow):
         self.toolBar = QToolBar()
         self.statusBar = QStatusBar()
 
-        self.progressBar = QProgressBar()
+#        self.progressBar = QProgressBar()
+        self.progressBar = QLabel()
+        self.gifLoading = QMovie(RES + ICONS + PROGRESS, QByteArray(), self)
+        self.progressBar.setMovie(self.gifLoading)
 
         self.mainLayout = QVBoxLayout(self.centralWidget)
         self.mainLayout.addWidget(self.progressBar)
@@ -319,9 +318,6 @@ class MuScaleMainDialog(QMainWindow):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowIcon(QIcon(RES + ICONS + LOGO))
 
-        self.setStyleSheet('QToolTip { background-color: black; color: white;\
-                                        border: 1px solid white; border-radius: 2px; }')
-
     def initComponents(self):
         # load data items #
         self.toggleManual.setCheckable(True)
@@ -338,8 +334,8 @@ class MuScaleMainDialog(QMainWindow):
         # wavelets #
         self.comboWavelet.addItems(pywt.families())
         self.comboDecomposition.addItems(WT._enums.values())
-        self.spinLevels.setValue(2)
-        self.spinLevels.setRange(2, 10)
+        self.spinLevels.setRange(WV_MIN, WV_MAX)
+        self.spinLevels.setValue(WV_MIN)
         self.wavelistGraph.hide()
         self.scalogramGraph.hide()
         self.showScalogram.hide()
@@ -374,13 +370,19 @@ class MuScaleMainDialog(QMainWindow):
 
         # etc #
         self.toolBar.setIconSize(QSize(ICO_SIZE, ICO_SIZE))
-        self.progressBar.setRange(0, 0)
+        self.gifLoading.setCacheMode(QMovie.CacheAll)
+        self.gifLoading.setSpeed(100)
+        self.progressBar.setAlignment(Qt.AlignCenter)
         self.progressBar.hide()
-        self.progressBar.setMaximumHeight(10)
-        self.progressBar.setStyleSheet('''QProgressBar {
-                                             border: 1px solid grey;
-                                             border-radius: 4px;
-                                         }''')
+        
+#        self.progressBar.setRange(0, 0)
+#        self.progressBar.hide()
+#        self.progressBar.setMaximumHeight(10)
+#        self.progressBar.setStyleSheet('''QProgressBar {
+#                                             border: 1px solid grey;
+#                                             border-radius: 4px;
+#                                         }''')
+
 #                                         QProgressBar::chunk {
 #                                             background-color: black;
 #                                             width: 10px;
@@ -388,6 +390,8 @@ class MuScaleMainDialog(QMainWindow):
 #                                         }''')
         # results #
         self.resultingGraph.hide()
+        self.infoResult.hide()
+        self.clearResult.hide()
         constraint = 18
         self.reconTS.setMaximumHeight(constraint)
         self.infoResult.setMaximumHeight(constraint)
@@ -424,27 +428,177 @@ class MuScaleMainDialog(QMainWindow):
         edit_size = FONTS_DICT['table'][2] + 3
         font = FONTS_DICT['main'][0]
         size = FONTS_DICT['main'][2]
-        self.centralWidget.setStyleSheet('QPushButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                            QComboBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+
+        self.setStyleSheet('''QMainWindow {''' + GRADIENT +
+                        '''}
+                        QToolTip { background-color: black; color: white;
+                                        border: 1px solid white; border-radius: 2px;
+                        }
+                        QMenu {''' + GRADIENT +
+                        '''border: 1px solid #888
+                        }
+                        QMenu::item:selected {
+                            background: #888;
+                        }
+                        QMenuBar {''' + GRADIENT +
+                        '''}
+                        QMenuBar::item {
+                             spacing: 3px;
+                             padding: 1px 4px;
+                             background: transparent;
+                             border-radius: 4px;
+                        }
+                        QMenuBar::item:selected { /* when selected using mouse or keyboard */
+                             background: #a8a8a8;
+                        }
+                        QMenuBar::item:pressed {
+                             background: #888888;
+                        }
+                        QMenuBar::item:hover {
+                             background: #8888aa;
+                        }''')
+
+        self.centralWidget.setStyleSheet('QPushButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
+                                                color: #333;\
+                                                border: 1px solid #555;\
+                                                border-radius: 11px;\
+                                                padding: 2px;\
+                                                background: qradialgradient(cx: 0.3, cy: -0.4,\
+                                                fx: 0.3, fy: -0.4,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                                                min-width: 80px;}\
+                                            QPushButton:hover {\
+                                                color: #fff;\
+                                                background: qradialgradient(cx: 0.3, cy: -0.4,\
+                                                fx: 0.3, fy: -0.4,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                                            QPushButton:pressed {\
+                                                top: 1px;\
+                                                background: qradialgradient(cx: 0.4, cy: -0.1,\
+                                                fx: 0.4, fy: -0.1,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                                            QPushButton:checked {\
+                                                background: qradialgradient(cx: 0.4, cy: -0.1,\
+                                                fx: 0.4, fy: -0.1,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                                            QComboBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
+                                                color: #333;\
+                                                border: 1px solid #555;\
+                                                border-radius: 11px;\
+                                                padding: 1px 18px 1px 3px;\
+                                                background: qradialgradient(cx: 0.3, cy: -0.4,\
+                                                fx: 0.3, fy: -0.4,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                                                min-width: 20px;}\
+                                            QComboBox:hover {\
+                                                color: #fff;\
+                                                background: qradialgradient(cx: 0.3, cy: -0.4,\
+                                                fx: 0.3, fy: -0.4,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                                            QComboBox::down-arrow {\
+                                                 image: url(' + RES + ICONS + ARROW_DOWN + ');}\
+                                            QComboBox::down-arrow:on {\
+                                                 top: 1px;\
+                                                 left: 1px;}\
+                                            QComboBox::drop-down {\
+                                                 subcontrol-origin: padding;\
+                                                 subcontrol-position: top right;\
+                                                 width: 15px;\
+                                                 border-left-width: 1px;\
+                                                 border-left-color: darkgray;\
+                                                 border-left-style: solid;\
+                                                 border-top-right-radius: 3px;\
+                                                 border-bottom-right-radius: 3px;}\
                                             QLabel {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QToolBox::tab {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                                border-radius: 5px;}\
+                                             QToolBox::tab:selected {\
+                                                 font: bold;}\
                                             QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                            QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+                                            QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
+                                                color: #333;\
+                                                border: 1px solid #555;\
+                                                border-radius: 11px;\
+                                                padding: 2px;\
+                                                background: qradialgradient(cx: 0.3, cy: -0.4,\
+                                                fx: 0.3, fy: -0.4,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                                                min-width: 20px;}\
+                                            QToolButton:hover {\
+                                                color: #fff;\
+                                                background: qradialgradient(cx: 0.3, cy: -0.4,\
+                                                fx: 0.3, fy: -0.4,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                                            QToolButton:pressed {\
+                                                background: qradialgradient(cx: 0.4, cy: -0.1,\
+                                                fx: 0.4, fy: -0.1,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                                            QToolButton:checked {\
+                                                background: qradialgradient(cx: 0.4, cy: -0.1,\
+                                                fx: 0.4, fy: -0.1,\
+                                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
                                             QCheckBox {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QGroupBox::title {font-family: ' + font + '; \
                                                                             font-size: ' + str(size) + 'px;}\
                                             QTextEdit {font-family: ' + edit_font + '; \
                                                                             font-size: ' + str(edit_size) + 'px;}\
                                             QToolTip {font-family: ' + font_tooltip + '; \
-                                                                            font-size: ' + str(tooltip_size) + 'px;}')
+                                                                            font-size: ' + str(tooltip_size) + 'px;}\
+                                            QGroupBox {' + GRADIENT + '}')
 
-        self.toolBar.setStyleSheet('QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
+        self.toolBar.setStyleSheet('QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
+                                        border: none;\
+                                        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
+                                                    stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,\
+                                                    stop: 0.39999 #717171, stop: 0.4 #626262,\
+                                                    stop: 0.9 #4c4c4c, stop: 1 #333333);\
+                                    }\
                                     QToolTip {font-family: ' + font_tooltip + '; font-size: ' +
-                                   str(tooltip_size) + 'px;}')
+                                    str(tooltip_size) + 'px;}')
 
-        self.menuBar.setStyleSheet('QMenu {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
+
+#        self.menuBar.setStyleSheet('QMenu {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
 
         self.statusBar.setStyleSheet('QStatusBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
+
+        # about #
+        self.R('ver <- R.Version()$version.string')
+        #NB: dirty hack (does not work)
+        self.aboutBox.layout().itemAt(1).widget().setOpenExternalLinks(True)
+        self.aboutBox.layout().itemAt(1).widget().setAlignment(Qt.AlignRight)
+
+        self.aboutBox.setTextFormat(Qt.RichText)
+        self.aboutBox.setText('Version:\t<b>' + __version__ + '</b><br/>Python:\t<b>' +
+                              platform.python_version() +
+                          '</b><br/>QtCore:\t<b>' + PYQT_VERSION_STR +
+                          '</b><br/>R:\t<b>' + self.R.ver.split()[2] +
+                          '</b><br/>' + '-' * 14 +
+                          '<br/>Platform:\t' + platform.system() + ' ' + platform.release() +
+                          '<br/>Author:\t' + 'Artiom Basenko' +
+                          '<br/><a href="github.com/Xifax/muscale">muscale@github</a>')
+        self.aboutBox.setWindowTitle('About muScale')
+        self.aboutBox.setStyleSheet('''QMessageBox { ''' + GRADIENT +
+                                    '''}
+                                    QPushButton {
+                                        color: #333;
+                                        border: 1px solid #555;
+                                        border-radius: 11px;
+                                        padding: 2px;
+                                        background: qradialgradient(cx: 0.3, cy: -0.4,
+                                        fx: 0.3, fy: -0.4,
+                                        radius: 1.35, stop: 0 #fff, stop: 1 #888);
+                                        min-width: 80px;}
+                                    QPushButton:hover {
+                                        color: #fff;
+                                        background: qradialgradient(cx: 0.3, cy: -0.4,
+                                        fx: 0.3, fy: -0.4,
+                                        radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}
+                                    QPushButton:pressed {
+                                        top: 1px;
+                                        background: qradialgradient(cx: 0.4, cy: -0.1,
+                                        fx: 0.4, fy: -0.1,\
+                                        radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}''')
+        self.aboutBox.setIconPixmap(QPixmap(RES + ICONS + LOGO))
 
         # tray #
         self.trayIcon.setToolTip(u'Ensconced in system tray, μScale awaits')
@@ -856,6 +1010,10 @@ class MuScaleMainDialog(QMainWindow):
             swt = False
         else:
             swt = True
+            # check if odd
+            if len(self.currentDataSet[0]) % 2 == 1:
+                self.currentDataSet = ([0.0] + self.currentDataSet[0], self.currentDataSet[1])
+                
         lvl = calculate_suitable_lvl(self.currentDataSet[0],
                                      pywt.Wavelet(unicode(self.comboWavelist.currentText())), self.R, swt)
         self.spinLevels.setValue(lvl + 1)
@@ -865,6 +1023,7 @@ class MuScaleMainDialog(QMainWindow):
         self.comboWavelist.clear()
         self.comboWavelist.addItems(pywt.wavelist(self.comboWavelet.currentText()))
         self.comboWavelet.setToolTip(infoWavelets[unicode(self.comboWavelet.currentText())])
+        self.updateWaveletPreview()
 
     def updateWaveletPreview(self):
         self.comboWavelist.setToolTip("<img src='" + RES + WV + self.comboWavelist.currentText() + "'.png'>")
@@ -914,6 +1073,9 @@ class MuScaleMainDialog(QMainWindow):
                 self.wCoefficients = self.wInitialCoefficients[:]
             # stationary
             elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
+                # check if odd
+                if len(self.currentDataSet[0]) % 2 == 1:
+                    self.currentDataSet = ([0.0] + self.currentDataSet[0], self.currentDataSet[1])
                 self.wInitialCoefficients = pywt.swt(self.currentDataSet[0], self.wavelet, level=w_level)
                 self.wCoefficients = select_levels_from_swt(self.wInitialCoefficients)
                 self.isSWT = True
@@ -1152,7 +1314,7 @@ class MuScaleMainDialog(QMainWindow):
             # graph widget
             self.modelLayout.addWidget(componentPreview, i, 0, 1, 4); i += 1
 
-        resetModel = QPushButton('Reset model setup')
+        resetModel = QPushButton('Reset')
         resetModel.clicked.connect(self.resetModel)
         constructModel = QPushButton('&Construct multiscale model')
         constructModel.clicked.connect(self.constructModel)
@@ -1314,9 +1476,10 @@ class MuScaleMainDialog(QMainWindow):
                                           ' MSE: ' + str(errors['mse'])
                                             ])
             except Exception:
-                self.toolsFrame.updateLog(['Unexpected error for model ' + str(model)])
+                self.toolsFrame.updateLog(['unexpected error for model ' + str(model)], True)
             finally:
                 self.progressBar.hide()
+                self.gifLoading.stop()
                 self.inProgress = False
                 self.statusBar.showMessage('Forecast complete.')
 
@@ -1333,6 +1496,7 @@ class MuScaleMainDialog(QMainWindow):
                 self.model_thread.start()
                 self.inProgress = True
                 self.progressBar.show()
+                self.gifLoading.start()
                 self.statusBar.showMessage('Forecasting...')
 
         def resetModel():
@@ -1384,6 +1548,7 @@ class MuScaleMainDialog(QMainWindow):
             finally:
                 self.messageInfo.showInfo('Simulation completed')
                 self.progressBar.hide()
+                self.gifLoading.stop()
                 self.inProgress = False
                 self.statusBar.showMessage('Forecast complete.')
 
@@ -1399,6 +1564,7 @@ class MuScaleMainDialog(QMainWindow):
                 self.multi_model_thread.start()
                 self.inProgress = True
                 self.progressBar.show()
+                self.gifLoading.start()
                 self.statusBar.showMessage('Forecasting...')
                 
                 self.tmpConfig['steps'] = forecastSteps.value()
@@ -1999,6 +2165,9 @@ class MuScaleMainDialog(QMainWindow):
                 self.messageInfo.showInfo(message, True)
                 self.toolsFrame.updateLog([message], True)
                 log.exception(e)
+            finally:
+                self.clearResult.show()
+                self.infoResult.show()
 
     def updateResultingTSWithInitialData(self):
         #TODO: add information regarding processed levels
@@ -2029,15 +2198,7 @@ class MuScaleMainDialog(QMainWindow):
             self.infoDialog.hide()
             
     def showAbout(self):
-        self.R('ver <- R.Version()$version.string')
-        QMessageBox.about(self, 'About muScale',
-                          'Version:\t' + __version__ + '\nPython:\t' + platform.python_version() +
-                          '\nQtCore:\t' + PYQT_VERSION_STR +
-                          '\nR:\t' + self.R.ver.split()[2] +
-#                          '\n' + '  ' + '-' * 22 + # mmm, magic number!
-                          '\n' + '  ' * 10 + '***'
-                            '\nPlatform:\t' + platform.system() + ' ' + platform.release() +
-                            '\nAuthor:\t' + 'Artiom Basenko')
+        self.aboutBox.show()
 
     def closeEvent(self, event):
         if self.hidetoTray.isChecked() and self.forbidClose:
@@ -2145,9 +2306,12 @@ class MultiModelThread(QThread):
 
     def run(self):
         for model in self.models:
-            self.results.append((model, 
-                                 calculateForecast(self.models[model],
-                                                          self.data[model],
-                                        self.r, self.steps, self.options)))
+            try:
+                self.results.append((model,
+                                     calculateForecast(self.models[model],
+                                                              self.data[model],
+                                            self.r, self.steps, self.options)))
+            except Exception, e:
+                print e, model
 
         self.done.emit(self.results)

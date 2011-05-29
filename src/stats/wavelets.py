@@ -294,6 +294,9 @@ def copy_non_uniform_shape(coeffs):
     for element in coeffs:
         new_element = array(element, copy = True)
         new_element.resize(dimension, refcheck = False)
+        if isinstance(new_element, str):
+            if new_element.strip() == '':
+                new_element = 0
         new_coeffs[i] = new_element; i += 1
     return copy(new_coeffs)
 

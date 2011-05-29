@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.3.8'
+__version__ = '0.4.5'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -63,6 +63,7 @@ ABOUT = 'about.png'
 QUIT = 'quit.png'
 SHOW = 'show.png'
 RESET = 'delete.png'
+ARROW_DOWN = 'arrow_down.png'
 
 # phase icons #
 LOAD = 'load.png'
@@ -249,6 +250,8 @@ MAX_FORECAST = 1000
 MIN_FORECAST = 2
 DEFAULT_STEPS = 20
 MAX_LVL_TRANSFORM = 10
+WV_MIN = 2
+WV_MAX = 10
 
 #---- preview generation ---#
 LINE_WITH = 0.9
@@ -263,3 +266,11 @@ FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
               'table': ('Dekar', 'otf', 12),
               'warn': ('Anonymous', 'ttf', 9),
             }
+
+#---------- styles ---------#
+#GRADIENT = 'background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,\
+#                                         stop:0 rgba(250, 253, 255, 255),\
+#                                         stop:1 rgba(192, 206, 215, 255));'
+GRADIENT = 'background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,\
+                                         stop:0 #eeeeee ,\
+                                         stop:1 #cccccc  );'

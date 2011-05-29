@@ -262,16 +262,19 @@ def auto_model(data, r, options, ts=None):
                 r('d <- mean(sd[1:length(sd) - 1])')
                 dispersion.append(r.d)
 
-        trend_lvl = dispersion.index(max(dispersion))
+        try:
+            trend_lvl = dispersion.index(max(dispersion))
 
-        # ~ Hurst Coefficient (spectral density): non-stationarity
-        if data is not None:
-            r('hc_ts <- FDWhittle( %s )' % Str4R(ts))
-            r('hc_lvl <- FDWhittle( %s )' % Str4R(data[trend_lvl]))
-            if r.hc_ts > r.hc_lvl:
-                models[trend_lvl] = Models.ETS
-            else:
-                models[trend_lvl] = Models.Holt_Winters
+            # ~ Hurst Coefficient (spectral density): non-stationarity
+            if data is not None:
+                r('hc_ts <- FDWhittle( %s )' % Str4R(ts))
+                r('hc_lvl <- FDWhittle( %s )' % Str4R(data[trend_lvl]))
+                if r.hc_ts > r.hc_lvl:
+                    models[trend_lvl] = Models.ETS
+                else:
+                    models[trend_lvl] = Models.Holt_Winters
+        except Exception:
+            pass
 
         # ~ fluctuation: outliers, trend/decomposition limit
         fluctuation = []

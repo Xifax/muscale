@@ -56,7 +56,10 @@ Created on Mar 9, 2011
 ####################################
 
 #TODO: finish wizard
+#TODO: specify shortcuts index
+#TODO: fix sse, mse calculation errors
 #TODO: complete methodical specification
+#TODO: fix error in modelling thread (model index out of data range)
 #TODO: tweaks and fixes (todos in all the modules): forecast info, tooltips, ts conversion
 
 ####################################

@@ -19,7 +19,7 @@ from utility.const import T_WIDTH, T_HEIGHT, FONTS_DICT
 from utility.tools import checkParentheses
 from utility.const import LABEL_VISIBLE, FLASH_LABEL,\
                         RES, ICONS, CLEAR, GRAPH, COPY, CONTROLS,\
-                        ELEMENTS, CUT, SERIES, SCALE, TEMP
+                        ELEMENTS, CUT, SERIES, SCALE, TEMP, GRADIENT
 from utility.log import log
 
 class StatusFilter(QObject):
@@ -180,6 +180,94 @@ class ToolsFrame(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
 
     def initComponents(self):
+        self.setStyleSheet('''QGroupBox {''' + GRADIENT +
+                            '''}
+                            QPushButton {
+                                color: #333;
+                                border: 1px solid #555;
+                                border-radius: 11px;
+                                padding: 2px;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #888);
+                                min-width: 80px;
+                            }
+                            QPushButton:hover {
+                                color: #fff;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}
+                            QPushButton:pressed {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}
+                            QPushButton:checked {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}
+                            QToolButton {
+                                color: #333;
+                                border: 1px solid #555;
+                                border-radius: 11px;
+                                padding: 2px;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #888);
+                                min-width: 20px;
+                            }
+                            QToolButton:hover {
+                                color: #fff;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+                            }
+                            QToolButton:pressed {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+                            }
+                            QToolButton:checked {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+                            }
+                            QTabWidget::tab-bar {
+                                alignment: center;
+                            }
+                            QTabBar::tab {''' + GRADIENT +
+                                 '''border: 1px solid #C4C4C3;
+                                 border-bottom-color: #C2C7CB;
+                                 border-bottom-left-radius: 4px;
+                                 border-bottom-right-radius: 4px;
+                                 min-width: 16ex;
+                                 padding: 2px;
+                            }
+                            QTabBar::tab:selected, QTabBar::tab:hover {
+                                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                             stop: 0 #fafafa, stop: 0.4 #f4f4f4,
+                                                             stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);
+                            }
+                            QTabBar::tab:selected {
+                                 border-color: #9B9B9B;
+                                 border-bottom-color: #C2C7CB;
+                            }
+                            QTabBar::tab:!selected {
+                                 margin-bottom: 2px;
+                            }
+                            QTabBar::tab:selected {
+                                 margin-left: -4px;
+                                 margin-right: -4px;
+                            }
+                            QTabBar::tab:first:selected {
+                                 margin-left: 0;
+                            }
+                            QTabBar::tab:last:selected {
+                                 margin-right: 0;
+                            }
+                            QTabBar::tab:only-one {
+                                 margin: 0;
+                            }''')
+
         # layout and tabs
         self.toolTabs.setTabPosition(QTabWidget.South)
 

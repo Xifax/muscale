@@ -13,7 +13,8 @@ from xlwt import Workbook, Alignment, XFStyle, Font, Borders
 
 # own #
 from utility.const import RES, ICONS, LOGO, DATA_LOW_LIMIT, FONTS_DICT, \
-                            MIN_FORECAST, MAX_FORECAST, PROGRESS
+                            MIN_FORECAST, MAX_FORECAST, PROGRESS,\
+                            ARROW_DOWN, GRADIENT
 from stats.parser import DataParser
 from stats.wavelets import calculate_suitable_lvl
 from stats.models import auto_model, calculateForecast
@@ -60,6 +61,80 @@ class MuWizard(QWizard):
 
 #        test = QLabel('lalala')
 #        self.setSideWidget(test)
+
+        self.setStyleSheet('QWizard {' + GRADIENT +'}\
+                        QPushButton {\
+                            color: #333;\
+                            border: 1px solid #555;\
+                            border-radius: 11px;\
+                            padding: 2px;\
+                            background: qradialgradient(cx: 0.3, cy: -0.4,\
+                            fx: 0.3, fy: -0.4,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                            min-width: 80px;}\
+                        QPushButton:hover {\
+                            color: #fff;\
+                            background: qradialgradient(cx: 0.3, cy: -0.4,\
+                            fx: 0.3, fy: -0.4,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                        QPushButton:pressed {\
+                            background: qradialgradient(cx: 0.4, cy: -0.1,\
+                            fx: 0.4, fy: -0.1,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                        QPushButton:checked {\
+                            background: qradialgradient(cx: 0.4, cy: -0.1,\
+                            fx: 0.4, fy: -0.1,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                        QComboBox {\
+                            color: #333;\
+                            border: 1px solid #555;\
+                            border-radius: 11px;\
+                            padding: 1px 18px 1px 3px;\
+                            background: qradialgradient(cx: 0.3, cy: -0.4,\
+                            fx: 0.3, fy: -0.4,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                            min-width: 20px;}\
+                        QComboBox:hover {\
+                            color: #fff;\
+                            background: qradialgradient(cx: 0.3, cy: -0.4,\
+                            fx: 0.3, fy: -0.4,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                        QComboBox::down-arrow {\
+                             image: url(' + RES + ICONS + ARROW_DOWN + ');}\
+                        QComboBox::down-arrow:on {\
+                             top: 1px;\
+                             left: 1px;}\
+                        QComboBox::drop-down {\
+                             subcontrol-origin: padding;\
+                             subcontrol-position: top right;\
+                             width: 15px;\
+                             border-left-width: 1px;\
+                             border-left-color: darkgray;\
+                             border-left-style: solid;\
+                             border-top-right-radius: 3px;\
+                             border-bottom-right-radius: 3px;}\
+                         QToolButton {\
+                            color: #333;\
+                            border: 1px solid #555;\
+                            border-radius: 11px;\
+                            padding: 2px;\
+                            background: qradialgradient(cx: 0.3, cy: -0.4,\
+                            fx: 0.3, fy: -0.4,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                            min-width: 20px;}\
+                        QToolButton:hover {\
+                            color: #fff;\
+                            background: qradialgradient(cx: 0.3, cy: -0.4,\
+                            fx: 0.3, fy: -0.4,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                        QToolButton:pressed {\
+                            background: qradialgradient(cx: 0.4, cy: -0.1,\
+                            fx: 0.4, fy: -0.1,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                        QToolButton:checked {\
+                            background: qradialgradient(cx: 0.4, cy: -0.1,\
+                            fx: 0.4, fy: -0.1,\
+                            radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}')
 
     def introPage(self):
         intro = QWizardPage()
@@ -479,11 +554,12 @@ class SeriesPreview(QDialog):
         self.layout.addWidget(self.cancel, 1, 1)
         self.setLayout(self.layout)
 
-        self.setWindowFlags(Qt.CustomizeWindowHint)
         self.initComponents()
         self.initActions()
 
     def initComponents(self):
+        self.setWindowFlags(Qt.Tool)
+        self.setWindowTitle("Time series")
         self.list.setAlternatingRowColors(True)
         self.list.setStyleSheet('''QListView::item:selected:active {
                  background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);
@@ -583,11 +659,85 @@ class CustomOption(QDialog):
         self.enableDisable()
 
      def initComponents(self):
-        self.setWindowFlags(Qt.CustomizeWindowHint)
+        self.setWindowFlags(Qt.Tool)
+        self.setWindowTitle('Custom settings')
         self.waveletFamily.addItems(pywt.families())
         self.signalEx.addItems(pywt.MODES.modes)
         self.periodic.clicked.connect(self.showFrequency)
         self.options['enable'] = False
+        
+        self.setStyleSheet('QPushButton {\
+                    color: #333;\
+                    border: 1px solid #555;\
+                    border-radius: 11px;\
+                    padding: 2px;\
+                    background: qradialgradient(cx: 0.3, cy: -0.4,\
+                    fx: 0.3, fy: -0.4,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                    min-width: 80px;}\
+                QPushButton:hover {\
+                    color: #fff;\
+                    background: qradialgradient(cx: 0.3, cy: -0.4,\
+                    fx: 0.3, fy: -0.4,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                QPushButton:pressed {\
+                    background: qradialgradient(cx: 0.4, cy: -0.1,\
+                    fx: 0.4, fy: -0.1,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                QPushButton:checked {\
+                    background: qradialgradient(cx: 0.4, cy: -0.1,\
+                    fx: 0.4, fy: -0.1,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                QComboBox {\
+                    color: #333;\
+                    border: 1px solid #555;\
+                    border-radius: 11px;\
+                    padding: 1px 18px 1px 3px;\
+                    background: qradialgradient(cx: 0.3, cy: -0.4,\
+                    fx: 0.3, fy: -0.4,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                    min-width: 20px;}\
+                QComboBox:hover {\
+                    color: #fff;\
+                    background: qradialgradient(cx: 0.3, cy: -0.4,\
+                    fx: 0.3, fy: -0.4,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                QComboBox::down-arrow {\
+                     image: url(' + RES + ICONS + ARROW_DOWN + ');}\
+                QComboBox::down-arrow:on {\
+                     top: 1px;\
+                     left: 1px;}\
+                QComboBox::drop-down {\
+                     subcontrol-origin: padding;\
+                     subcontrol-position: top right;\
+                     width: 15px;\
+                     border-left-width: 1px;\
+                     border-left-color: darkgray;\
+                     border-left-style: solid;\
+                     border-top-right-radius: 3px;\
+                     border-bottom-right-radius: 3px;}\
+                QToolButton {\
+                    color: #333;\
+                    border: 1px solid #555;\
+                    border-radius: 11px;\
+                    padding: 2px;\
+                    background: qradialgradient(cx: 0.3, cy: -0.4,\
+                    fx: 0.3, fy: -0.4,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #888);\
+                    min-width: 20px;}\
+                QToolButton:hover {\
+                    color: #fff;\
+                    background: qradialgradient(cx: 0.3, cy: -0.4,\
+                    fx: 0.3, fy: -0.4,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
+                QToolButton:pressed {\
+                    background: qradialgradient(cx: 0.4, cy: -0.1,\
+                    fx: 0.4, fy: -0.1,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
+                QToolButton:checked {\
+                    background: qradialgradient(cx: 0.4, cy: -0.1,\
+                    fx: 0.4, fy: -0.1,\
+                    radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}')
 
      def initActions(self):
         self.apply.clicked.connect(self.saveOptions)

@@ -45,8 +45,12 @@ class DataParser():
         parseErrors = 0
 
         parsed = DataParser.readDataByTemplate(data, template)
+        separators = ['\n', '.', ',', ';']
         if len(parsed) < DATA_LOW_LIMIT:
-            parsed = DataParser.readDataByTemplate(data, '\n')
+            for separator in separators:
+                parsed = DataParser.readDataByTemplate(data, separator)
+                if len(parsed) >= DATA_LOW_LIMIT:
+                    break
 
         for element in parsed:
             if element != '':
