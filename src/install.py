@@ -92,7 +92,10 @@ def download_and_install(file_url, options=''):
         file = downloadWithProgressbar(file_url)
         print 'Download complete, now launching...'
         subprocess.call('./' + file + ' ' + options)
-        os.remove('./' + file)
+        try:
+            os.remove('./' + file)
+        except Exception, e:
+            print e
 try:
     from setuptools.command import easy_install
 except ImportError:
@@ -106,6 +109,8 @@ def install_with_easyinstall(package):
     try:
         if package == 'PyWavelets':
             __import__('pywt')
+        elif package == 'PIL':
+            __import__('Image')
         else: __import__(package)
         in_system.append(package)
     except ImportError:

@@ -214,7 +214,7 @@ R_BIN = R_PATH + 'bin/R'
 R_LIB = R_PATH + 'library/'
 R_COMPONENTS = '"main, i386"'
 
-r_packages = ['forecast', 'timsac', 'stats', 'fractaldim', 'entropy', 'fractal']
+r_packages = ['forecast', 'timsac', 'stats', 'fractaldim', 'entropy', 'fractal', 'ftsa']
 
 #----- here be options -----#
 # sections
