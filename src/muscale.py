@@ -55,12 +55,17 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
+#TODO: use ftsa for errors calculation
+#TODO: allow custom interval for error calculation
 #TODO: finish wizard
+#TODO: fix update DWT (l.325, wavelets)
 #TODO: specify shortcuts index
 #TODO: fix sse, mse calculation errors
 #TODO: complete methodical specification
 #TODO: fix error in modelling thread (model index out of data range)
 #TODO: tweaks and fixes (todos in all the modules): forecast info, tooltips, ts conversion
+#TODO: complete qss (spinbox)
+#TODO: refactor qss (move blocks to const)
 
 ####################################
 #            Dependencies          #

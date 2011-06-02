@@ -155,7 +155,6 @@ if __name__ == '__main__':
             except Exception, e:
                 print e
 
-
     print 'Install/Update complete. Status:\n'
     print '\n'.join(installed), '\n\n(total installed: ' + str(len(installed)) + ')\n'
     print '------------ # # # ------------'

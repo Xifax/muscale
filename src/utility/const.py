@@ -26,8 +26,8 @@ WIDTH = 640
 HEIGHT = 700
 
 #------ tools dialog ------#
-T_WIDTH = 400
-T_HEIGHT = HEIGHT
+T_WIDTH = 300
+T_HEIGHT = 200
 
 #------ info dialog -------#
 I_WIDTH = 200
@@ -259,7 +259,7 @@ LINE_WITH = 0.9
 #-------- typefaces --------#
 # application (typeface, format, size)
 FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
-              'info': ('Droid Sans', 'ttf', 9),
+              'info': ('Academy', 'otf', 11),
               'message': ('Consolas', 'ttf', 9),
               'log': ('Droid Serif', 'ttf', 9),
               'splash': ('GreyscaleBasic', 'ttf', 10),
@@ -268,9 +268,6 @@ FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
             }
 
 #---------- styles ---------#
-#GRADIENT = 'background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,\
-#                                         stop:0 rgba(250, 253, 255, 255),\
-#                                         stop:1 rgba(192, 206, 215, 255));'
 GRADIENT = 'background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,\
                                          stop:0 #eeeeee ,\
                                          stop:1 #cccccc  );'

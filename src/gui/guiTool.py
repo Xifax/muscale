@@ -266,6 +266,131 @@ class ToolsFrame(QWidget):
                             }
                             QTabBar::tab:only-one {
                                  margin: 0;
+                            }
+                            QLineEdit {
+                            border: 2px solid gray;
+                                    border-radius: 6px;
+                            }
+                            QLineEdit:focus {
+                                selection-color: white;
+                                selection-background-color: gray;
+                                border: 2px solid black;
+                                border-radius: 6px;
+                            }
+                            QScrollBar:vertical {
+                              width: 20px;
+                              border: 1px solid grey;
+                              border-radius: 6px;
+                              background-color: transparent;
+                              margin: 28px 0 28px 0;
+                            }
+                            QScrollBar::add-line:vertical {
+                              background: transparent;
+                              height: 32px;
+                              subcontrol-position: bottom;
+                              subcontrol-origin: margin;
+                            }
+                            QScrollBar::sub-line:vertical {
+                              background: transparent;
+                              height: 32px;
+                              subcontrol-position: top;
+                              subcontrol-origin: margin;
+                            }
+                            QScrollBar::up-arrow:vertical {
+                              width: 20px;
+                              height: 32px;
+                              background: transparent;
+                              image: url(../res/icons/arrow_up.png);
+                            }
+                            QScrollBar::up-arrow:hover {
+                              bottom: 2px;
+                            }
+                            QScrollBar::down-arrow:vertical {
+                              width: 20px;
+                              height: 32px;
+                              background: transparent;
+                              image: url(../res/icons/arrow_down.png);
+                            }
+                            QScrollBar::down-arrow:hover {
+                              top: 2px;
+                            }
+                            QScrollBar::handle:vertical {
+                                border-radius: 6px;
+                                background: url(../res/icons/handle.png) 0% center no-repeat;
+                                background-color: white;
+                                min-height: 32px;
+                            }
+                            QScrollBar::handle:hover {
+                                background: url(../res/icons/handle_hover.png) 0% center no-repeat;
+                                background-color: white;
+                                border: 1px solid gray;
+                            }
+                            QScrollBar:horizontal {
+                              height: 20px;
+                              border: 1px solid grey;
+                              border-radius: 6px;
+                              background-color: transparent;
+                              margin: 0 28px 0 28px;
+                            }
+                            QScrollBar::add-line:horizontal {
+                              background: transparent;
+                              width: 32px;
+                              subcontrol-position: right;
+                              subcontrol-origin: margin;
+                            }
+                            QScrollBar::sub-line:horizontal {
+                              background: transparent;
+                              width: 32px;
+                              subcontrol-position: left;
+                              subcontrol-origin: margin;
+                            }
+                            QScrollBar::left-arrow:horizontal {
+                              width: 32px;
+                              height: 20px;
+                              background: transparent;
+                              image: url(../res/icons/arrow_left.png);
+                            }
+                            QScrollBar::left-arrow:hover {
+                              right: 2px;
+                            }
+                            QScrollBar::right-arrow:horizontal {
+                              width: 32px;
+                              height: 20px;
+                              background: transparent;
+                              image: url(../res/icons/arrow_right.png);
+                            }
+                            QScrollBar::right-arrow:hover {
+                              left: 2px;
+                            }
+                            QScrollBar::handle:horizontal {
+                                border-radius: 6px;
+                                background: url(../res/icons/handle.png) 0% center no-repeat;
+                                background-color: white;
+                                min-width: 32px;
+                            }
+                            QCheckBox::indicator {
+                                 width: 16px;
+                                 height: 16px;
+                            }
+                            QCheckBox::indicator:unchecked {
+                                 image: url(../res/icons/checkbox_no.png);
+                            }
+                            QCheckBox::indicator:checked {
+                                 image: url(../res/icons/checkbox_yes.png);
+                            }
+                            QCheckBox::indicator:unchecked:pressed {
+                                 image: url(../res/icons/checkbox_pressed.png);
+                            }
+                            QCheckBox::indicator:unchecked:hover {
+                                 background: gray;
+                                 border-radius: 4px;
+                            }
+                            QCheckBox::indicator:checked:pressed {
+                                 image: url(../res/icons/checkbox_pressed.png);
+                            }
+                            QCheckBox::indicator:checked:hover {
+                                 background: gray;
+                                 border-radius: 4px;
                             }''')
 
         # layout and tabs
@@ -305,6 +430,11 @@ class ToolsFrame(QWidget):
         self.rEnable.setStyleSheet('QLabel { border: none; color: gray; }')
 
         self.rConsole.setReadOnly(True)
+        self.rConsole.setStyleSheet('''QTextEdit::focus {
+                                         border: 2px solid black;
+                                         border-radius: 6px;
+                                    }''')
+
         self.namesList.setHidden(True)
         self.namesList.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.namesList.setAlternatingRowColors(True)
@@ -319,6 +449,10 @@ class ToolsFrame(QWidget):
             QListView::item:hover {
                  background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
                  border: 1px solid #bfcde4;
+            }
+            QListView::focus {
+                 border: 2px solid black;
+                 border-radius: 6px;
             }''')
 
         # hide r components
@@ -363,6 +497,10 @@ class ToolsFrame(QWidget):
             QListView::item:hover {
                  background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
                  border: 1px solid #bfcde4;
+            }
+            QListView::focus {
+                 border: 2px solid black;
+                 border-radius: 6px;
             }''')
 
         # table #
@@ -377,6 +515,10 @@ class ToolsFrame(QWidget):
             QTableView::item:hover {
                  background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
                  border: 1px solid #bfcde4;
+            }
+            QTableView::focus {
+                 border: 2px solid black;
+                 border-radius: 6px;
             }''')
 
         # fonts #

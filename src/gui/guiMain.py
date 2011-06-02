@@ -328,6 +328,10 @@ class MuScaleMainDialog(QMainWindow):
         self.showTable.hide()
         self.clearAll.hide()
         self.separator.hide()
+        self.manualDataInput.setStyleSheet('''QTextEdit::focus {
+                                         border: 2px solid black;
+                                         border-radius: 6px;
+                                        }''')
 
         self.parseResults.setAlignment(Qt.AlignCenter)
 
@@ -375,19 +379,6 @@ class MuScaleMainDialog(QMainWindow):
         self.progressBar.setAlignment(Qt.AlignCenter)
         self.progressBar.hide()
         
-#        self.progressBar.setRange(0, 0)
-#        self.progressBar.hide()
-#        self.progressBar.setMaximumHeight(10)
-#        self.progressBar.setStyleSheet('''QProgressBar {
-#                                             border: 1px solid grey;
-#                                             border-radius: 4px;
-#                                         }''')
-
-#                                         QProgressBar::chunk {
-#                                             background-color: black;
-#                                             width: 10px;
-#                                             margin: 0.5px;
-#                                         }''')
         # results #
         self.resultingGraph.hide()
         self.infoResult.hide()
@@ -399,7 +390,6 @@ class MuScaleMainDialog(QMainWindow):
         self.plotInitial.setMaximumHeight(constraint)
         self.reconsLayout.setSpacing(2)
         self.reconsLayout.setMargin(5)
-#        self.reconsLayout.setAlignment(Qt.AlignCenter)
 
         # tooltips #
         self.setCustomTooltips()
@@ -456,7 +446,138 @@ class MuScaleMainDialog(QMainWindow):
                         }
                         QMenuBar::item:hover {
                              background: #8888aa;
-                        }''')
+                        }
+                        QScrollBar:vertical {
+                          width: 20px;
+                          border: 1px solid grey;
+                          border-radius: 6px;
+                          background-color: transparent;
+                          margin: 28px 0 28px 0;
+                        }
+                        QScrollBar::add-line:vertical {
+                          background: transparent;
+                          height: 32px;
+                          subcontrol-position: bottom;
+                          subcontrol-origin: margin;
+                        }
+                        QScrollBar::sub-line:vertical {
+                          background: transparent;
+                          height: 32px;
+                          subcontrol-position: top;
+                          subcontrol-origin: margin;
+                        }
+                        QScrollBar::up-arrow:vertical {
+                          width: 20px;
+                          height: 32px;
+                          background: transparent;
+                          image: url(../res/icons/arrow_up.png);
+                        }
+                        QScrollBar::up-arrow:hover {
+                          bottom: 2px;
+                        }
+                        QScrollBar::down-arrow:vertical {
+                          width: 20px;
+                          height: 32px;
+                          background: transparent;
+                          image: url(../res/icons/arrow_down.png);
+                        }
+                        QScrollBar::down-arrow:hover {
+                          top: 2px;
+                        }
+                        QScrollBar::handle:vertical {
+                            border-radius: 6px;
+                            background: url(../res/icons/handle.png) 0% center no-repeat;
+                            background-color: white;
+                            min-height: 32px;
+                        }
+                        QScrollBar::handle:hover {
+                            background: url(../res/icons/handle_hover.png) 0% center no-repeat;
+                            background-color: white;
+                            border: 1px solid gray;
+                        }
+                        QScrollBar:horizontal {
+                          height: 20px;
+                          border: 1px solid grey;
+                          border-radius: 6px;
+                          background-color: transparent;
+                          margin: 0 28px 0 28px;
+                        }
+                        QScrollBar::add-line:horizontal {
+                          background: transparent;
+                          width: 32px;
+                          subcontrol-position: right;
+                          subcontrol-origin: margin;
+                        }
+                        QScrollBar::sub-line:horizontal {
+                          background: transparent;
+                          width: 32px;
+                          subcontrol-position: left;
+                          subcontrol-origin: margin;
+                        }
+                        QScrollBar::left-arrow:horizontal {
+                          width: 32px;
+                          height: 20px;
+                          background: transparent;
+                          image: url(../res/icons/arrow_left.png);
+                        }
+                        QScrollBar::left-arrow:hover {
+                          right: 2px;
+                        }
+                        QScrollBar::right-arrow:horizontal {
+                          width: 32px;
+                          height: 20px;
+                          background: transparent;
+                          image: url(../res/icons/arrow_right.png);
+                        }
+                        QScrollBar::right-arrow:hover {
+                          left: 2px;
+                        }
+                        QScrollBar::handle:horizontal {
+                            border-radius: 6px;
+                            background: url(../res/icons/handle.png) 0% center no-repeat;
+                            background-color: white;
+                            min-width: 32px;
+                        }
+                        QCheckBox::indicator {
+                             width: 16px;
+                             height: 16px;
+                        }
+                        QCheckBox::indicator:unchecked {
+                             image: url(../res/icons/checkbox_no.png);
+                        }
+                        QCheckBox::indicator:checked {
+                             image: url(../res/icons/checkbox_yes.png);
+                        }
+                        QCheckBox::indicator:unchecked:pressed {
+                             image: url(../res/icons/checkbox_pressed.png);
+                        }
+                        QCheckBox::indicator:unchecked:hover {
+                             background: gray;
+                             border-radius: 4px;
+                        }
+                        QCheckBox::indicator:checked:pressed {
+                             image: url(../res/icons/checkbox_pressed.png);
+                        }
+                        QCheckBox::indicator:checked:hover {
+                             background: gray;
+                             border-radius: 4px;
+                        } ''')
+#                        QSpinBox::up-arrow {
+#                             image: url(../res/icons/arrow_up.png);
+#                             width: 10px;
+#                             height: 10px;
+#                        }
+#                        QSpinBox::down-arrow {
+#                             image: url(../res/icons/arrow_down.png);
+#                             width: 10px;
+#                             height: 10px;
+#                        }
+#                        QSpinBox::up-button:pressed {
+#                             bottom: 1px;
+#                        }
+#                        QSpinBox::down-button:pressed {
+#                             up: 1px;
+#                        }
 
         self.centralWidget.setStyleSheet('QPushButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
                                                 color: #333;\
