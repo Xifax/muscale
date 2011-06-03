@@ -78,6 +78,7 @@ class MuWizard(QWizard):
                             fx: 0.3, fy: -0.4,\
                             radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
                         QPushButton:pressed {\
+                            color: #800;\
                             background: qradialgradient(cx: 0.4, cy: -0.1,\
                             fx: 0.4, fy: -0.1,\
                             radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\

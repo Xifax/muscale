@@ -259,7 +259,7 @@ LINE_WITH = 0.9
 #-------- typefaces --------#
 # application (typeface, format, size)
 FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
-              'info': ('Academy', 'otf', 11),
+              'info': ('Academy', 'otf', 12),
               'message': ('Consolas', 'ttf', 9),
               'log': ('Droid Serif', 'ttf', 9),
               'splash': ('GreyscaleBasic', 'ttf', 10),

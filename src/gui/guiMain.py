@@ -589,11 +589,14 @@ class MuScaleMainDialog(QMainWindow):
                                                 radius: 1.35, stop: 0 #fff, stop: 1 #888);\
                                                 min-width: 80px;}\
                                             QPushButton:hover {\
+                                                border-style: outset;\
                                                 color: #fff;\
                                                 background: qradialgradient(cx: 0.3, cy: -0.4,\
                                                 fx: 0.3, fy: -0.4,\
                                                 radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
                                             QPushButton:pressed {\
+                                                border-style: inset;\
+                                                color: #800;\
                                                 top: 1px;\
                                                 background: qradialgradient(cx: 0.4, cy: -0.1,\
                                                 fx: 0.4, fy: -0.1,\
@@ -631,9 +634,7 @@ class MuScaleMainDialog(QMainWindow):
                                                  border-top-right-radius: 3px;\
                                                  border-bottom-right-radius: 3px;}\
                                             QLabel {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                            QToolBox::tab {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
-                                                border-radius: 5px;}\
-                                             QToolBox::tab:selected {\
+                                            QToolBox::tab:selected {\
                                                  font: bold;}\
                                             QTooBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}\
                                             QToolButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
@@ -651,6 +652,7 @@ class MuScaleMainDialog(QMainWindow):
                                                 fx: 0.3, fy: -0.4,\
                                                 radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}\
                                             QToolButton:pressed {\
+                                                color: #800;\
                                                 background: qradialgradient(cx: 0.4, cy: -0.1,\
                                                 fx: 0.4, fy: -0.1,\
                                                 radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}\
@@ -715,7 +717,8 @@ class MuScaleMainDialog(QMainWindow):
                                         fx: 0.3, fy: -0.4,
                                         radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}
                                     QPushButton:pressed {
-                                        top: 1px;
+                                        top: 3px;
+                                        color: #800;
                                         background: qradialgradient(cx: 0.4, cy: -0.1,
                                         fx: 0.4, fy: -0.1,\
                                         radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}''')

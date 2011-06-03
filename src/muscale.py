@@ -3,7 +3,7 @@
 Created on Mar 9, 2011
 
 @author: Yadavito
-@version: 0.1.0
+@version: 0.4.5
 @requires: preferably python 2.6.6
 @requires: PyQt 4.8.1
 @requires: R 2.13.0
@@ -55,17 +55,18 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: use ftsa for errors calculation
-#TODO: allow custom interval for error calculation
 #TODO: finish wizard
-#TODO: fix update DWT (l.325, wavelets)
-#TODO: specify shortcuts index
-#TODO: fix sse, mse calculation errors
-#TODO: complete methodical specification
-#TODO: fix error in modelling thread (model index out of data range)
-#TODO: tweaks and fixes (todos in all the modules): forecast info, tooltips, ts conversion
 #TODO: complete qss (spinbox)
-#TODO: refactor qss (move blocks to const)
+#TODO: fix sse, mse calculation errors
+#TODO: fix update DWT (line 325, wavelets)
+#TODO: complete methodical specification
+#TODO: refactor qss (move shared blocks to const)
+#TODO: use ftsa for errors calculation (add to Results Info)
+#TODO: allow custom interval for error calculation
+#TODO: fix error in modelling thread (model index out of data range)
+#TODO: automatic wavelet selection (Auto -> wavelet, decomposition lvl)
+#TODO: specify shortcuts index (and separate help index -> Info context menu)
+#TODO: tweaks and fixes (todos in all the modules): forecast info, tooltips, ts conversion
 
 ####################################
 #            Dependencies          #
@@ -103,6 +104,7 @@ Created on Mar 9, 2011
 # timsac
 # wavethresh
 # wavesim
+# etc.
 
 #--------------- IDE ---------------------#
 # PyCharm ~ /.idea
