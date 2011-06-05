@@ -16,7 +16,7 @@ from utility.const import RES, ICONS, LOGO, DATA_LOW_LIMIT, FONTS_DICT, \
                             MIN_FORECAST, MAX_FORECAST, PROGRESS,\
                             ARROW_DOWN, GRADIENT, TEMP
 from stats.parser import DataParser
-from stats.wavelets import calculate_suitable_lvl, update_dwt
+from stats.wavelets import calculate_suitable_lvl, update_dwt, select_wavelet
 from stats.models import auto_model, calculateForecast
 from gui.graphWidget import MplWidget
 
@@ -248,6 +248,7 @@ Now you're ready to forecast some time series!
         self.showData = QLabel("<font style='font-size: 16px;'>Data</font>")
         
         self.plotResult = MplWidget(None)
+        self.plotResult.canvas.fig.set_facecolor('white')
         self.resData = QLabel('')
         self.resData.setAlignment(Qt.AlignCenter)
         self.resData.setWordWrap(True)
@@ -331,7 +332,9 @@ Now you're ready to forecast some time series!
             self.wCoefficients = self.wInitialCoefficients
         else:
             self.signalEx = pywt.MODES.sp1
-            self.wavelet = pywt.Wavelet(pywt.wavelist(pywt.families()[1])[6])
+            selected = select_wavelet(self.data[0], self.R)
+            index = max(selected)
+            self.wavelet = pywt.Wavelet(selected[index][1])
 
             wLevel = calculate_suitable_lvl(self.data[0],
                                          self.wavelet, self.R, swt=False)
@@ -340,7 +343,8 @@ Now you're ready to forecast some time series!
             self.wCoefficients = self.wInitialCoefficients
 
         statusText += 'Wavelet: <b>' + self.wavelet.family_name + \
-                      '</b> (' + self.wavelet.name + ', ' + self.wavelet.symmetry + ')<br/>'
+                      '</b> (' + self.wavelet.name + ', ' + self.wavelet.symmetry + ', orthognal: ' + \
+                      str(self.wavelet.orthogonal) + ')<br/>'
 
         statusText += 'Discrete Wavelet Transfom: <b>' + str(wLevel + 1) + ' levels</b><br/>'
 
@@ -901,7 +905,6 @@ class CustomOption(QDialog):
 
      def saveOptions(self):
         self.options['enable'] = self.enable.isChecked()
-#        self.options['family'] = self.waveletFamily.currentIndex()
         self.options['wavelet'] = unicode(self.wavelet.currentText())
         self.options['signal'] = unicode(self.signalEx.currentText())
         self.options['lvls'] = self.lvls.value()
@@ -926,15 +929,11 @@ class CustomOption(QDialog):
             self.wavelet.setEnabled(True)
             self.lvls.setEnabled(True)
             self.signalEx.setEnabled(True)
-#            self.periodic.setEnabled(True)
-#            self.frequency.setEnabled(True)
          else:
             self.waveletFamily.setEnabled(False)
             self.wavelet.setEnabled(False)
             self.lvls.setEnabled(False)
             self.signalEx.setEnabled(False)
-#            self.periodic.setEnabled(False)
-#            self.frequency.setEnabled(False)
 
 ## Multi-model forecasting thread.
 class MultiModelThread(QThread):

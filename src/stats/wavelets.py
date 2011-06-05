@@ -15,6 +15,7 @@ from numpy import array, vstack, zeros, copy
 # own #
 from utility.const import RES, WV, LINE_WITH
 from stats.models import entropy
+from stats.pyper import Str4R
 
 def apply_threshold(output, scaler=1., input=None):
     """
@@ -324,6 +325,12 @@ def update_dwt(coeffs, wavelet, mode='sym'):
 
     for d in ds:
         if isinstance(d, collections.Iterable):
+            for index in range(0, len(d)):
+                try:
+                    d[index] = float(d[index])
+                except Exception:
+                    d[index] = float(d[index].split('e')[0])
+                    
             d_copy = copy([float(e) for e in d if e != ''])
 #            d_copy = copy([float(e) for e in d])
             if len(a) != len(d):
@@ -419,9 +426,27 @@ def calculate_suitable_lvl(data, wv, r, swt=True):
 ## Selects suitable wavelet from all possible families and variations.
 #  @param data Data for wavelet decomposition.
 #  @param r PypeR reference.
+#  @param method How to summarise correlation coefficients (by lags).
 #  @return Wavelet family and name.
-def select_wavelet(data, r):
-    pass
+def select_wavelet(data, r, method='median'):
+    comparison = {}
+    level = 5
+    r.initial = data
+    for family in pywt.families():
+        for wv in pywt.wavelist(family):
+            values = pywt.Wavelet(wv).wavefun(level=level)
+            r('coef <- ccf(initial, %s)$acf' % Str4R(values[-2]))   #psi
+            if method == 'mean':
+                r('med <- mean(coef)')
+            elif method == 'sum':
+                r('med <- sum(coef)')
+            elif method == 'median':
+                r('med <- coef[length(coef)/2]')
+            else:
+                r('med <- coef[length(coef)/2]')
+            comparison[r.med] = (family, wv)    #it's okay to rewrite keys
+
+    return comparison
 
 if __name__ == '__main__':
     _plot_wavelet_families(True)

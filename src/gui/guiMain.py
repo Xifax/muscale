@@ -53,7 +53,8 @@ from stats.models import processModel, calculateForecast, initRLibraries, auto_m
                         model_error, model_errors
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
                     normalize_dwt_dimensions, iswt, update_dwt,\
-                    select_node_levels_from_swt, update_swt, calculate_suitable_lvl
+                    select_node_levels_from_swt, update_swt, calculate_suitable_lvl,\
+                    select_wavelet
 from usr.test import test_data
 #from gui.flowLayout import FlowLayout
 
@@ -830,6 +831,24 @@ class MuScaleMainDialog(QMainWindow):
         autoMenu.addAction(QAction('Wavelet', self, triggered=self.selectWavelet))
         autoMenu.addAction(QAction('Levels', self, triggered=self.processLvls))
         autoMenu.addAction(QAction('Both', self, triggered=self.wvAndLVls))
+
+        selectionMethod = QActionGroup(autoMenu)
+        self.sumMethod = QAction('sum', self)
+        self.sumMethod.setCheckable(True)
+        self.sumMethod.setActionGroup(selectionMethod)
+        self.meanMethod = QAction('mean', self)
+        self.meanMethod.setCheckable(True)
+        self.meanMethod.setActionGroup(selectionMethod)
+        self.medianMethod = QAction('median', self)
+        self.medianMethod.setCheckable(True)
+        self.medianMethod.setActionGroup(selectionMethod)
+
+        autoMenu.addSeparator()
+        autoMenu.addAction(self.medianMethod)
+        autoMenu.addAction(self.meanMethod)
+        autoMenu.addAction(self.sumMethod)
+        self.medianMethod.setChecked(True)
+
         self.computeLvls.setMenu(autoMenu)
 
         # tooltips #
@@ -1163,8 +1182,24 @@ class MuScaleMainDialog(QMainWindow):
         self.messageInfo.showInfo('Decomposition set at ' + str(lvl + 1) + ' level(s)')
 
     def selectWavelet(self):
-        pass
-    
+        method = 'median'
+        if self.medianMethod.isChecked():
+            method = 'median'
+        elif self.meanMethod.isChecked():
+            method = 'mean'
+        elif self.sumMethod.isChecked():
+            method = 'sum'
+            
+        res = select_wavelet(self.currentDataSet[0], self.R, method=method)
+        index = max(res)
+        familyIndex = self.comboWavelet.findText(res[index][0])
+        self.comboWavelet.setCurrentIndex(familyIndex)
+        waveltetIndex = self.comboWavelist.findText(res[index][1])
+        self.comboWavelist.setCurrentIndex(waveltetIndex)
+        wInfo = pywt.Wavelet(res[index][1])
+        self.messageInfo.showInfo(wInfo.family_name + ' (' + wInfo.name + ', ' + wInfo.symmetry +
+                                    ', orthogonal: ' + str(wInfo.orthogonal) + ')')
+
     def wvAndLVls(self):
         self.selectWavelet()
         self.processLvls()

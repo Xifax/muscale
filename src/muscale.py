@@ -57,7 +57,6 @@ Created on Mar 9, 2011
 
 #TODO: complete methodical specification
 #TODO: fix error in modelling thread (model index out of data range)
-#TODO: automatic wavelet selection (Auto -> wavelet, decomposition lvl)
 #TODO: specify shortcuts index (and separate help index -> Info context menu)
 #TODO: tweaks and fixes (todos in all the modules): forecast info, tooltips, ts conversion
 
