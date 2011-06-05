@@ -4,6 +4,7 @@ __author__ = 'Michael Marino, Yadavito'
 # internal #
 import math
 import re
+import collections
 
 # external #
 import pywt
@@ -297,7 +298,7 @@ def copy_non_uniform_shape(coeffs):
         if isinstance(new_element, str):
             if new_element.strip() == '':
                 new_element = 0
-        new_coeffs[i] = new_element; i += 1
+        new_coeffs[i] = new_element; i += 1 #Exception!
     return copy(new_coeffs)
 
 ## Rearranges list of DWT coefficients into matrix.
@@ -322,12 +323,14 @@ def update_dwt(coeffs, wavelet, mode='sym'):
     a, ds = coeffs[0], coeffs[1:]
 
     for d in ds:
-        d_copy = copy([float(e) for e in d])
-        if len(a) != len(d):
-            d_copy.resize(len(a), refcheck = False)
+        if isinstance(d, collections.Iterable):
+            d_copy = copy([float(e) for e in d if e != ''])
+#            d_copy = copy([float(e) for e in d])
+            if len(a) != len(d):
+                d_copy.resize(len(a), refcheck = False)
 
-        a = pywt.idwt(a, d_copy, wavelet, mode, 1)
-        resized_coeffs.append(d_copy)
+            a = pywt.idwt(a, d_copy, wavelet, mode, 1)
+            resized_coeffs.append(d_copy)
 
     new_coeffs[0] = coeffs[0]
     new_coeffs[1:] = resized_coeffs
@@ -412,6 +415,13 @@ def calculate_suitable_lvl(data, wv, r, swt=True):
         pass
 
     return lvl
+
+## Selects suitable wavelet from all possible families and variations.
+#  @param data Data for wavelet decomposition.
+#  @param r PypeR reference.
+#  @return Wavelet family and name.
+def select_wavelet(data, r):
+    pass
 
 if __name__ == '__main__':
     _plot_wavelet_families(True)

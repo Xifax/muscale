@@ -22,6 +22,7 @@ from PyQt4.QtGui import *       #TODO: fix imports to parsimonious ones!
 from stats.pyper import R
 import pywt
 from numpy import ndarray
+from pyqtgraph.PlotWidget import PlotWidget
 
 # own #
 from utility.log import log
@@ -48,7 +49,8 @@ from gui.graphWidget import MplWidget
 from gui.faderWidget import StackedWidget
 from gui.guiMessage import SystemMessage
 from gui.muWizard import MuWizard
-from stats.models import processModel, calculateForecast, initRLibraries, auto_model, model_error
+from stats.models import processModel, calculateForecast, initRLibraries, auto_model, \
+                        model_error, model_errors
 from stats.wavelets import select_levels_from_swt, update_selected_levels_swt,\
                     normalize_dwt_dimensions, iswt, update_dwt,\
                     select_node_levels_from_swt, update_swt, calculate_suitable_lvl
@@ -89,6 +91,7 @@ class MuScaleMainDialog(QMainWindow):
         self.messageInfo = SystemMessage(self)
         self.wizard = MuWizard(self.R, self)
         self.aboutBox = QMessageBox(self)
+        self.editDialog = EditData(self)
 
         # geometry #
         self.gem = None
@@ -106,6 +109,7 @@ class MuScaleMainDialog(QMainWindow):
         self.parseResults = QLabel('')
         self.showGraph = QPushButton('Show graph')
         self.showTable = QPushButton('Show table')
+        self.editData = QPushButton('Edit data')
         self.clearAll = QPushButton('Reset data')
 
         self.separator = createSeparator()
@@ -118,6 +122,7 @@ class MuScaleMainDialog(QMainWindow):
         self.loadDataLayout.addWidget(self.parseResults)
         self.loadDataLayout.addWidget(self.showGraph)
         self.loadDataLayout.addWidget(self.showTable)
+        self.loadDataLayout.addWidget(self.editData)
         self.loadDataLayout.addWidget(self.clearAll)
 
         self.loadDataGroup.setLayout(self.loadDataLayout)
@@ -192,12 +197,16 @@ class MuScaleMainDialog(QMainWindow):
         self.infoResult = QPushButton('Info')
         self.resultingGraph = MplWidget(self.toolsFrame,
                                         toolbar=self.toolbarEnable)
+        self.forecastErrors = QLabel('')
+#        self.forecastErrors = QTextEdit('')
+#        self.forecastErrors.setReadOnly(True)
 
         self.reconsLayout.addWidget(self.reconTS, 0, 0, 1, 2)
         self.reconsLayout.addWidget(self.clearResult, 1, 0)
         self.reconsLayout.addWidget(self.infoResult, 1, 1)
         self.reconsLayout.addWidget(self.plotInitial, 2, 0, 1, 2)
-        self.reconsLayout.addWidget(self.resultingGraph, 3, 0, 1, 2)
+        self.reconsLayout.addWidget(self.forecastErrors, 3, 0, 1, 2)
+        self.reconsLayout.addWidget(self.resultingGraph, 4, 0, 1, 2)
 
         self.reconsGroup.setLayout(self.reconsLayout)
 
@@ -256,7 +265,6 @@ class MuScaleMainDialog(QMainWindow):
         self.toolBar = QToolBar()
         self.statusBar = QStatusBar()
 
-#        self.progressBar = QProgressBar()
         self.progressBar = QLabel()
         self.gifLoading = QMovie(RES + ICONS + PROGRESS, QByteArray(), self)
         self.progressBar.setMovie(self.gifLoading)
@@ -327,6 +335,7 @@ class MuScaleMainDialog(QMainWindow):
         self.showGraph.hide()
         self.showTable.hide()
         self.clearAll.hide()
+        self.editData.hide()
         self.separator.hide()
         self.manualDataInput.setStyleSheet('''QTextEdit::focus {
                                          border: 2px solid black;
@@ -380,7 +389,9 @@ class MuScaleMainDialog(QMainWindow):
         self.progressBar.hide()
         
         # results #
+        self.infoResult.setCheckable(True)
         self.resultingGraph.hide()
+        self.forecastErrors.hide()
         self.infoResult.hide()
         self.clearResult.hide()
         constraint = 18
@@ -390,6 +401,8 @@ class MuScaleMainDialog(QMainWindow):
         self.plotInitial.setMaximumHeight(constraint)
         self.reconsLayout.setSpacing(2)
         self.reconsLayout.setMargin(5)
+        self.forecastErrors.setAlignment(Qt.AlignCenter)
+        self.forecastErrors.setWordWrap(True)
 
         # tooltips #
         self.setCustomTooltips()
@@ -534,7 +547,7 @@ class MuScaleMainDialog(QMainWindow):
                         }
                         QScrollBar::handle:horizontal {
                             border-radius: 6px;
-                            background: url(../res/icons/handle.png) 0% center no-repeat;
+                            background: url(../res/icons/handle_horizontal.png) 0% center no-repeat;
                             background-color: white;
                             min-width: 32px;
                         }
@@ -561,23 +574,19 @@ class MuScaleMainDialog(QMainWindow):
                         QCheckBox::indicator:checked:hover {
                              background: gray;
                              border-radius: 4px;
+                        }
+                        QSpinBox::up-button {
+                              image: url(../res/icons/arrow_up.png);
+                              background: transparent;
+                              border: 1px solid gray;
+                              border-radius: 4px;
+                        }
+                        QSpinBox::down-button {
+                              image: url(../res/icons/arrow_down.png);
+                              background: transparent;
+                              border: 1px solid gray;
+                              border-radius: 4px;
                         } ''')
-#                        QSpinBox::up-arrow {
-#                             image: url(../res/icons/arrow_up.png);
-#                             width: 10px;
-#                             height: 10px;
-#                        }
-#                        QSpinBox::down-arrow {
-#                             image: url(../res/icons/arrow_down.png);
-#                             width: 10px;
-#                             height: 10px;
-#                        }
-#                        QSpinBox::up-button:pressed {
-#                             bottom: 1px;
-#                        }
-#                        QSpinBox::down-button:pressed {
-#                             up: 1px;
-#                        }
 
         self.centralWidget.setStyleSheet('QPushButton {font-family: ' + font + '; font-size: ' + str(size) + 'px;\
                                                 color: #333;\
@@ -679,9 +688,6 @@ class MuScaleMainDialog(QMainWindow):
                                     QToolTip {font-family: ' + font_tooltip + '; font-size: ' +
                                     str(tooltip_size) + 'px;}')
 
-
-#        self.menuBar.setStyleSheet('QMenu {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
-
         self.statusBar.setStyleSheet('QStatusBar {font-family: ' + font + '; font-size: ' + str(size) + 'px;}')
 
         # about #
@@ -738,6 +744,7 @@ class MuScaleMainDialog(QMainWindow):
         self.toggleSettings = QAction('Show &options', self)
         self.toggleSettings.triggered.connect(self.viewSettings)
         self.toggleSettings.setCheckable(True)
+        self.editData.clicked.connect(self.showEditDialog)
 
         self.menuBar.addAction(self.toggleSettings)
         self.menuBar.addAction(resetTipsAction)
@@ -818,7 +825,12 @@ class MuScaleMainDialog(QMainWindow):
         self.comboDecomposition.currentIndexChanged.connect(self.updateMaxDLevel)
         self.comboWavelet.currentIndexChanged.connect(self.updateWavelist)
         self.comboWavelist.currentIndexChanged.connect(self.updateWaveletPreview)
-        self.computeLvls.clicked.connect(self.processLvls)
+
+        autoMenu = QMenu()
+        autoMenu.addAction(QAction('Wavelet', self, triggered=self.selectWavelet))
+        autoMenu.addAction(QAction('Levels', self, triggered=self.processLvls))
+        autoMenu.addAction(QAction('Both', self, triggered=self.wvAndLVls))
+        self.computeLvls.setMenu(autoMenu)
 
         # tooltips #
         self.statTools.currentChanged.connect(self.updateInfoTooltips)
@@ -827,6 +839,7 @@ class MuScaleMainDialog(QMainWindow):
         self.reconTS.clicked.connect(self.updateResultingTS)
         self.plotInitial.clicked.connect(self.updateResultingTSWithInitialData)
         self.clearResult.clicked.connect(self.clearResultingGraph)
+        self.infoResult.clicked.connect(self.showErrors)
 
         # settings #
         self.applySettings.clicked.connect(self.saveSettings)
@@ -1012,6 +1025,10 @@ class MuScaleMainDialog(QMainWindow):
         else:
             self.messageInfo.showInfo('Would you kindly enter at least something?', True)
 
+    def showEditDialog(self):
+        self.editDialog.updateData(self.currentDataSet)
+        self.editDialog.exec_()
+
     def showParseResults(self):
         if len(self.currentDataSet) == 2:   # data and status
             if len(self.currentDataSet[0]) > DATA_LOW_LIMIT:
@@ -1022,6 +1039,7 @@ class MuScaleMainDialog(QMainWindow):
                 self.showGraph.show()
                 self.showTable.show()
                 self.clearAll.show()
+                self.editData.show()
                 self.separator.show()
 
                 self.statTools.setItemEnabled(int(Tabs.Decomposition), True)
@@ -1056,6 +1074,7 @@ class MuScaleMainDialog(QMainWindow):
         self.showGraph.hide()
         self.showTable.hide()
         self.clearAll.hide()
+        self.editData.hide()
         self.separator.hide()
 
         self.toolsFrame.clearTable()
@@ -1143,6 +1162,13 @@ class MuScaleMainDialog(QMainWindow):
         self.spinLevels.setValue(lvl + 1)
         self.messageInfo.showInfo('Decomposition set at ' + str(lvl + 1) + ' level(s)')
 
+    def selectWavelet(self):
+        pass
+    
+    def wvAndLVls(self):
+        self.selectWavelet()
+        self.processLvls()
+
     def updateWavelist(self):
         self.comboWavelist.clear()
         self.comboWavelist.addItems(pywt.wavelist(self.comboWavelet.currentText()))
@@ -1193,7 +1219,6 @@ class MuScaleMainDialog(QMainWindow):
                 self.signalEx = unicode(self.comboSignalEx.currentText())
                 self.wInitialCoefficients = pywt.wavedec(self.currentDataSet[0], self.wavelet,
                                                          level=w_level, mode=self.signalEx)
-                #TODO: check
                 self.wCoefficients = self.wInitialCoefficients[:]
             # stationary
             elif self.comboDecomposition.currentIndex() is int(WT.StationaryWT) - 1:
@@ -1587,18 +1612,17 @@ class MuScaleMainDialog(QMainWindow):
 
                 self.tmpConfig['steps'] = forecastSteps.value()
 
-                errors = model_error(self.wCoefficients[model], result, self.R)
+                errors = model_errors(self.wCoefficients[model], result, self.R)
 
-                self.messageInfo.showInfo('Resulting errors ~ <i>SSE</i>: ' + str(errors['sse']) +
-                                          ' <i>MSE</i>: ' + str(errors['mse']))
+                self.messageInfo.showInfo('Resulting errors ~ <i>MAPE</i>: %2.2f%% <i>RMSPE</i>: %2.2f%%' %
+                                          (errors['mape'], errors['rmspe']))
 
                 self.toolsFrame.updateLog(['model [lvl ' + str(modelsList.currentIndex()) + '] ' +
                                            prettifyNames([self.multiModel[model]._enumname])[0] +
                                             ': forecast ~ ' + str(forecastSteps.value()) + ' steps'])
 
-                self.toolsFrame.updateLog(['SSE: ' + str(errors['sse']) +
-                                          ' MSE: ' + str(errors['mse'])
-                                            ])
+                self.toolsFrame.updateLog(['MAPE: %2.2f%% RMSPE: %2.2f%%' %
+                                           (errors['mape'], errors['rmspe'])])
             except Exception:
                 self.toolsFrame.updateLog(['unexpected error for model ' + str(model)], True)
             finally:
@@ -1751,13 +1775,17 @@ class MuScaleMainDialog(QMainWindow):
         lblLayout.addWidget(lblSteps)
         lblLayout.setAlignment(Qt.AlignCenter)
 
+        def forecastModelCheck():
+            if autoForecast.isChecked():
+                forecastModel()
+
         forecastSteps = QSpinBox()
         forecastSteps.setRange(MIN_FORECAST, MAX_FORECAST)
         try:
             forecastSteps.setValue(self.tmpConfig['steps'])
         except Exception:
             forecastSteps.setValue(DEFAULT_STEPS)
-        forecastSteps.valueChanged.connect(forecastModel)
+        forecastSteps.valueChanged.connect(forecastModelCheck)
 
         class TestHandle(object):
             pass
@@ -2218,6 +2246,10 @@ class MuScaleMainDialog(QMainWindow):
                 modelOptionsGroupLayout.addLayout(basicLvlLayout)
 
         modelsListLayout.addWidget(simulateButton)
+
+        autoForecast = QCheckBox('Auto')
+
+        modelsListLayout.addWidget(autoForecast)
         modelsListLayout.addWidget(forecastSteps)
 
         # labels
@@ -2252,10 +2284,19 @@ class MuScaleMainDialog(QMainWindow):
         else:
             try:
                 if not self.isSWT:
-                    self.resultingForecast = pywt.waverec(
-                                        update_dwt(self.processedWCoeffs, self.wavelet),
-                                        self.wavelet, mode=self.signalEx)
-                    self.resultingGraph.updatePlot(self.resultingForecast, label='Simulation', color='r')
+                    d = 0
+                    for e in self.processedWCoeffs:
+                        if not isinstance(e, int):
+                            d += 1
+
+                    if d < 2:
+                        self.messageInfo.showInfo('Not enough D coefficients (non-zero: %d of %d): need at least two' %
+                                                  (d, len(self.wCoefficients)), True)
+                    else:
+                        self.resultingForecast = pywt.waverec(
+                                            update_dwt(self.processedWCoeffs, self.wavelet),
+                                            self.wavelet, mode=self.signalEx)
+                        self.resultingGraph.updatePlot(self.resultingForecast, label='Simulation', color='r')
                 else:
                     if self.nodesProcessed:
                              self.resultingGraph.updatePlot(iswt(update_swt(self.wInitialCoefficients,
@@ -2292,15 +2333,39 @@ class MuScaleMainDialog(QMainWindow):
             finally:
                 self.clearResult.show()
                 self.infoResult.show()
+                self.showErrors()
 
     def updateResultingTSWithInitialData(self):
-        #TODO: add information regarding processed levels
         self.resultingGraph.updatePlot(self.currentDataSet[0], label='Initial data', color='b')
         self.resultingGraph.show()
+        self.showErrors()
 
     def clearResultingGraph(self):
         self.resultingGraph.canvas.ax.clear()
         self.resultingGraph.canvas.draw()
+
+    def showErrors(self):
+        if self.infoResult.isChecked():
+            try:
+                errors = model_errors(self.currentDataSet[0], self.resultingForecast, self.R)
+
+                text = '<table border="1" align="center" style="border-style: groove;">'
+                text += '<tr>'
+                for method in errors:
+                    text += '<td align="center"><i>' + method + '</i></td>'
+                text += '</tr><tr>'
+
+                for error in errors.itervalues():
+                    text += '<td align="center">' + str(error) + '</td>'
+                text += '</tr>'
+                text += '</table>'
+
+                self.forecastErrors.setText(text)
+                self.forecastErrors.show()
+            except Exception:
+                self.messageInfo.showInfo('No forecast to analyze')
+        else:
+            self.forecastErrors.hide()
 
 #####################################################
 #------------- utilities and modules ---------------#
@@ -2439,3 +2504,135 @@ class MultiModelThread(QThread):
                 print e, model
 
         self.done.emit(self.results)
+
+class EditData(QDialog):
+    def __init__(self, parent=None):
+        super(EditData, self).__init__(parent)
+
+        self.data = None
+        self.previewData = None
+        self.workingSet = None
+
+        self.list = QListWidget()
+        self.preview = PlotWidget()
+        self.togglePreview = QPushButton('Toggle preview')
+        self.cancel = QPushButton('Close')
+        self.apply = QPushButton('Update')
+
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.togglePreview, 0, 0, 1, 2)
+        self.layout.addWidget(self.preview, 1, 0, 1, 2)
+        self.layout.addWidget(self.list, 2, 0, 1, 2)
+        self.layout.addWidget(self.apply, 3, 0)
+        self.layout.addWidget(self.cancel, 3, 1)
+        self.setLayout(self.layout)
+
+        self.initComponents()
+        self.initActions()
+
+    def initComponents(self):
+        self.setWindowFlags(Qt.Tool)
+        self.setWindowTitle("Time series")
+
+        self.setStyleSheet('''QPushButton {
+                                color: #333;
+                                border: 1px solid #555;
+                                border-radius: 11px;
+                                padding: 2px;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #888);
+                                min-width: 80px;
+                            }
+                            QPushButton:hover {
+                                color: #fff;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}
+                            QPushButton:pressed {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}
+                            QPushButton:checked {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}
+                            QListView::focus {
+                                 border: 2px solid black;
+                                 border-radius: 6px;
+                            }''')
+
+        self.list.setAlternatingRowColors(True)
+        self.list.setStyleSheet('''QListView::item:selected:active {
+                 background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);
+            }
+            QListView::item {
+                border: 1px solid #d9d9d9;
+                border-top-color: transparent;
+                border-bottom-color: transparent;
+            }
+            QListView::item:hover {
+                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
+                 border: 1px solid #bfcde4;
+            }''')
+
+        self.list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.list.setContextMenuPolicy(Qt.ActionsContextMenu)
+
+        self.preview.setMaximumHeight(200)
+        self.preview.hide()
+
+    def initActions(self):
+        self.apply.clicked.connect(self.applyChanges)
+        self.cancel.clicked.connect(self.close)
+
+        self.list.itemDoubleClicked.connect(self.removeFromList)
+        self.list.addAction(QAction('&Remove selected', self, triggered=self.removeItems))
+
+        self.togglePreview.clicked.connect(self.showHidePreview)
+
+    #--- actions ---#
+    def updateData(self, data):
+        self.data = data
+        self.workingSet = data[0][:]
+        self.updateList()
+        self.updatePlot(self.workingSet)
+
+    def updateList(self):
+        self.list.clear()
+        for item in self.workingSet:
+            item = QListWidgetItem(str(item))
+            item.setTextAlignment(Qt.AlignCenter)
+            self.list.addItem(item)
+
+    def updatePlot(self, data, append=False):
+        if not append:
+            if self.previewData is None:
+                self.previewData = self.preview.plot(data)
+            else:
+                self.previewData.updateData(data)
+                self.preview.updateMatrix()
+        else:
+            return self.preview.plot(data)
+
+    def showHidePreview(self):
+        if self.preview.isHidden():
+            self.preview.show()
+        else:
+            self.preview.hide()
+
+    def applyChanges(self):
+        self.data = (self.workingSet, self.data[1])
+        self.parentWidget().currentDataSet = self.data
+        self.close()
+
+    def removeFromList(self, item):
+        self.workingSet.remove(float(item.text()))
+        self.list.takeItem(self.list.indexFromItem(item).row())
+        self.updatePlot(self.workingSet)
+
+    def removeItems(self):
+        for item in self.list.selectedItems():
+            self.workingSet.remove(float(item.text()))
+            self.list.takeItem(self.list.indexFromItem(item).row())
+        self.updatePlot(self.workingSet)

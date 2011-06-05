@@ -6,7 +6,7 @@ from stats.pyper import Str4R
 from numpy import append, zeros, delete
 
 # own #
-from utility.const import Models, r_packages
+from utility.const import Models, r_packages, E_METHODS
 from utility.tools import arrayIndex
 
 # forecast iterations
@@ -312,8 +312,6 @@ def auto_model(data, r, options, ts=None):
 def model_error(data, new_data, r):
     errors = {}
 
-#    r('diff <- abs( length(%s) - length(%s) )' % (Str4R(data), Str4R(new_data)))
-#    r('e <- c( %s, array(0, diff) ) - c( array(0, diff), %s )' % (Str4R(data), Str4R(new_data)))
     r('len <- length( %s )' % Str4R(data))
     r('e <- %s - %s[1:len]' % (Str4R(data), Str4R(new_data)))
 
@@ -325,4 +323,22 @@ def model_error(data, new_data, r):
         errors['sse'] = r.sse
     except Exception:
         pass
+    return errors
+
+## Calculate different erorrs using ftsa.
+def model_errors(data, new_data, r):
+    errors = {}
+    r('len <- length( %s )' % Str4R(data))
+    r('fc <- %s[1:len]' % Str4R(new_data))
+    r.data = data
+    r('fb <- array(0, len)')
+
+    for method in E_METHODS:
+        try:
+#            r('e <- error(forecast=forecast, true=data, method=%s' % Str4R(method))
+            r('e <- error(forecast=fc, forecastbench=fb, true=data, method=%s)' % Str4R(method))
+            errors[method] = r.e
+        except Exception:
+            print method
+
     return errors

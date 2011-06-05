@@ -14,10 +14,11 @@ from xlwt import Workbook, Alignment, XFStyle, Font, Borders
 # own #
 from utility.const import RES, ICONS, LOGO, DATA_LOW_LIMIT, FONTS_DICT, \
                             MIN_FORECAST, MAX_FORECAST, PROGRESS,\
-                            ARROW_DOWN, GRADIENT
+                            ARROW_DOWN, GRADIENT, TEMP
 from stats.parser import DataParser
-from stats.wavelets import calculate_suitable_lvl
+from stats.wavelets import calculate_suitable_lvl, update_dwt
 from stats.models import auto_model, calculateForecast
+from gui.graphWidget import MplWidget
 
 class Filter(QObject):
     def eventFilter(self, object, event):
@@ -41,6 +42,10 @@ class ResFilter(QObject):
         if event.type() == QEvent.MouseButtonPress:
             if str(object.text()).split('>')[1].split('<')[0] == 'Export':
                 object.parent().parent().parent().parent().exportToXls()
+            elif str(object.text()).split('>')[1].split('<')[0] == 'Plot':
+                object.parent().parent().parent().parent().togglePlot()
+            elif str(object.text()).split('>')[1].split('<')[0] == 'Data':
+                object.parent().parent().parent().parent().toggleData()
 
         return False
 
@@ -58,9 +63,6 @@ class MuWizard(QWizard):
         self.addPage(self.resultsPage())
         self.setWindowTitle('Wizard of muScale')
         self.setPixmap(QWizard.LogoPixmap, QPixmap(RES + ICONS + LOGO))
-
-#        test = QLabel('lalala')
-#        self.setSideWidget(test)
 
         self.setStyleSheet('QWizard {' + GRADIENT +'}\
                         QPushButton {\
@@ -241,27 +243,40 @@ Now you're ready to forecast some time series!
         results.setFinalPage(True)
         results.setTitle('Results')
 
-        export = QLabel("<font style='font-size: 16px;'>Plot</font>")
-        graph = QLabel("<font style='font-size: 16px;'>Export</font>")
-        data = QLabel("<font style='font-size: 16px;'>Data</font>")
+        self.graph = QLabel("<font style='font-size: 16px;'>Plot</font>")
+        self.export = QLabel("<font style='font-size: 16px;'>Export</font>")
+        self.showData = QLabel("<font style='font-size: 16px;'>Data</font>")
+        
+        self.plotResult = MplWidget(None)
+        self.resData = QLabel('')
+        self.resData.setAlignment(Qt.AlignCenter)
+        self.resData.setWordWrap(True)
+        self.resData.hide()
 
         self.resFilter = ResFilter()
 
-        layout = QVBoxLayout()
-        layout.addWidget(export)
-        layout.addWidget(graph)
-        layout.addWidget(data)
+        self.resLayout = QVBoxLayout()
+        self.resLayout.addWidget(self.export)
+        self.resLayout.addWidget(self.graph)
+        self.resLayout.addWidget(self.showData)
+        self.resLayout.addWidget(self.plotResult)
+        self.resLayout.addWidget(self.resData)
 
-        for index in range(0, layout.count()):
-            layout.itemAt(index).widget().setAlignment(Qt.AlignCenter)
-            layout.itemAt(index).widget().setStyleSheet('QLabel { color: gray; }')
-            layout.itemAt(index).widget().setAttribute(Qt.WA_Hover)
-            layout.itemAt(index).widget().installEventFilter(self.resFilter)
+        self.plotResult.hide()
 
-        layout.setAlignment(Qt.AlignCenter)
-        layout.setSpacing(50)
+        for index in range(0, self.resLayout.count()):
+            try:
+                self.resLayout.itemAt(index).widget().setAlignment(Qt.AlignCenter)
+                self.resLayout.itemAt(index).widget().setStyleSheet('QLabel { color: gray; }')
+                self.resLayout.itemAt(index).widget().setAttribute(Qt.WA_Hover)
+                self.resLayout.itemAt(index).widget().installEventFilter(self.resFilter)
+            except Exception:
+                pass
 
-        results.setLayout(layout)
+        self.resLayout.setAlignment(Qt.AlignCenter)
+        self.resLayout.setSpacing(60)
+
+        results.setLayout(self.resLayout)
 
         return results
 
@@ -341,7 +356,10 @@ Now you're ready to forecast some time series!
             statusText += str(lvl) + '. <b>' + model.enumname.replace('_', ' ') + '</b><br/>'
 
         # forecasting #
-        frequency = 10
+        try:
+            frequency = self.customOpt.options['frequency']
+        except Exception:
+            frequency = 8
         aic = True
         options['hw_gamma'] = True
         options['hw_model'] = 'additive'
@@ -376,6 +394,66 @@ Now you're ready to forecast some time series!
         self.status.setText('<br/>'.join(str(self.status.text()).split('<br/>')[:-1]) +
                             '<br/>Forecast complete.')
         self.modelCheck.setChecked(True)
+
+    #---- results -----#
+    def togglePlot(self):
+        if self.plotResult.isVisible():
+            self.plotResult.hide()
+            self.export.show()
+            self.showData.show()
+            self.resLayout.setSpacing(60)
+        else:
+            self.updateGraph()
+            self.plotResult.show()
+            self.export.hide()
+            self.showData.hide()
+            self.resLayout.setSpacing(5)
+
+    def toggleData(self):
+        if self.resData.isVisible():
+            self.export.show()
+            self.graph.show()
+            self.showData.show()
+            self.resData.hide()
+            self.resLayout.setSpacing(60)
+        else:
+            self.plotResult.hide()
+            self.graph.hide()
+            self.export.hide()
+            self.showData.show()
+            self.resData.show()
+            self.resLayout.setSpacing(5)
+
+            res = self.inverseWT()
+            max = len(self.data[0]) - 1
+            resText = '<table border="0" align="center" style="border-style: groove;">'
+            resText += '<tr><td align="center"><i>Initial</i></td><td align="center"><i>Forecast</i></td></tr>'
+            resText += '<tr><td align="center">...</td><td></td></tr>'
+            table = zip(self.data[0][max-10:max], res[max-10:max])
+            for i, j in table:
+                resText += '<tr>'
+                resText += '<td align="center">' + str(i) + '</td>'
+                resText += '<td align="center">' + str(j) + '</td>'
+                resText += '</tr>'
+
+            for e in res[max+1:max+10]:
+                resText += '<tr>'
+                resText += '<td align="center"></td>'
+                resText += '<td align="center">' + str(e) + '</td>'
+                resText += '</tr>'
+
+            resText += '<tr><td align="center"></td><td align="center">...</td></tr>'
+            resText += '</table>'
+
+            self.resData.setText(resText)
+
+    def inverseWT(self):
+        return pywt.waverec(update_dwt([e [1] for e in self.forecast], self.wavelet),
+                                            self.wavelet, mode=self.signalEx)
+
+    def updateGraph(self):
+        self.plotResult.updatePlot(self.inverseWT(), label='Simulation', color='r')
+        self.plotResult.updatePlot(self.data[0], label='Time series', color='b')
 
     def exportToXls(self):
         # opening file dialog
@@ -470,32 +548,30 @@ Now you're ready to forecast some time series!
                     row += 1
 
                 # forecast
-#                row = 0
-#                column += 1
-#                result_sheet.write(row, column, 'Forecast', headerStyle)
-#                result_sheet.col(column).width = COLUMN_WIDTH
-#                row += 1
-#                for item in self.parentWidget().resultingForecast:
-#                    result_sheet.write(row, column, item, style)
-#                    row += 1
-#
-#                row = 0
-#                column = 2
-#                self.parentWidget().resultingGraph.saveFigure('forecast', format='bmp')
-#
-#                result_sheet.insert_bitmap(RES + TEMP + 'forecast.bmp', row, column)
+                row = 0
+                column += 1
+                result_sheet.write(row, column, 'Forecast', headerStyle)
+                result_sheet.col(column).width = COLUMN_WIDTH
+                row += 1
+                for item in self.inverseWT():
+                    result_sheet.write(row, column, item, style)
+                    row += 1
+
+                row = 0
+                column = 2
+                self.updateGraph()
+                self.plotResult.saveFigure('forecast', format='bmp')
+
+                result_sheet.insert_bitmap(RES + TEMP + 'forecast.bmp', row, column)
 
                 # saving xls
                 try:
                     book.save(unicode(fileName))
-#                    self.parentWidget().messageInfo.showInfo('Saved as ' + unicode(fileName))
                 except Exception:
                     pass
-#                    self.parentWidget().messageInfo.showInfo('Could not save as ' + unicode(fileName), True)
 
             except Exception, e:
                 pass
-#                self.parentWidget().messageInfo.showInfo('Not enough data.', True)
 
     def checkData(self):
         if self.data is None:
@@ -561,6 +637,83 @@ class SeriesPreview(QDialog):
     def initComponents(self):
         self.setWindowFlags(Qt.Tool)
         self.setWindowTitle("Time series")
+
+        self.setStyleSheet('''QPushButton {
+                                color: #333;
+                                border: 1px solid #555;
+                                border-radius: 11px;
+                                padding: 2px;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #888);
+                                min-width: 80px;
+                            }
+                            QPushButton:hover {
+                                color: #fff;
+                                background: qradialgradient(cx: 0.3, cy: -0.4,
+                                fx: 0.3, fy: -0.4,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #bbb);}
+                            QPushButton:pressed {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}
+                            QPushButton:checked {
+                                background: qradialgradient(cx: 0.4, cy: -0.1,
+                                fx: 0.4, fy: -0.1,
+                                radius: 1.35, stop: 0 #fff, stop: 1 #ddd);}
+                            QListView::focus {
+                                border: 2px solid black;
+                                border-radius: 6px;
+                            }
+                            QScrollBar:vertical {
+                              width: 20px;
+                              border: 1px solid grey;
+                              border-radius: 6px;
+                              background-color: transparent;
+                              margin: 28px 0 28px 0;
+                            }
+                            QScrollBar::add-line:vertical {
+                              background: transparent;
+                              height: 32px;
+                              subcontrol-position: bottom;
+                              subcontrol-origin: margin;
+                            }
+                            QScrollBar::sub-line:vertical {
+                              background: transparent;
+                              height: 32px;
+                              subcontrol-position: top;
+                              subcontrol-origin: margin;
+                            }
+                            QScrollBar::up-arrow:vertical {
+                              width: 20px;
+                              height: 32px;
+                              background: transparent;
+                              image: url(../res/icons/arrow_up.png);
+                            }
+                            QScrollBar::up-arrow:hover {
+                              bottom: 2px;
+                            }
+                            QScrollBar::down-arrow:vertical {
+                              width: 20px;
+                              height: 32px;
+                              background: transparent;
+                              image: url(../res/icons/arrow_down.png);
+                            }
+                            QScrollBar::down-arrow:hover {
+                              top: 2px;
+                            }
+                            QScrollBar::handle:vertical {
+                                border-radius: 6px;
+                                background: url(../res/icons/handle.png) 0% center no-repeat;
+                                background-color: white;
+                                min-height: 32px;
+                            }
+                            QScrollBar::handle:hover {
+                                background: url(../res/icons/handle_hover.png) 0% center no-repeat;
+                                background-color: white;
+                                border: 1px solid gray;
+                            }''')
+
         self.list.setAlternatingRowColors(True)
         self.list.setStyleSheet('''QListView::item:selected:active {
                  background: qlineargradient(x1: 1, y1: 0, x2: 0, y2: 3, stop: 0 #cbdaf1, stop: 1 #bfcde4);
@@ -773,15 +926,15 @@ class CustomOption(QDialog):
             self.wavelet.setEnabled(True)
             self.lvls.setEnabled(True)
             self.signalEx.setEnabled(True)
-            self.periodic.setEnabled(True)
-            self.frequency.setEnabled(True)
+#            self.periodic.setEnabled(True)
+#            self.frequency.setEnabled(True)
          else:
             self.waveletFamily.setEnabled(False)
             self.wavelet.setEnabled(False)
             self.lvls.setEnabled(False)
             self.signalEx.setEnabled(False)
-            self.periodic.setEnabled(False)
-            self.frequency.setEnabled(False)
+#            self.periodic.setEnabled(False)
+#            self.frequency.setEnabled(False)
 
 ## Multi-model forecasting thread.
 class MultiModelThread(QThread):

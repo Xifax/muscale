@@ -55,14 +55,7 @@ Created on Mar 9, 2011
 #             TODO list            #
 ####################################
 
-#TODO: finish wizard
-#TODO: complete qss (spinbox)
-#TODO: fix sse, mse calculation errors
-#TODO: fix update DWT (line 325, wavelets)
 #TODO: complete methodical specification
-#TODO: refactor qss (move shared blocks to const)
-#TODO: use ftsa for errors calculation (add to Results Info)
-#TODO: allow custom interval for error calculation
 #TODO: fix error in modelling thread (model index out of data range)
 #TODO: automatic wavelet selection (Auto -> wavelet, decomposition lvl)
 #TODO: specify shortcuts index (and separate help index -> Info context menu)

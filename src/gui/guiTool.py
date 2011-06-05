@@ -364,7 +364,7 @@ class ToolsFrame(QWidget):
                             }
                             QScrollBar::handle:horizontal {
                                 border-radius: 6px;
-                                background: url(../res/icons/handle.png) 0% center no-repeat;
+                                background: url(../res/icons/handle_horizontal.png) 0% center no-repeat;
                                 background-color: white;
                                 min-width: 32px;
                             }
@@ -999,7 +999,7 @@ class ToolsFrame(QWidget):
     def resizeTableToFit(self):
         if self.tableWidget.columnCount() > 0:
             new_width = self.tableWidget.columnWidth(0) * self.tableWidget.columnCount()
-            self.resize(new_width + 75, self.height())  # self.width() - self.tableWidget.width() yields wrong results
+            self.resize(new_width + 84, self.height())  # self.width() - self.tableWidget.width() yields wrong results
 
     def plotItems(self):
         data = []

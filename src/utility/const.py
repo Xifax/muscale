@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.4.5'
+__version__ = '0.5.5'
 
 #----------- id -----------#
 _company = 'nonbyte'
@@ -271,3 +271,7 @@ FONTS_DICT = {'main': ('Consolas', 'ttf', 12),
 GRADIENT = 'background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,\
                                          stop:0 #eeeeee ,\
                                          stop:1 #cccccc  );'
+
+#--------- errors ----------$
+#E_METHODS = ['me', 'mpe', 'mae', 'mse', 'sse', 'smape', 'mrae', 'mase', 'mape', 'rmspe']
+E_METHODS = ['me', 'mpe', 'mae', 'smape', 'mrae', 'mase', 'mape', 'rmspe']
