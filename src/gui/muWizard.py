@@ -343,7 +343,7 @@ Now you're ready to forecast some time series!
             self.wCoefficients = self.wInitialCoefficients
 
         statusText += 'Wavelet: <b>' + self.wavelet.family_name + \
-                      '</b> (' + self.wavelet.name + ', ' + self.wavelet.symmetry + ', orthognal: ' + \
+                      '</b> (' + self.wavelet.name + ', ' + self.wavelet.symmetry + ', orthogonal: ' + \
                       str(self.wavelet.orthogonal) + ')<br/>'
 
         statusText += 'Discrete Wavelet Transfom: <b>' + str(wLevel + 1) + ' levels</b><br/>'
