@@ -194,6 +194,7 @@ class MuScaleMainDialog(QMainWindow):
 
         self.reconTS = QPushButton('Plot constructed model')
         self.plotInitial = QPushButton('Plot initial data')
+        self.plotBackup = QPushButton('Plot backup data')
         self.clearResult = QPushButton('Clear')
         self.infoResult = QPushButton('Info')
         self.resultingGraph = MplWidget(self.toolsFrame,
@@ -205,7 +206,8 @@ class MuScaleMainDialog(QMainWindow):
         self.reconsLayout.addWidget(self.reconTS, 0, 0, 1, 2)
         self.reconsLayout.addWidget(self.clearResult, 1, 0)
         self.reconsLayout.addWidget(self.infoResult, 1, 1)
-        self.reconsLayout.addWidget(self.plotInitial, 2, 0, 1, 2)
+        self.reconsLayout.addWidget(self.plotInitial, 2, 0)
+        self.reconsLayout.addWidget(self.plotBackup, 2, 1)
         self.reconsLayout.addWidget(self.forecastErrors, 3, 0, 1, 2)
         self.reconsLayout.addWidget(self.resultingGraph, 4, 0, 1, 2)
 
@@ -288,6 +290,7 @@ class MuScaleMainDialog(QMainWindow):
 
         # session variables #
         self.currentDataSet = []
+        self.backupData = None
         self.currentPlot = None
         self.multiModel = {}
         self.tmpConfig = {}
@@ -400,6 +403,7 @@ class MuScaleMainDialog(QMainWindow):
         self.infoResult.setMaximumHeight(constraint)
         self.clearResult.setMaximumHeight(constraint)
         self.plotInitial.setMaximumHeight(constraint)
+        self.plotBackup.setMaximumHeight(constraint)
         self.reconsLayout.setSpacing(2)
         self.reconsLayout.setMargin(5)
         self.forecastErrors.setAlignment(Qt.AlignCenter)
@@ -857,6 +861,7 @@ class MuScaleMainDialog(QMainWindow):
         # results #
         self.reconTS.clicked.connect(self.updateResultingTS)
         self.plotInitial.clicked.connect(self.updateResultingTSWithInitialData)
+        self.plotBackup.clicked.connect(self.updatePlotBackup)
         self.clearResult.clicked.connect(self.clearResultingGraph)
         self.infoResult.clicked.connect(self.showErrors)
 
@@ -2375,6 +2380,14 @@ class MuScaleMainDialog(QMainWindow):
         self.resultingGraph.show()
         self.showErrors()
 
+    def updatePlotBackup(self):
+        if self.backupData is not None:
+            self.resultingGraph.updatePlot(self.backupData, label='Initial data', color='b')
+            self.resultingGraph.show()
+            self.showErrors()
+        else:
+            self.messageInfo.showInfo('No backup data', True)
+
     def clearResultingGraph(self):
         self.resultingGraph.canvas.ax.clear()
         self.resultingGraph.canvas.draw()
@@ -2552,14 +2565,16 @@ class EditData(QDialog):
         self.preview = PlotWidget()
         self.togglePreview = QPushButton('Toggle preview')
         self.cancel = QPushButton('Close')
+        self.backup = QPushButton('Backup')
         self.apply = QPushButton('Update')
 
         self.layout = QGridLayout()
-        self.layout.addWidget(self.togglePreview, 0, 0, 1, 2)
-        self.layout.addWidget(self.preview, 1, 0, 1, 2)
-        self.layout.addWidget(self.list, 2, 0, 1, 2)
+        self.layout.addWidget(self.togglePreview, 0, 0, 1, 3)
+        self.layout.addWidget(self.preview, 1, 0, 1, 3)
+        self.layout.addWidget(self.list, 2, 0, 1, 3)
         self.layout.addWidget(self.apply, 3, 0)
-        self.layout.addWidget(self.cancel, 3, 1)
+        self.layout.addWidget(self.backup, 3, 1)
+        self.layout.addWidget(self.cancel, 3, 2)
         self.setLayout(self.layout)
 
         self.initComponents()
@@ -2619,6 +2634,7 @@ class EditData(QDialog):
 
     def initActions(self):
         self.apply.clicked.connect(self.applyChanges)
+        self.backup.clicked.connect(self.backupData)
         self.cancel.clicked.connect(self.close)
 
         self.list.itemDoubleClicked.connect(self.removeFromList)
@@ -2635,10 +2651,17 @@ class EditData(QDialog):
 
     def updateList(self):
         self.list.clear()
+        count = 1
         for item in self.workingSet:
+            label = QLabel("<font style='font-size: 7pt; color: gray'>" + str(count) + "</font>")
+            label.setAlignment(Qt.AlignTop)
+
             item = QListWidgetItem(str(item))
             item.setTextAlignment(Qt.AlignCenter)
             self.list.addItem(item)
+            self.list.setItemWidget(item, label)
+
+            count += 1
 
     def updatePlot(self, data, append=False):
         if not append:
@@ -2660,6 +2683,9 @@ class EditData(QDialog):
         self.data = (self.workingSet, self.data[1])
         self.parentWidget().currentDataSet = self.data
         self.close()
+
+    def backupData(self):
+        self.parentWidget().backupData = self.data[0]
 
     def removeFromList(self, item):
         self.workingSet.remove(float(item.text()))
