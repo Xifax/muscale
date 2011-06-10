@@ -311,7 +311,7 @@ def normalize_dwt_dimensions(coeffs):
     by_rows = zeros(shape=(len(coeffs), new_dimension)); i = 0
     for element in coeffs:
         new_element = copy(element)
-        new_element.resize(new_dimension, refcheck = False)
+        new_element.resize(new_dimension, refcheck=False)
         by_rows[i] = new_element; i += 1
     return copy(by_rows)
 

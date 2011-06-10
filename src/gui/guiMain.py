@@ -2334,7 +2334,7 @@ class MuScaleMainDialog(QMainWindow):
                                                   (d, len(self.wCoefficients)), True)
                     else:
                         self.resultingForecast = pywt.waverec(
-                                            update_dwt(self.processedWCoeffs, self.wavelet),
+                                            update_dwt(self.processedWCoeffs, self.wavelet, self.signalEx),
                                             self.wavelet, mode=self.signalEx)
                         self.resultingGraph.updatePlot(self.resultingForecast, label='Simulation', color='r')
                 else:
