@@ -2404,7 +2404,7 @@ class MuScaleMainDialog(QMainWindow):
                 text += '</tr><tr>'
 
                 for error in errors.itervalues():
-                    text += '<td align="center">' + str(error) + '</td>'
+                    text += '<td align="center">%2.3f</td>' % error
                 text += '</tr>'
                 text += '</table>'
 

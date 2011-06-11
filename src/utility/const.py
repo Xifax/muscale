@@ -12,7 +12,7 @@ except ImportError, e:
 
 #--------- global ---------#
 __name__    = 'muScale'
-__version__ = '0.5.9'
+__version__ = '0.6.0'
 
 #----------- id -----------#
 _company = 'nonbyte'

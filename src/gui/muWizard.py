@@ -420,6 +420,7 @@ Now you're ready to forecast some time series!
             self.showData.show()
             self.resData.hide()
             self.resLayout.setSpacing(60)
+            self.adjustSize()
         else:
             self.plotResult.hide()
             self.graph.hide()
@@ -450,6 +451,7 @@ Now you're ready to forecast some time series!
             resText += '</table>'
 
             self.resData.setText(resText)
+            self.adjustSize()
 
     def inverseWT(self):
         return pywt.waverec(update_dwt([e [1] for e in self.forecast], self.wavelet),
@@ -595,13 +597,16 @@ Now you're ready to forecast some time series!
             except Exception:
                 pass
 
+    def updatePlot(self):
+        self.updateGraph()
+
     def initializePage(self, p_int):
         nop = lambda: None
 
         {0: nop,
          1: self.checkData,
          2: self.checkModel,
-         3: nop,
+         3: self.updatePlot,
         }[p_int]()
 
 class WizardPageEx(QWizardPage):

@@ -143,7 +143,7 @@ def select_levels_from_swt(coeffs):
                 /  \
              {0} <- {1} <- last levels
              / \
-        {0,0}  {0,1) <- penultimate
+        {0,0}  {0,1} <- penultimate
         /   \
         .....   <- first
 

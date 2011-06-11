@@ -335,7 +335,6 @@ def model_errors(data, new_data, r):
 
     for method in E_METHODS:
         try:
-#            r('e <- error(forecast=forecast, true=data, method=%s' % Str4R(method))
             r('e <- error(forecast=fc, forecastbench=fb, true=data, method=%s)' % Str4R(method))
             errors[method] = r.e
         except Exception:
