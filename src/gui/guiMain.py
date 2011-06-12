@@ -1180,11 +1180,15 @@ class MuScaleMainDialog(QMainWindow):
             # check if odd
             if len(self.currentDataSet[0]) % 2 == 1:
                 self.currentDataSet = ([0.0] + self.currentDataSet[0], self.currentDataSet[1])
-                
-        lvl = calculate_suitable_lvl(self.currentDataSet[0],
-                                     pywt.Wavelet(unicode(self.comboWavelist.currentText())), self.R, swt)
-        self.spinLevels.setValue(lvl + 1)
-        self.messageInfo.showInfo('Decomposition set at ' + str(lvl + 1) + ' level(s)')
+
+        try:
+            lvl = calculate_suitable_lvl(self.currentDataSet[0],
+                                         pywt.Wavelet(unicode(self.comboWavelist.currentText())), self.R, swt)
+            self.spinLevels.setValue(lvl + 1)
+            self.messageInfo.showInfo('Decomposition set at ' + str(lvl + 1) + ' level(s)')
+        except Exception, e:
+            log.exception(traceback.format_exc(e))
+            self.spinLevels.setValue(2)
 
     def selectWavelet(self):
         method = 'median'
@@ -1241,11 +1245,17 @@ class MuScaleMainDialog(QMainWindow):
             current_max = new_max
         else:
             pass
-        
-        self.spinLevels.setMaximum(current_max)
+
+        if current_max > 1:
+            self.spinLevels.setMaximum(current_max)
+        else:
+            self.spinLevels.setMaximum(2)
         self.spinLevels.setToolTip(' '.join(str(self.spinLevels.toolTip()).split(' ')[:-1]) +
                                    ' <b>' + str(current_max) + '</b>')
-        self.spinLevels.setValue(current_max/2 + 1)
+        if current_max/2 > 1:
+            self.spinLevels.setValue(current_max/2 + 1)
+        else:
+            self.spinLevels.setValue(2)
 
     def waveletTransform(self):
         # stationary decomposition flag
@@ -2395,7 +2405,10 @@ class MuScaleMainDialog(QMainWindow):
     def showErrors(self):
         if self.infoResult.isChecked():
             try:
-                errors = model_errors(self.currentDataSet[0], self.resultingForecast, self.R)
+                if self.backupData is not None:
+                    errors = model_errors(self.backupData, self.resultingForecast, self.R)
+                else:
+                    errors = model_errors(self.currentDataSet[0], self.resultingForecast, self.R)
 
                 text = '<table border="1" align="center" style="border-style: groove;">'
                 text += '<tr>'

@@ -329,7 +329,12 @@ def model_error(data, new_data, r):
 def model_errors(data, new_data, r):
     errors = {}
     r('len <- length( %s )' % Str4R(data))
-    r('fc <- %s[1:len]' % Str4R(new_data))
+
+    if len(new_data) < len(data):
+        dif = len(data) - len(new_data)
+        r('fc <- c( %s, array(0, %s))' % (Str4R(new_data), Str4R(dif)))
+    else:
+        r('fc <- %s[1:len]' % Str4R(new_data))
     r.data = data
     r('fb <- array(0, len)')
 
