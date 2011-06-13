@@ -1974,6 +1974,8 @@ class MuScaleMainDialog(QMainWindow):
             ar_orderLbl.setAlignment(Qt.AlignCenter)
             optMod.ar_order = QSpinBox()
             optMod.ar_order.setMinimum(1)
+            optMod.ar_order.setMaximum(150)
+            optMod.ar_order.setValue(99)
 
             optMod.ar_useAIC.setChecked(True)
             arOrderShow()
@@ -2007,6 +2009,8 @@ class MuScaleMainDialog(QMainWindow):
             lsf_orderLbl.setAlignment(Qt.AlignCenter)
             optMod.lsf_order = QSpinBox()
             optMod.lsf_order.setMinimum(1)
+            optMod.lsf_order.setMaximum(250)
+            optMod.lsf_order.setValue(30)
 
             lsfayout.addWidget(lsf_orderLbl)
             lsfayout.addWidget(optMod.lsf_order)
@@ -2050,14 +2054,14 @@ class MuScaleMainDialog(QMainWindow):
             optMod.arima_orderCheck.clicked.connect(showOrder)
             optMod.arima_order = QLineEdit()
             optMod.arima_order.setInputMask('9,9,9')
-            optMod.arima_order.setText('1,0,0')
+            optMod.arima_order.setText('6,0,9')
             optMod.arima_order.setMaximumWidth(80)
 
             optMod.arima_seasonalOrderCheck = QCheckBox('Seasonal orders')
             optMod.arima_seasonalOrderCheck.clicked.connect(showOrder)
             optMod.arima_seasonalOrder = QLineEdit()
             optMod.arima_seasonalOrder.setInputMask('9,9,9')
-            optMod.arima_seasonalOrder.setText('0,0,1')
+            optMod.arima_seasonalOrder.setText('9,0,1')
             optMod.arima_seasonalOrder.setMaximumWidth(80)
             # should also add period
 

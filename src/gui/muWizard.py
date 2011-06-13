@@ -364,14 +364,20 @@ Now you're ready to forecast some time series!
             frequency = self.customOpt.options['frequency']
         except Exception:
             frequency = 8
-        aic = True
+        aic = False
         options['hw_gamma'] = True
         options['hw_model'] = 'additive'
         options['hw_period'] = frequency
         options['ar_aic'] = aic
         options['ar_method'] = 'burg'
-        options['arima_auto'] = True
+        options['ar_order'] = 50
+        options['arima_auto'] = False
+        options['arima_nons'] = True
+        options['arima_nons_order'] = [6, 0, 9]
+        options['arima_seas'] = True
+        options['arima_seas_order'] = [9, 0, 1]
         options['lsf_aic'] = aic
+        options['lsf_order'] = 30
         options['ets_auto'] = aic
         options['ets_period'] = frequency
         options['sts_type'] = 'trend'
